@@ -33,6 +33,7 @@
 | 4 | `dep_6b05740f201acc1704885f9d` | 补充 RCS 3.x/4.x 说明 | succeeded |
 | 5 | `dep_6b057ce1591af5b4d4bf595c` | 新增厂商手册速览 20 篇 + 首页入口 | succeeded |
 | 6 | `dep_6b057dffd416e5eb3d6efa17` | 私有手册归档站上线（20 份脱敏 PDF） | succeeded |
+| 7 | `dep_6b0580fda492997f62354cda` | 取消独立速览区，20 篇厂商笔记并入主库六大分类 | succeeded |
 
 ### 私有归档站
 
