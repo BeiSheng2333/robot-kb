@@ -45,9 +45,9 @@ python -m http.server 8000
 | 通道 | 方式 | 说明 |
 |-|-|-|
 | 主站 | Trae 部署工具 | 站点 ID `37ln30asn2rfopf3ej8`，所有人可见 |
-| 备用 | GitHub Pages | 推送 `main` 后由 Actions 自动发布 |
+| 镜像 | GitHub Pages | 推送 `main` 后自动发布：https://beisheng2333.github.io/robot-kb/ |
 
-Pages 注意事项：私有仓库启用 Pages 需要 GitHub Pro；免费账号需将仓库改为 public，或仅保留工作流不启用 Pages。
+GitHub Pages 直接从 `main` 分支根目录发布，无需构建。`.nojekyll` 用于跳过 Jekyll 处理，保证静态文件原样输出。
 
 ## 约定
 

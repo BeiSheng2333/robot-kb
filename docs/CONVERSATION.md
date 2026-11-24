@@ -20,7 +20,8 @@
 | 访问地址 | https://37ln30asn2rfopf3ej8.traesite.cn |
 | 可见性 | 所有人可见 |
 | 站点类型 | StaticWeb |
-| GitHub 仓库 | `BeiSheng2333/robot-kb`（private） |
+| GitHub 仓库 | `BeiSheng2333/robot-kb`（public） |
+| GitHub Pages | https://beisheng2333.github.io/robot-kb/ |
 
 ### 部署记录
 
@@ -49,7 +50,8 @@
 | 视觉 | 浅灰底 + 白色内容面 + 青色强调 + 等宽标签 | 与工程文档气质匹配 |
 | 站点命名 | 现场笔记 · 机器人运维 | 突出个人一线经验与运维定位 |
 | 地址策略 | 平台地址不变，外挂短链 301 | 平台不支持自定义域名 |
-| 仓库策略 | 私有仓库 + 文档 + Pages 工作流 | 先保留完整上下文，发布方式可切换 |
+| 仓库策略 | 公开仓库 + 文档 + Pages 镜像 | 免费账号下私有仓库无法启用 Pages |
+| 发布通道 | Pages 采用分支发布（main / 根目录） | Actions 制品方式部署失败，分支发布更稳定 |
 
 ## 五、短链方案要点
 
@@ -62,11 +64,11 @@
 
 - [ ] 确定短链域名与落地方式（Cloudflare / DNS 转发）。
 - [ ] 补充文档：CAN 总线异常、充电桩对接、调度联调、固件升级回滚。
-- [ ] 视需要将 `robot-kb` 设为 public 以启用免费 GitHub Pages。
+- [x] 将 `robot-kb` 设为 public 并启用免费 GitHub Pages。
 - [ ] 维护「物理设备 ↔ 稳定节点名 ↔ 用途」对照表模板。
 
 ## 七、已知限制
 
 - 平台访问地址由站点 ID 生成，不可修改，也不支持自定义域名。
 - 原始对话记录不可导出，本文为人工整理版本，非逐字稿。
-- 私有仓库启用 GitHub Pages 需要 Pro 账号。
+- GitHub Pages 使用分支发布，`README.md`、`docs/` 也会一并可访问。
