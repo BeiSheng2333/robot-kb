@@ -39,14 +39,14 @@
               <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
             </svg>
             <input id="searchInput" type="search" placeholder="搜索文档：超时、定位漂移、ttyUSB、验收…" aria-label="搜索知识库文档">
-            <p class="search-hint" id="searchHint">共 5 篇文档 · 输入关键词即可过滤</p>
+            <p class="search-hint" id="searchHint">共 25 篇文档 · 输入关键词即可过滤</p>
           </div>
         </div>
 
         <aside class="hero-side">
           <dl>
-            <dt>收录</dt><dd>5 篇实战文档 · 20 篇手册速览</dd>
-            <dt>方向</dt><dd>实施 / 通信 / 定位 / 硬件 / 方法论</dd>
+            <dt>收录</dt><dd>25 篇文档</dd>
+            <dt>方向</dt><dd>实施 / 通信 / 地图 / 配置 / 硬件 / 排障</dd>
             <dt>适用</dt><dd>CentOS 7.8 · RCS 3.x/4.x · 潜伏叉车</dd>
             <dt>维护</dt><dd>一线实施工程师，持续更新</dd>
           </dl>
@@ -64,40 +64,41 @@
 
       <div class="cat-grid" id="catGrid">
         <button class="cat-card" type="button" data-cat="实施部署">
-          <div class="cat-top"><span class="cat-num">01</span><span class="cat-count">1 篇</span></div>
+          <div class="cat-top"><span class="cat-num">01</span><span class="cat-count">5 篇</span></div>
           <h3>实施部署</h3>
-          <p>现场勘察、环境搭建、参数配置与交付验收的完整清单。</p>
+          <p>现场勘察、环境搭建、平台部署、业务配置与交付验收的完整流程。</p>
         </button>
 
-        <button class="cat-card" type="button" data-cat="通信与网络">
-          <div class="cat-top"><span class="cat-num">02</span><span class="cat-count">1 篇</span></div>
-          <h3>通信与网络</h3>
-          <p>DDS 配置、QoS 不匹配、MTU 与时间同步导致的超时丢包。</p>
+        <button class="cat-card" type="button" data-cat="通信与接口">
+          <div class="cat-top"><span class="cat-num">02</span><span class="cat-count">4 篇</span></div>
+          <h3>通信与接口</h3>
+          <p>DDS 与 QoS 丢包超时，以及调度系统 REST / HTTP API、低代码对接。</p>
         </button>
 
-        <button class="cat-card" type="button" data-cat="导航与定位">
-          <div class="cat-top"><span class="cat-num">03</span><span class="cat-count">1 篇</span></div>
-          <h3>导航与定位</h3>
-          <p>定位漂移、重定位失败、地图与环境变化引发的异常。</p>
+        <button class="cat-card" type="button" data-cat="地图与定位">
+          <div class="cat-top"><span class="cat-num">03</span><span class="cat-count">7 篇</span></div>
+          <h3>地图与定位</h3>
+          <p>SLAM 建图、地图编辑核查、激光标定、方向配置与定位漂移排查。</p>
+        </button>
+
+        <button class="cat-card" type="button" data-cat="配置与工具">
+          <div class="cat-top"><span class="cat-num">04</span><span class="cat-count">3 篇</span></div>
+          <h3>配置与工具</h3>
+          <p>主控配置项、终端连接工具与监控客户端的常用操作速查。</p>
         </button>
 
         <button class="cat-card" type="button" data-cat="硬件与外设">
-          <div class="cat-top"><span class="cat-num">04</span><span class="cat-count">1 篇</span></div>
+          <div class="cat-top"><span class="cat-num">05</span><span class="cat-count">2 篇</span></div>
           <h3>硬件与外设</h3>
-          <p>串口、CAN、设备节点命名与上电时序相关的现场问题。</p>
+          <p>串口 CAN 设备命名、外设对接（呼叫器、自动门、电梯）相关现场问题。</p>
         </button>
 
         <button class="cat-card" type="button" data-cat="排障方法">
-          <div class="cat-top"><span class="cat-num">05</span><span class="cat-count">1 篇</span></div>
+          <div class="cat-top"><span class="cat-num">06</span><span class="cat-count">4 篇</span></div>
           <h3>排障方法</h3>
-          <p>从现象到根因的分层定位思路，以及证据采集的规范做法。</p>
+          <p>从现象到根因的分层定位、告警排查、日志采集与反馈规范。</p>
         </button>
 
-        <a class="cat-card" href="posts/vendor/index.html">
-          <div class="cat-top"><span class="cat-num">06</span><span class="cat-count">20 篇</span></div>
-          <h3>厂商手册速览</h3>
-          <p>部署、接口、地图标定、配置工具与排障的手册整理版，按分类归档。</p>
-        </a>
       </div>
     </div>
   </section>
@@ -111,19 +112,300 @@
 
       <div class="filter-bar" id="filterBar">
         <button class="chip-btn is-active" type="button" data-cat="全部">全部</button>
-        <button class="chip-btn" type="button" data-cat="排障方法">排障方法</button>
         <button class="chip-btn" type="button" data-cat="实施部署">实施部署</button>
-        <button class="chip-btn" type="button" data-cat="通信与网络">通信与网络</button>
-        <button class="chip-btn" type="button" data-cat="导航与定位">导航与定位</button>
+        <button class="chip-btn" type="button" data-cat="通信与接口">通信与接口</button>
+        <button class="chip-btn" type="button" data-cat="地图与定位">地图与定位</button>
+        <button class="chip-btn" type="button" data-cat="配置与工具">配置与工具</button>
         <button class="chip-btn" type="button" data-cat="硬件与外设">硬件与外设</button>
-        <span class="filter-meta" id="filterMeta">显示 5 / 5</span>
+        <button class="chip-btn" type="button" data-cat="排障方法">排障方法</button>
+        <span class="filter-meta" id="filterMeta">显示 25 / 25</span>
       </div>
 
       <div class="notes" id="notesList">
-        <a class="note-row" href="posts/amr-localization-drift.html" data-cat="导航与定位"
+        <a class="note-row" href="posts/vendor/v20.html" data-cat="通信与接口"
+           data-text="ClientView 低代码页面配置与接口绑定 通信与接口 ClientView PDA 布局配置 元件标识 请求属性 接口标识 表格读写 appId">
+          <div class="note-side">
+            <span class="note-cat">通信与接口</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>ClientView 低代码页面配置与接口绑定</h3>
+            <p>从项目、服务、应用到布局与菜单，说明如何用低代码方式配置工作站和 PDA 页面并对接接口。</p>
+            <div class="note-tags"><span>ClientView</span><span>PDA</span><span>布局配置</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v19.html" data-cat="配置与工具"
+           data-text="终端工具连接机器人与服务端的常用操作 配置与工具 PuTTY MobaXterm SSH sz rz vim castor_cli SFTP">
+          <div class="note-side">
+            <span class="note-cat">配置与工具</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>终端工具连接机器人与服务端的常用操作</h3>
+            <p>介绍用 PuTTY 和 MobaXterm 登录机器人或服务器、上传下载文件、开打印和在线改配置的常用手法。</p>
+            <div class="note-tags"><span>PuTTY</span><span>MobaXterm</span><span>SSH</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v18.html" data-cat="通信与接口"
+           data-text="调度系统 HTTP API 签名与任务接口 通信与接口 HTTP API HMAC-SHA256 签名 X-lr-appkey 任务组 任务下发 SPI 回调 状态码">
+          <div class="note-side">
+            <span class="note-cat">通信与接口</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>调度系统 HTTP API 签名与任务接口</h3>
+            <p>面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。</p>
+            <div class="note-tags"><span>HTTP API</span><span>HMAC-SHA256</span><span>签名</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v17.html" data-cat="地图与定位"
+           data-text="叉车激光标定与多车一致性调整 地图与定位 激光标定 基准车 参考线 安装偏差 运动中心 多车一致性 标定值 全向叉车">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>叉车激光标定与多车一致性调整</h3>
+            <p>以基准车参考线为基准逐台标定激光安装偏差，使多车在同一储位点的停车姿态保持一致。</p>
+            <div class="note-tags"><span>激光标定</span><span>基准车</span><span>参考线</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v16.html" data-cat="地图与定位"
+           data-text="L-SLAM 地图核查与轮廓优化 地图与定位 L-SLAM 地图核查 激光回放 轮廓差异 替换裁剪 融合裁剪 激光无效区 定位干扰">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>L-SLAM 地图核查与轮廓优化</h3>
+            <p>介绍用激光回放与地图核查比对轮廓差异、优化地图并排查定位干扰的操作步骤与判断标准。</p>
+            <div class="note-tags"><span>L-SLAM</span><span>地图核查</span><span>激光回放</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v15.html" data-cat="地图与定位"
+           data-text="L-SLAM 建图流程与路径规划 地图与定位 L-SLAM 导航建图 闭环 路径规划 地图分辨率 长廊 反光板 离线建图">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>L-SLAM 建图流程与路径规划</h3>
+            <p>说明 L-SLAM 建图的适用评估、在线与离线流程、闭环路径规划及长廊等特殊场景的处理要点。</p>
+            <div class="note-tags"><span>L-SLAM</span><span>导航建图</span><span>闭环</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v14.html" data-cat="排障方法"
+           data-text="机器人端与平台端日志种类及下载方法 排障方法 日志 agv_log evt rcd TRACE IAS OPS coredump 日志打包">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>机器人端与平台端日志种类及下载方法</h3>
+            <p>说明机器人端与平台端各类日志的含义、命名时间规则、下载入口，以及临时开启 TRACE 的方法。</p>
+            <div class="note-tags"><span>日志</span><span>agv_log</span><span>evt</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v13.html" data-cat="排障方法"
+           data-text="现场问题反馈与排查规范 排障方法 问题反馈 日志 TRACE ping_cnt 规划库 锁格 自动门 电梯 core-dump">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>现场问题反馈与排查规范</h3>
+            <p>把现场问题按统一模板描述并附上关键日志与排查证据，缩短定位与升级处理的时间，减少反复沟通。</p>
+            <div class="note-tags"><span>问题反馈</span><span>日志</span><span>TRACE</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v12.html" data-cat="配置与工具"
+           data-text="监控客户端登录与现场管控操作要点 配置与工具 监控客户端 RCS 端口 预设封锁区 一键收工 一键关机 地图背景 路径连通性">
+          <div class="note-side">
+            <span class="note-cat">配置与工具</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>监控客户端登录与现场管控操作要点</h3>
+            <p>说明监控客户端如何登录平台、录制现场画面，并用封锁区、收工、关机和路径查询完成日常运维。</p>
+            <div class="note-tags"><span>监控客户端</span><span>RCS</span><span>端口</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v11.html" data-cat="实施部署"
+           data-text="潜伏机器人平台搭建与任务配置 实施部署 平台部署 地图配置 设备注册 货架绑定 任务编排 模拟器 第三方通讯 上线">
+          <div class="note-side">
+            <span class="note-cat">实施部署</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>潜伏机器人平台搭建与任务配置</h3>
+            <p>从平台登录到地图、设备、货架、机器人和任务流程的完整搭建顺序，适合新现场首次部署参照。</p>
+            <div class="note-tags"><span>平台部署</span><span>地图配置</span><span>设备注册</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v10.html" data-cat="排障方法"
+           data-text="叉车机器人常见告警排查 排障方法 叉车机器人 平台失联 电池过放 CAN 线 激光误检测 读码外参 充电故障 告警排查">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>叉车机器人常见告警排查</h3>
+            <p>按告警类别整理叉车机器人现场排查顺序，覆盖失联、能源、举升、导航、安全与声光故障。</p>
+            <div class="note-tags"><span>叉车机器人</span><span>平台失联</span><span>电池过放</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v09.html" data-cat="硬件与外设"
+           data-text="外设对接：呼叫器、自动门与电梯配置 硬件与外设 外设管理 呼叫器 自动门 电梯 WCS 任务模板 跨楼层 IO 配置">
+          <div class="note-side">
+            <span class="note-cat">硬件与外设</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>外设对接：呼叫器、自动门与电梯配置</h3>
+            <p>整理外设经 TCP/WCS 接入调度系统的链路，以及呼叫器、自动门、电梯的配置与任务模板编排。</p>
+            <div class="note-tags"><span>外设管理</span><span>呼叫器</span><span>自动门</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v08.html" data-cat="地图与定位"
+           data-text="叉取机器人 SLAM 建图与上线 地图与定位 叉取机器人 SLAM 建图 反光条 离线建图 地图旋转 拓扑地图 上线配置 灯语">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>叉取机器人 SLAM 建图与上线</h3>
+            <p>覆盖叉取机器人从反光条布置、离线建图到平台上线与灯语排障的完整操作顺序和判断标准。</p>
+            <div class="note-tags"><span>叉取机器人</span><span>SLAM 建图</span><span>反光条</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v07.html" data-cat="实施部署"
+           data-text="调度系统安装、升级与配套软件部署 实施部署 安装部署 License 补丁升级 PostgreSQL SQLite 监控客户端 PDA 端口">
+          <div class="note-side">
+            <span class="note-cat">实施部署</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>调度系统安装、升级与配套软件部署</h3>
+            <p>说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。</p>
+            <div class="note-tags"><span>安装部署</span><span>License</span><span>补丁升级</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v06.html" data-cat="地图与定位"
+           data-text="机器人点位方向与货架方向配置 地图与定位 点位方向 货架方向 旋转控制 adjust_type 点配置 刷地图 允许旋转 货架结构">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>机器人点位方向与货架方向配置</h3>
+            <p>说明点位方向、货架方向与旋转控制的配置关系，用于解决取放货姿态与货架方向不生效的问题。</p>
+            <div class="note-tags"><span>点位方向</span><span>货架方向</span><span>旋转控制</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v05.html" data-cat="地图与定位"
+           data-text="L-SLAM 地图编辑要点 地图与定位 L-SLAM 地图旋转 地图偏移 轮廓编辑 地图拼接 特征区 激光无效区 车道线">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>L-SLAM 地图编辑要点</h3>
+            <p>整理 L-SLAM 地图的旋转调平、偏移换算、轮廓清理、拼接与特征区设置顺序，并给出现场判据。</p>
+            <div class="note-tags"><span>L-SLAM</span><span>地图旋转</span><span>地图偏移</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v04.html" data-cat="实施部署"
+           data-text="潜伏机器人典型业务场景部署 实施部署 潜伏机器人 盲举 探测载具 缓存递进 巷道 地图切换 跨地图充电 外设申请">
+          <div class="note-side">
+            <span class="note-cat">实施部署</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>潜伏机器人典型业务场景部署</h3>
+            <p>按载具形态与业务目标梳理潜伏机器人的典型部署方案，给出业务配置、流程编号与任务下发要点。</p>
+            <div class="note-tags"><span>潜伏机器人</span><span>盲举</span><span>探测载具</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v03.html" data-cat="配置与工具"
+           data-text="主控配置文件 castor_conf 配置项速查 配置与工具 castor_conf sensor_conf underpan work_mode navi_conf energy_conf SSH 举升参数">
+          <div class="note-side">
+            <span class="note-cat">配置与工具</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>主控配置文件 castor_conf 配置项速查</h3>
+            <p>梳理机器人主控配置文件的分组结构、常用配置项取值与改动后的验证方法，便于现场核对参数。</p>
+            <div class="note-tags"><span>castor_conf</span><span>sensor_conf</span><span>underpan</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v02.html" data-cat="实施部署"
+           data-text="叉取机器人地图规划与业务部署 实施部署 拓扑地图 叉车等待点 储位坐标 弧线设计 货架绑定 巷道 任务模板 能力集">
+          <div class="note-side">
+            <span class="note-cat">实施部署</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>叉取机器人地图规划与业务部署</h3>
+            <p>从拓扑地图、点位坐标到叉车参数、巷道任务，说明叉取机器人上线前的配置顺序与易错点。</p>
+            <div class="note-tags"><span>拓扑地图</span><span>叉车等待点</span><span>储位坐标</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v01.html" data-cat="通信与接口"
+           data-text="调度系统与上层平台的 REST 接口对接 通信与接口 REST 任务下发 回调通知 reqCode 结果码 绑定解绑 告警推送 JSON">
+          <div class="note-side">
+            <span class="note-cat">通信与接口</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>调度系统与上层平台的 REST 接口对接</h3>
+            <p>梳理调度系统对外提供的 REST 接口、回调约定与结果码，帮现场一次性把任务链路调通。</p>
+            <div class="note-tags"><span>REST</span><span>任务下发</span><span>回调通知</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/amr-localization-drift.html" data-cat="地图与定位"
            data-text="AMR 定位漂移 定位丢失 重定位 地图 激光 点云 轮速 里程计 外参 初始位姿 导航">
           <div class="note-side">
-            <span class="note-cat">导航与定位</span>
+            <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-22</span>
           </div>
           <div class="note-main">
@@ -134,10 +416,10 @@
           <span class="note-arrow">→</span>
         </a>
 
-        <a class="note-row" href="posts/ros2-comm-timeout.html" data-cat="通信与网络"
+        <a class="note-row" href="posts/ros2-comm-timeout.html" data-cat="通信与接口"
            data-text="ROS 2 通信超时 丢包 DDS QoS RMW 中间件 话题 延迟 抖动 MTU 时间同步 多播 multicast">
           <div class="note-side">
-            <span class="note-cat">通信与网络</span>
+            <span class="note-cat">通信与接口</span>
             <span class="note-date">2026-11-18</span>
           </div>
           <div class="note-main">
@@ -189,6 +471,7 @@
           </div>
           <span class="note-arrow">→</span>
         </a>
+
       </div>
 
       <div class="empty-state" id="emptyState">没有匹配的文档，换个关键词或选择“全部”试试。</div>

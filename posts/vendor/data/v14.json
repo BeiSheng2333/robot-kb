@@ -1,10 +1,20 @@
 {
   "id": "v14",
   "title": "机器人端与平台端日志种类及下载方法",
-  "category": "运维与排障",
+  "category": "排障方法",
   "lede": "说明机器人端与平台端各类日志的含义、命名时间规则、下载入口，以及临时开启 TRACE 的方法。",
   "source": "内部操作手册 V1.2，2025-05",
-  "keywords": ["日志", "agv_log", "evt", "rcd", "TRACE", "IAS", "OPS", "coredump", "日志打包"],
+  "keywords": [
+    "日志",
+    "agv_log",
+    "evt",
+    "rcd",
+    "TRACE",
+    "IAS",
+    "OPS",
+    "coredump",
+    "日志打包"
+  ],
   "sections": [
     {
       "h": "适用场景与前置条件",

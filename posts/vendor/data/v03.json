@@ -4,7 +4,16 @@
   "category": "配置与工具",
   "lede": "梳理机器人主控配置文件的分组结构、常用配置项取值与改动后的验证方法，便于现场核对参数。",
   "source": "内部配置说明，2020",
-  "keywords": ["castor_conf", "sensor_conf", "underpan", "work_mode", "navi_conf", "energy_conf", "SSH", "举升参数"],
+  "keywords": [
+    "castor_conf",
+    "sensor_conf",
+    "underpan",
+    "work_mode",
+    "navi_conf",
+    "energy_conf",
+    "SSH",
+    "举升参数"
+  ],
   "sections": [
     {
       "h": "适用场景与前置条件",

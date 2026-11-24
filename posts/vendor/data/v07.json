@@ -1,10 +1,19 @@
 {
   "id": "v07",
   "title": "调度系统安装、升级与配套软件部署",
-  "category": "系统与部署",
+  "category": "实施部署",
   "lede": "说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。",
   "source": "内部操作手册 V1.0，2023-09",
-  "keywords": ["安装部署", "License", "补丁升级", "PostgreSQL", "SQLite", "监控客户端", "PDA", "端口"],
+  "keywords": [
+    "安装部署",
+    "License",
+    "补丁升级",
+    "PostgreSQL",
+    "SQLite",
+    "监控客户端",
+    "PDA",
+    "端口"
+  ],
   "sections": [
     {
       "h": "适用场景与前置条件",

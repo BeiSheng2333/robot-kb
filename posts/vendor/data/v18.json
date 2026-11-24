@@ -1,10 +1,19 @@
 {
   "id": "v18",
   "title": "调度系统 HTTP API 签名与任务接口",
-  "category": "接口与对接",
+  "category": "通信与接口",
   "lede": "面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。",
   "source": "内部接口文档 V4.1（时间以修订记录为准）",
-  "keywords": ["HTTP API", "HMAC-SHA256", "签名", "X-lr-appkey", "任务组", "任务下发", "SPI 回调", "状态码"],
+  "keywords": [
+    "HTTP API",
+    "HMAC-SHA256",
+    "签名",
+    "X-lr-appkey",
+    "任务组",
+    "任务下发",
+    "SPI 回调",
+    "状态码"
+  ],
   "sections": [
     {
       "h": "适用场景与对接准备",
