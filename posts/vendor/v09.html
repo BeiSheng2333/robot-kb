@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外设对接：呼叫器、自动门与电梯配置 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="整理外设经 TCP/WCS 接入调度系统的链路，以及呼叫器、自动门、电梯的配置与任务模板编排。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html" class="active">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>接口与对接</span></div>
+      <h1>外设对接：呼叫器、自动门与电梯配置</h1>
+      <p class="lede">整理外设经 TCP/WCS 接入调度系统的链路，以及呼叫器、自动门、电梯的配置与任务模板编排。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2023-09</span>
+        <span class="chip">接口与对接</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>接口与对接目录</summary>
+        <nav>
+          <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+          <a href="v09.html" class="active">外设对接：呼叫器、自动门与电梯配置</a>
+          <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+          <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与通信链路</h2>
+        <p>外设默认先以 TCP 与 WCS 对接，再由 WCS 通过 HTTP 转发给调度系统；若外设要与调度系统直接通信，则按本章链路配置。</p><ul><li>该模式下第三方类型选择 WCS，调度系统内置路径信息，无需再填 WCS 地址。</li><li>外设编号、IP、端口必须与现场设备一致，添加后要打开启用开关。</li><li>任务开始、走出储位、任务完成、任务取消四类通知的方法名需与第三方协商后填入任务模板。</li><li>通知开关保持开启，方法名填写协商结果，例如任务开始约定为 start。</li></ul>
+
+        <h2 id="s2">呼叫器接入</h2>
+        <ul><li>在“系统模型 &gt; 外设管理 &gt; 呼叫器”添加，填写编号、名称、IP 地址。</li><li>按钮功能支持三种：执行下一步任务、生成任务单、自定义。</li><li>执行下一步任务：呼叫站点填写下一步要到达的点位。</li><li>生成任务单：选择具体任务模板，站点集合支持点到点、点到区域、点到策略。</li><li>自定义：填写接口文档中的方法名，并逐个添加该接口需要的属性。</li><li>IO 配置中按钮序号按与天线的距离排列，最近的按钮序号为 0，越远序号越大。</li></ul>
+
+        <h2 id="s3">自动门接入</h2>
+        <ol><li>在“系统模型 &gt; 外设管理 &gt; 自动门”新增，填写编号、所属地图、IP 与端口并启用。</li><li>对已添加的自动门点击“框选”，在地图上圈出自动门作用区域。</li><li>在“服务管理 &gt; WCS 获取能力集 &gt; 设备配置”中，按自动门实际通信协议选择对应设备配置。</li><li>按下发的自动门报文规范完成报文配置后再联调开关门动作。</li></ol>
+
+        <h2 id="s4">电梯接入与启用</h2>
+        <ul><li>在“系统模型 &gt; 外设管理 &gt; 电梯”新增：电梯编号、IP 与端口、电梯名称、电梯类型。</li><li>接驳点数、电梯层数按实际填写；是否跨楼层按项目实际选择。</li><li>随后打开使用状态，选择关联地图、接驳点、等待点与电梯关联点。</li><li>电梯添加完成后必须执行“启用”，否则任务无法调度到电梯。</li><li>若机器人不跨楼层，需关闭电梯配置中的“小车跨楼层”。</li><li>跨电梯场景若由第三方直接与电梯 PLC 通信，还需配置第三方的 IP、端口与 URL 路径。</li></ul>
+
+        <h2 id="s5">跨电梯任务模板</h2>
+        <ul><li>默认跨电梯模板包含五个任务组：不放容器、转移容器、切换地图、转移容器、搬回容器。</li><li>不放容器组：第一步移动配站点集合，第二步移动配电梯等待点；该组完成后无需通知第三方。</li><li>转移组：移动目标配电梯交接区，该步骤不设触发，等电梯开门到位后执行。</li><li>机器人到达目标楼层时应车头朝向电梯开门位置，便于直接进出。</li><li>搬回容器组：移动配站点集合，把容器搬回任务目标点。</li></ul>
+
+        <h2 id="s6">单层（不跨电梯）模板</h2>
+        <ul><li>主任务模板结构为“不放容器 + 搬回容器 + 移动”：不放容器组两步分别配站点集合与电梯等待点。</li><li>搬回组移动配电梯交接区，进电梯放货后退出到电梯等待点。</li><li>副任务模板结构为“移动 + 不放容器 + 搬回容器”，用于目标楼层派车到等待点接料。</li><li>副模板的不放容器任务组需打开锁定标志，等电梯开门到位后再进电梯接料。</li><li>副模板接料后退出到等待点，再搬回容器到任务目标点。</li></ul>
+
+        <h2 id="s7">常见问题</h2>
+        <ul><li>任务下发成功但不执行：电梯未启用，或接驳点、等待点、关联点未配置。</li><li>任务卡在某一步：跨楼层与单层模板结构混用，或转移步骤被错误设置了触发条件。</li><li>呼叫器按钮无响应：IP 填错、IO 序号与实际按钮不对应，或按钮功能未选对。</li><li>自动门不联动：区域未框选，或设备配置中的通信协议与现场不一致。</li><li>设备改过地址后异常：需同步更新外设配置并重新启用相关服务。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>第三方类型已按链路选择 WCS 或具体第三方</li>
+          <li>呼叫器编号、IP 与按钮功能配置正确，IO 序号自天线端为 0</li>
+          <li>自动门已完成区域框选并选中正确通信协议</li>
+          <li>电梯编号、类型、层数、接驳点数与实际一致</li>
+          <li>电梯已启用，并关联地图、接驳点、等待点与关联点</li>
+          <li>跨楼层开关与所用任务模板结构一致，未混用</li>
+          <li>四类任务通知的方法名已与第三方确认</li>
+          <li>单层项目副模板的锁定标志已按要求打开</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v01.html"><span class="pager-label">上一篇</span><span class="pager-title">调度系统与上层平台的 REST 接口对接</span></a>
+        <a class="next" href="v18.html"><span class="pager-label">下一篇</span><span class="pager-title">调度系统 HTTP API 签名与任务接口</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与通信链路</a>
+        <a href="#s2">呼叫器接入</a>
+        <a href="#s3">自动门接入</a>
+        <a href="#s4">电梯接入与启用</a>
+        <a href="#s5">跨电梯任务模板</a>
+        <a href="#s6">单层（不跨电梯）模板</a>
+        <a href="#s7">常见问题</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

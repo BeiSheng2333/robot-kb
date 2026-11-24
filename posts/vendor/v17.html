@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>叉车激光标定与多车一致性调整 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="以基准车参考线为基准逐台标定激光安装偏差，使多车在同一储位点的停车姿态保持一致。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html" class="active">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>地图与标定</span></div>
+      <h1>叉车激光标定与多车一致性调整</h1>
+      <p class="lede">以基准车参考线为基准逐台标定激光安装偏差，使多车在同一储位点的停车姿态保持一致。</p>
+      <div class="doc-meta">
+        <span>整理自 内部实施手册，2021</span>
+        <span class="chip">地图与标定</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>地图与标定目录</summary>
+        <nav>
+          <a href="v02.html">叉取机器人地图规划与业务部署</a>
+          <a href="v05.html">L-SLAM 地图编辑要点</a>
+          <a href="v06.html">机器人点位方向与货架方向配置</a>
+          <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+          <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+          <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+          <a href="v17.html" class="active">叉车激光标定与多车一致性调整</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与标定原理</h2>
+        <p>适用于多台叉车在同一储位点反复出现车体或叉齿姿态不一致的现场。标定本质是修正导航激光相对运动中心的安装偏差，使每台车到点后的实际姿态与地图坐标对齐。</p><ul><li>标定值是绝对量，表示激光相对运动中心的安装位置。</li><li>x 为激光到运动中心的前向距离，y 为侧向偏差，a 为安装角度偏差。</li><li>理想情况下 y 与 a 均为 0；x 单位与 y 相同，均为千分之一毫米，角度单位为千分之一度。</li><li>激光位于运动中心左侧时 y 为正，位于上侧时 x 为正，方向以图示坐标系为准。</li></ul><div class="callout ok"><span class="callout-title">先判断是不是标定问题</span><p>若车体坐标与目标点坐标的偏差恰好等于该车相对基准车的物理偏差，说明偏差来自运动误差而非激光安装，不应改标定值。</p></div>
+
+        <h2 id="s2">基准车确认与参考线绘制</h2>
+        <p>标定前先选出一台安装与出厂标定较准的车作为基准车，其余车辆都以它的参考线为基准。</p><ol><li>把候选车分别以 180° 与 0°（或 90° 与 -90°）方向发往同一个点。</li><li>每次到点后在地面做好标记，形成两条可对比的标记线。</li><li>选择左右标记误差小、标记线接近水平的车作为基准车。</li></ol><p>这一步同时能反映车辆激光安装精度与出厂标定质量。标定点的定位环境要好，尽量选墙角、墙体柱子等特征明显的位置，避免在空旷或特征重复的区域取参考线。</p><div class="callout warn"><span class="callout-title">参考线不可将就</span><p>参考线本身误差偏大时，后续所有车的标定都会继承该误差，宁可重选点位也不要勉强使用。</p></div>
+
+        <h2 id="s3">标定顺序与符号规则</h2>
+        <p>标定时用客户端把叉车以空车自动移动方式发到储位点，观察者从车尾向车头看，也就是从叉齿末端朝导航激光方向看。顺序固定为：先标角度，再标侧向，前向基本不标。</p><ol><li><strong>角度 theta：</strong>车辆需要逆时针旋转才能变正，标定角度取正值；需要顺时针旋转才变正，取负值。</li><li><strong>侧向 y：</strong>叉齿偏向左侧，需要往右补，标定值取负；叉齿偏右则取正。</li><li><strong>前向 x：</strong>一般不需要标定，仅在安装明显异常时处理。</li></ol><p>角度一次没调到位可分多次逼近，每次都基于上一次结果累加或累减，不要每次从零重设，否则容易来回震荡。</p>
+
+        <h2 id="s4">运动误差扣除</h2>
+        <p>车体到点偏差里既有激光安装误差，也有定位运动误差，标定前必须把后者扣掉，否则会把定位偏差误标进激光参数。</p><ul><li>基准车反馈的坐标与目标点坐标在 X、Y 方向相差小于 1cm 时，才可认为定位正常并开始做标记。</li><li>标定其他车辆时，先量出该车相对基准车的物理差值，再计算该车的运动误差，即车体坐标减目标点坐标。</li><li>标定值等于车体与基准车的差值减去运动误差。</li></ul><p>例如某车相对基准车向左偏 3cm，而它的坐标与目标点 X 方向恰好相差 30mm，说明这 3cm 完全由运动误差造成，不需要修改导航激光标定值。</p>
+
+        <h2 id="s5">参数写入与验证</h2>
+        <p><strong>旧版主控：</strong>先用调试命令开启打印，再读取当前标定值，在输出中定位标定字段取得 x、y、theta 三个值。</p><ol><li>发任务观察与参考线的偏差，先只调角度；需要逆时针转 0.5 度时，就在现有角度基础上增加 500。</li><li>写入标定值后重启车辆。</li><li>重启后再次发任务标定 y；叉齿左偏 20mm 时写入负值。</li><li>每次写入都是在当前值上累加或累减，写完后重启并回读确认。</li><li>再发移动任务与参考线对比，反复微调直到接近重合。</li></ol><p><strong>新版主控：</strong>改为整包导出与导入的方式。</p><ol><li>在挂载目录执行导出命令，生成全部标定数据的 json 文件并下载。</li><li>用文本编辑器修改其中的 X、Y 与 theta，注意单位不要改写，原文件必须另行保存一份。</li><li>首次标定（标志位为 0）时，需把标志位置为 1、补齐激光 uid，并把硬件打印的十六进制 uid 换算为十进制写入；x 则参考硬件打印的加密值按差异修改。</li><li>已有标定时只调整 x、y、theta。</li><li>删除设备上的原文件后上传新文件，执行导入命令，再读取确认参数已更新，最后软重启。</li></ol><p>若重启后修改未保存，说明写入未生效，应联系主控研发处理，不要反复重试同一文件。</p>
+
+        <h2 id="s6">全向叉车的差异</h2>
+        <p>全向叉车的坐标系与标准叉车一致，区别在运动中心位置：标准叉车运动中心位于叉轮之间，全向叉车位于车体几何中心。</p><ul><li>因此标定方向与符号规则可沿用标准叉车，但激光到运动中心的距离会明显不同。</li><li>读取标定值时使用的参数索引与标准叉车不同，实施时需按机型确认。</li><li>全向叉车通常只标角度与侧向 y，前向 x 不标定。</li><li>角度仍以逆时针为正、顺时针为负，侧向以叉齿左偏取负、右偏取正。</li></ul><p>全向车型的运动中心变化会影响原地旋转时的偏移表现，标定后应专门做一次原地旋转与横向移动验证，而不只验证直线到点。</p>
+
+        <h2 id="s7">一致性判断与返工条件</h2>
+        <p><strong>一致性判断：</strong></p><ul><li>多车在同一储位点重复到点后，叉齿与参考线的横向偏差应稳定在可接受范围内，且不随发车方向变化。</li><li>同车多次到点偏差应收敛，不应出现忽左忽右的大幅跳变。</li><li>写入的参数回读后与设定值一致，重启后仍保持不变。</li><li>车体坐标与目标点坐标的残差应明显小于标定前的偏差。</li></ul><p><strong>需要返工的情况：</strong></p><ul><li>重启后回读参数与写入值不符，或修改未保存。</li><li>角度调整后未重新复测侧向，导致两项相互影响。</li><li>基准车自身两条标记线左右误差明显，需重新选基准车并重画参考线。</li><li>标定点定位环境差，参考线本身不可靠。</li><li>扣完运动误差后多车仍呈系统性同向偏移，说明基准或导入流程存在问题，需整体复查。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>用同一目标点的 180° 与 0°（或 90° 与 -90°）两次到车标记选出基准车</li>
+          <li>参考线绘制点选在墙角或柱子等定位特征明显处，且标记左右误差小</li>
+          <li>标定顺序固定为先角度、再侧向 y，前向 x 原则上不标</li>
+          <li>确认符号规则：逆时针变正取正、顺时针取负；叉齿左偏取负、右偏取正</li>
+          <li>基准车坐标与目标点偏差小于 1cm 后才开始做标记</li>
+          <li>标定值按车体与基准车差值减去运动误差计算，运动误差部分不写入</li>
+          <li>写入后重启并回读标定值，确认与设定一致再发任务对比参考线</li>
+          <li>首次标定确认标志位已置 1、uid 已由十六进制换算为十进制写入</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v16.html"><span class="pager-label">上一篇</span><span class="pager-title">L-SLAM 地图核查与轮廓优化</span></a>
+        <a class="next" href="v03.html"><span class="pager-label">下一篇</span><span class="pager-title">主控配置文件 castor_conf 配置项速查</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与标定原理</a>
+        <a href="#s2">基准车确认与参考线绘制</a>
+        <a href="#s3">标定顺序与符号规则</a>
+        <a href="#s4">运动误差扣除</a>
+        <a href="#s5">参数写入与验证</a>
+        <a href="#s6">全向叉车的差异</a>
+        <a href="#s7">一致性判断与返工条件</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

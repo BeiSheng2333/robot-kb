@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>潜伏机器人平台搭建与任务配置 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="从平台登录到地图、设备、货架、机器人和任务流程的完整搭建顺序，适合新现场首次部署参照。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html" class="active">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>系统与部署</span></div>
+      <h1>潜伏机器人平台搭建与任务配置</h1>
+      <p class="lede">从平台登录到地图、设备、货架、机器人和任务流程的完整搭建顺序，适合新现场首次部署参照。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2023-06</span>
+        <span class="chip">系统与部署</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>系统与部署目录</summary>
+        <nav>
+          <a href="v04.html">潜伏机器人典型业务场景部署</a>
+          <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+          <a href="v11.html" class="active">潜伏机器人平台搭建与任务配置</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与整体顺序</h2>
+        <p>适用于调度平台侧从零搭建一个潜伏机器人现场：先完成地图与设备建档，再接入机器人，最后编排任务并打通第三方系统。</p><ol><li>平台配置：登录、地图、库区、设备、服务、货架。</li><li>机器人配置：有实车按快速配置逐项设置，无实车用模拟器验证接口。</li><li>客户端登录：安装监控客户端并完成上线。</li><li>任务配置：编排流程、绑定载具、下发与跟踪任务。</li><li>第三方通讯：注册应用并配置任务状态回传。</li></ol><div class="callout ok"><span class="callout-title">顺序不能颠倒</span><p>地图未解析、服务未关联地图时，后续添加的设备与任务都无法正常生效，建议按上述顺序逐段验证。</p></div>
+
+        <h2 id="s2">平台登录与地图配置</h2>
+        <p>通过浏览器访问调度平台的地址与端口进入管理界面，首次登录需上传授权文件，并按提示修改初始密码。</p><ul><li>新增地图时，编号应与现场地码中间两位字母对应；缺类型时先在数据字典的地码类型中补充。</li><li>地图类型选择拓扑地图，每格宽度与高度分别对应相邻整数码在 X、Y 方向的实际物理距离。</li><li>新增地图后需在服务配置中把该地图关联到调度服务，否则地图不生效。</li><li>地图元素在地图编辑客户端中绘制：先添加元素，再在点属性中填写相对坐标，最后用线连接相邻点，线一般只允许水平或垂直。</li><li>线属性需逐条配置，全部完成后保存并执行地图解析，解析后才会生成地图数据。</li><li>站点名称是地图坐标的别名，可在站点管理中修改，便于任务参数配置。</li></ul><p>库区用于把地图划分为不同区域并按库区分配策略：在库区编辑中新增区域，再用框选方式圈定范围。只有储位、产线缓冲区、工作台等元素类型可以被框选为库区。</p>
+
+        <h2 id="s3">设备、服务与货架档案</h2>
+        <p>设备需先建类型再建单体，两者的编号都不能重复。</p><ul><li>机器人类型：尺寸按铭牌填写长、宽与旋转直径；四向均可运行才选全向；举升高度为托盘举起后增加的高度，常见约 60mm。</li><li>机器人单体：编号即机身标识，类型与实际一致，导航方式按现场选择。</li><li>服务配置：应用服务地址改为服务器 IP；调度服务需勾选关联地图，数据库地址填服务器地址与端口，单机填本机 IP，双机热备填虚拟 IP。</li><li>保存后需执行配置下发，界面提示配置成功才生效；只保存不配置不会应用到服务。</li></ul><p>货架档案分三层建立：</p><ol><li>仓位类型：按实际仓位尺寸新增。</li><li>货架结构：填写长宽，未贴货码选盲举，勾选可旋转与可短边进入的机器人类型；长宽相同时线属性的货架方向设置会失效，如需生效应配置出 1mm 以上差值。</li><li>载具类型与货架：货架编号必须与实物货码编号一致。</li></ol><p>搬运对象登记可移动载具（潜伏货架、叉车托盘、料箱），存储对象登记固定存储架，后者多用于叉车与料箱场景。</p>
+
+        <h2 id="s4">机器人配置与上线</h2>
+        <p>有实车时，用调试线或无线连接车辆。使用调试线需让电脑与车辆固定地址处于同一网段，再用配置工具登录车辆。</p><p><strong>快速配置需逐项完成：</strong></p><ul><li>关键参数：工作模式选正常模式。</li><li>无线参数：频段、安全模式与现场网络一致，填写 SSID 与密钥。</li><li>平台参数：填写调度服务地址与设备注册端口，端口必须与平台服务配置中的注册端口一致。</li><li>二维码参数：间距与现场实际贴码距离一致，并与地图新增时填写的地码间距相同。</li><li>地码类型：按实际打印类型选择。</li></ul><p><strong>判断是否识别地码：</strong>把车推到地码上并保证码在镜头视野内，在状态信息的地码信息中看到实际码值，即说明识别成功，这是上线的前提。</p><p>无实车时可用模拟器替代：编辑配置文件，地图属性对应每格宽度、每格高度与地码类型，服务器信息对应平台地址与注册端口，机器人信息包括数量、编号与初始坐标；启动模拟工具后车辆即在监控端显示在线，可用于第三方接口联调。</p>
+
+        <h2 id="s5">任务编排与下发</h2>
+        <p>任务流程在任务流程列表中新建，流程编号与名称可自定义，子流程用于封装后被任务流程嵌套调用。</p><p>以点到点搬运为例，通用举升搬运流程由六个环节组成：</p><ol><li>开始节点。</li><li>申请载具：输出载具对象，同时确定任务起点；起点取路径数组第 1 个元素，终点取第 2 个元素，申请策略按场景选择。</li><li>申请站点：确定搬运终点，输出站点对象。</li><li>查找车型：按载具匹配可执行任务的车型。</li><li>搬运任务：向机器人下发动作，起终点来自前面节点。</li><li>结束节点。</li></ol><p>下发前需在任务调度中把载具与站点绑定，填写载具编号、站点编号与载具方向，绑定类型选绑定后执行。若起点未绑定载具，会报申请不到载具。</p><ul><li>接口下发：在流程测试中编辑搬运路径，类型可选站点或区域，编号填对应名称。</li><li>调度下发：填写任务类型、优先级与类型值，优先级范围 1~120，数值越大越优先；传几个站点就添加几个类型条目。</li><li>任务跟踪：在任务链管理查看状态与流程执行详情，在子任务单管理取消或重跑子任务。</li></ul>
+
+        <h2 id="s6">第三方通讯与状态回传</h2>
+        <p>第三方系统通过应用注册接入，可同时配置多个。</p><ul><li>服务编号与名称自定义，应用类型按实际选自 MES、WCS、WMS。</li><li>协议类型按对方接口选择 http 或 https。</li><li>地址可填域名或 IP，相对 URL 填对方接口的基础路径。</li><li>连接超时一般取 3000ms，接收超时一般取 30000ms，可按对方响应能力调整。</li></ul><p>需要在任务开始时通知第三方时，在搬运任务节点的扩展属性中启用通知业务系统，编辑通知信息，开启任务开始通知，选择应用名称并填写方法名与通知路径。任务开始后平台即按配置回调第三方。</p><div class="callout warn"><span class="callout-title">联调顺序</span><p>先用模拟器确认平台侧任务能正常走到通知节点，再接入真实第三方地址，避免把网络问题误判为流程配置问题。</p></div>
+
+        <h2 id="s7">判断标准与常见问题</h2>
+        <table><thead><tr><th>现象</th><th>可能原因</th><th>验证与处理</th></tr></thead><tbody><tr><td>车辆始终不上线</td><td>未识别地码、注册端口不一致或无线参数错误</td><td>确认码值可见；核对车端与平台注册端口、无线配置</td></tr><tr><td>地图上的元素看不到</td><td>地图元素被设置为不展示</td><td>在地图元素中把是否展示改为展示</td></tr><tr><td>地图修改后不生效</td><td>未执行地图解析</td><td>保存后重新解析并确认站点数据已更新</td></tr><tr><td>任务报申请不到载具</td><td>起点未绑定载具或载具编号不存在</td><td>核对载具与站点绑定关系及货架编号</td></tr><tr><td>服务配置不生效</td><td>只保存未下发配置</td><td>执行保存并配置，或勾选服务后远程配置</td></tr><tr><td>货架方向设置无效</td><td>货架长宽配置相同</td><td>把长宽配置出 1mm 以上差值</td></tr><tr><td>双机环境连接异常</td><td>服务地址填了物理机地址</td><td>改为虚拟地址后重新下发配置</td></tr></tbody></table>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>地图编号与现场地码类型一致，每格宽高按相邻整数码实际间距填写</li>
+          <li>新增地图后已在服务配置中关联，并完成地图解析</li>
+          <li>机器人类型的尺寸、是否全向、举升高度均按铭牌配置</li>
+          <li>车端注册端口与平台服务配置中的设备注册端口完全一致</li>
+          <li>二维码间距与地图地码间距一致，地码类型与实物一致</li>
+          <li>上线前在状态信息中确认已读到地码码值</li>
+          <li>任务下发前已完成载具与起点站点绑定</li>
+          <li>应用注册的连接与接收超时已按第三方响应能力设置并完成联调</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v07.html"><span class="pager-label">上一篇</span><span class="pager-title">调度系统安装、升级与配套软件部署</span></a>
+        <a class="next" href="v01.html"><span class="pager-label">下一篇</span><span class="pager-title">调度系统与上层平台的 REST 接口对接</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与整体顺序</a>
+        <a href="#s2">平台登录与地图配置</a>
+        <a href="#s3">设备、服务与货架档案</a>
+        <a href="#s4">机器人配置与上线</a>
+        <a href="#s5">任务编排与下发</a>
+        <a href="#s6">第三方通讯与状态回传</a>
+        <a href="#s7">判断标准与常见问题</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

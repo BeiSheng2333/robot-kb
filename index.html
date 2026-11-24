@@ -45,7 +45,7 @@
 
         <aside class="hero-side">
           <dl>
-            <dt>收录</dt><dd>5 篇实战文档</dd>
+            <dt>收录</dt><dd>5 篇实战文档 · 20 篇手册速览</dd>
             <dt>方向</dt><dd>实施 / 通信 / 定位 / 硬件 / 方法论</dd>
             <dt>适用</dt><dd>CentOS 7.8 · RCS 3.x/4.x · 潜伏叉车</dd>
             <dt>维护</dt><dd>一线实施工程师，持续更新</dd>
@@ -92,6 +92,12 @@
           <h3>排障方法</h3>
           <p>从现象到根因的分层定位思路，以及证据采集的规范做法。</p>
         </button>
+
+        <a class="cat-card" href="posts/vendor/index.html">
+          <div class="cat-top"><span class="cat-num">06</span><span class="cat-count">20 篇</span></div>
+          <h3>厂商手册速览</h3>
+          <p>部署、接口、地图标定、配置工具与排障的手册整理版，按分类归档。</p>
+        </a>
       </div>
     </div>
   </section>
@@ -309,6 +315,7 @@
     });
 
     catCards.forEach((card) => {
+      if (!card.dataset.cat) return;
       card.addEventListener('click', () => setCat(card.dataset.cat, true));
     });
 

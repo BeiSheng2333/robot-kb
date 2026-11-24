@@ -1,0 +1,48 @@
+{
+  "id": "v01",
+  "title": "调度系统与上层平台的 REST 接口对接",
+  "category": "接口与对接",
+  "lede": "梳理调度系统对外提供的 REST 接口、回调约定与结果码，帮现场一次性把任务链路调通。",
+  "source": "内部操作手册 V1.0，2024-01",
+  "keywords": ["REST", "任务下发", "回调通知", "reqCode", "结果码", "绑定解绑", "告警推送", "JSON"],
+  "sections": [
+    {
+      "h": "适用场景与前置条件",
+      "html": "<p>适用于上层平台（WMS、MES 等）与调度系统通过 HTTP REST + JSON 对接的场景。初步联调阶段建议先只跑通三条必调接口，再逐步接入可选能力。</p><ul><li>必调三件套：生成任务单、继续执行任务、取消任务。</li><li>上层平台如需接收执行状态，还要按约定提供任务执行回调接口。</li><li>先在“系统模型 &gt; 任务模板管理 &gt; 第三方信息”中填写第三方地址等参数。</li><li>任务模板中逐个开启通知开关，走出储位、任务完成、任务取消三类通知参照任务开始通知配置。</li></ul>"
+    },
+    {
+      "h": "基础协议与访问地址",
+      "html": "<p>调度侧接口统一走 REST，请求与应答均为 JSON。对接前先把编码、请求编号和返回结构约定清楚，可减少大量返工。</p><ul><li>中文内容发送前按 UTF-8 做 URL 编码，接收端按同样方式解码。</li><li>所有参数均以字符串传递，数值与布尔也不例外，避免类型不匹配。</li><li>每次请求携带唯一 reqCode，应答原样回传，形成请求与响应的一一对应。</li><li>应答固定含 code 与 message：code 为 \"0\" 表示成功，1~N 为失败；data 为可选业务数据。</li><li>调度侧 REST 服务前缀为 /rcms/services/rest/，端口默认 8182；上层平台地址形如 http://IP:PORT/xxx/agv。</li></ul>"
+    },
+    {
+      "h": "三条必调接口",
+      "html": "<ul><li><strong>生成任务单</strong>：taskTyp 必须与调度侧配置的主任务类型编号一致，内置厂内货架搬运为 F01，叉车专用为 F11~F14；wbCode 与 positionCodePath 至少填一项。</li><li>positionCodePath 是位置集合，列表通常控制在 50 项以内；type 取 00 位置编号、02 库区、03 货架、05 仓位、06 巷道、07 容器，02 支持区域依次兜底。</li><li>priority 取 1~127，默认 1，数值越大优先级越高；podDir 的 180、0、90、-90 分别对应地图左、右、上、下。</li><li><strong>继续执行任务</strong>：taskCode、agvCode、wbCode、podCode 四选一，且需与任务模板的触发类型一致，推荐用 taskCode。</li><li><strong>取消任务</strong>：taskCode 与 agvCode 至少一项，都传时以 agvCode 优先；forceCancel 为 0 就地放下载具，为 1 保持背负并按回库区域返回，后者仅部分车型支持。</li></ul>"
+    },
+    {
+      "h": "任务执行回调",
+      "html": "<p>回调接口由调度系统主动调用上层平台，用于推送任务开始、走出储位、任务完成与任务取消四类事件。</p><ul><li>method 字段区分事件类型，默认约定为 start、outbin、end、cancel，实际取值以任务模板配置为准。</li><li>currentPositionCode 含义随事件变化：开始与走出储位为任务起点，取消为工作位编号，结束为任务终点。</li><li>任务完成时会附带 cooX、cooY（单位 mm）、mapDataCode、podDir 等字段；背负货架时才有 podCode。</li><li>消息字段可能多于文档列出项，上层按业务需要截取，避免因新增字段解析失败。</li><li>回调地址形如 http://IP:PORT/xxx/agv/agvCallbackService/agvCallback。</li></ul>"
+    },
+    {
+      "h": "可选接口速查",
+      "html": "<table><thead><tr><th>能力</th><th>接口</th><th>关键参数与要点</th></tr></thead><tbody><tr><td>货架与位置绑定</td><td>bindPodAndBerth</td><td>indBind 1 绑定、0 解绑；podDir 0 横向、1 纵向，横向指货架长边与 X 轴一致</td></tr><tr><td>释放 AGV</td><td>freeRobot</td><td>robotCount 为 -1 表示全部，此时 mapShortName 必填</td></tr><tr><td>任务状态查询</td><td>queryTaskStatus</td><td>taskStatus：1 已创建、2 执行中、5 取消完成、9 已结束；支持批量</td></tr><tr><td>容器与仓位/巷道绑定</td><td>bindCtnrAndBin、bindCtnrAndTunnel</td><td>indBind 1 绑定、0 解绑；巷道绑定会写入该巷道全部仓位</td></tr><tr><td>区域封锁</td><td>blockArea</td><td>indBind 1 封锁、0 解封；controlMod 决定区内车辆如何调度</td></tr><tr><td>设置优先级</td><td>setTaskPriority</td><td>优先级 1~127，按任务单逐条设置</td></tr><tr><td>AGV 状态</td><td>queryAgvStatus</td><td>路径不同，走 /rcms-dps/rest/queryAgvStatus，按地图编号查询</td></tr><tr><td>告警推送</td><td>warnCallback</td><td>推送导致停车的严重告警，频率约 10 秒一次</td></tr></tbody></table>"
+    },
+    {
+      "h": "结果码与排障",
+      "html": "<ul><li>1002 表示调度接口调用返回失败，先看调度侧日志与上层应答，再判断是参数还是服务问题。</li><li>1003 未找到任务或任务已执行完，多见于重复下发、重复继续。</li><li>1009~1013 涉及地码、货架、小车、别名、站点集合数据，优先核对点位与模板配置。</li><li>1025 为 reqCode 重复，检查上层是否复用了请求编号或重试时未换号。</li><li>1027 货架正在出入库被锁定，属业务时序问题，需等待或改约任务。</li><li>1045、1046 可出库或可入库容量为 0，检查巷道与库区容量配置。</li></ul>"
+    },
+    {
+      "h": "注意事项",
+      "html": "<ul><li>牵引车专用接口（控制命令、数据替换与设置、区域进入与释放申请）只适用于对应车型，其他项目不要调用。</li><li>取消会立即终止执行，forceCancel 为 1 前先确认回库区域已配置，否则可能无处可去。</li><li>区域封锁的车辆处置参数组合较多，建议先在测试环境验证再用于生产清场。</li><li>接口超时与重试策略需双方书面约定，避免上层重试导致重复任务。</li><li>未知字段不要直接报错丢弃整条消息，按需解析更利于版本兼容。</li></ul>"
+    }
+  ],
+  "checks": [
+    "已在任务模板的第三方信息中填写正确的第三方地址",
+    "生成任务单、继续执行、取消任务三条接口均返回 code=\"0\"",
+    "每次请求的 reqCode 唯一，且与应答中的值一致",
+    "回调地址与方法名已与任务模板配置对齐，能收到 start 与 end 回调",
+    "中文参数按 UTF-8 编码，接收端解码后内容正确",
+    "常用结果码 1002、1003、1025、1027 已有对应排查结论",
+    "牵引车项目确认使用专用接口而非通用任务接口",
+    "超时与重试策略已与上层平台确认并写入对接说明"
+  ]
+}

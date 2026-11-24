@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>叉车机器人常见告警排查 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="按告警类别整理叉车机器人现场排查顺序，覆盖失联、能源、举升、导航、安全与声光故障。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html" class="active">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>运维与排障</span></div>
+      <h1>叉车机器人常见告警排查</h1>
+      <p class="lede">按告警类别整理叉车机器人现场排查顺序，覆盖失联、能源、举升、导航、安全与声光故障。</p>
+      <div class="doc-meta">
+        <span>整理自 内部故障排查手册，2021</span>
+        <span class="chip">运维与排障</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>运维与排障目录</summary>
+        <nav>
+          <a href="v10.html" class="active">叉车机器人常见告警排查</a>
+          <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+          <a href="v13.html">现场问题反馈与排查规范</a>
+          <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与排查原则</h2>
+        <p>适用于叉车类机器人在现场出现的连接、能源、举升、导感、导航、安全与声光异常。手册按告警模块组织，便于按现象快速定位。</p><ul><li>先查通讯与供电，再查传感器与执行机构，最后考虑整机或主控替换。</li><li>每步只改动一个变量，改完立即复测并记录，避免多个改动叠加后无法判断效果。</li><li>涉及拆装或换件时先断电，保留故障件便于后续分析。</li><li>恢复后应连续跑几轮任务确认不再复现，再交付现场。</li></ul><div class="callout ok"><span class="callout-title">证据留存</span><p>无法定位时先导出机器人与调度端日志，连同告警时间点一起提交技术支持，比口头描述现象更有效。</p></div>
+
+        <h2 id="s2">平台失联：个别与全部机器人不在线</h2>
+        <p><strong>现象：</strong>监控端显示机器人离线，个别车失联或全场失联。</p><p><strong>可能原因：</strong>个别失联多为车端无线配置错误、未获取无线 IP、信号弱、工作模式不对、未识别地码，镜头板车型还可能是标定文件丢失；全部失联多为平台离线、防火墙未关闭、注册端口被占用或网络规划问题。</p><p><strong>验证方法：</strong></p><ul><li>通过车端显示屏或配置工具核对调度平台 IP、端口、无线名与密码是否与当前地图匹配。</li><li>连接车端系统查看无线网卡是否分配到 IP。</li><li>从车端 ping 平台地址，反向从服务器 ping 车端，确认双向可达。</li><li>扫描周边无线接入点并比较信号强度，经验上不低于约 -68 dBm 较为稳定。</li><li>确认车停在地码上且已识别到码值，工作模式处于正常模式。</li><li>平台侧检查防火墙、默认注册端口是否被占用、服务是否监听，以及有线与无线是否误配在同一网段。</li></ul><p><strong>处理：</strong>按核对结果修正配置或补分配 IP；天线接口松动则紧固；把车推到地码上；镜头板车型补回标定文件；端口冲突则调整服务配置。</p>
+
+        <h2 id="s3">地图切换、旋转与平台指令类异常</h2>
+        <table><thead><tr><th>现象</th><th>可能原因</th><th>验证与处理</th></tr></thead><tbody><tr><td>切图后在线但不运行</td><td>车端地图参数与所在地图不一致</td><td>用配置工具把地图配置改为当前地图</td></tr><tr><td>手动切图后不接任务</td><td>调度端关联地图未同步</td><td>释放该车；空闲时停所有关联地图车辆，关闭监控端，对调度条目做远程配置后恢复</td></tr><tr><td>旋转申请失败</td><td>周边拥堵、距点误差超限、该点不可旋转</td><td>疏通周边；调整点位误差；开启点旋转属性</td></tr><tr><td>旋转申请失败（带货架）</td><td>任务要求货架角度应按点配置，实际按线配置且默认水平</td><td>改为点配置并设置货架方向</td></tr><tr><td>平台指令出错</td><td>下发任务与机器人当前状态冲突</td><td>拍急停后推到其他地码恢复；删除任务后按需重发</td></tr><tr><td>地图配置错误</td><td>线货架方向未配置，默认水平且前一点不可旋转</td><td>改为点配置后重新下发</td></tr><tr><td>IP 冲突</td><td>手动分配重复，或地址由 IT 按 MAC 绑定后冲突</td><td>核对同网段设备地址，联系 IT 调整</td></tr></tbody></table><p><strong>无法开机：</strong>先量电池正负极电压，正常约 48~55V；为 0 时检查开关到电池的线束；40~46V 判断为过放，按电池过放流程处理；再逐级测量电源板进线与输出电压，最后通过串口查看主控启动打印，无打印则查主控供电或更换主控。</p>
+
+        <h2 id="s4">能源类告警：充电与电量</h2>
+        <p><strong>无法自动充电但可手动充电：</strong>通常是机器人与充电桩通讯异常。</p><ul><li>全部车辆在该桩无法自动充电：检查充电桩是否开机与上线，测试其与调度平台通讯是否正常、地址是否被占用，并用其他充电机替换验证。</li><li>个别车辆无法自动充电：对比可正常充电车辆的主控版本，版本不一致则升级对齐。</li></ul><p><strong>手动与自动均无法充电：</strong>先判断是充电桩对全部车辆失效，还是单台车辆问题。单台车可推入桩内并微调车体，观察桩屏幕是否显示电压；有电压通常即可充电，无电压则查充电口到电池的接口与线束。再手动触发继电器闭合，听是否有吸合声，无声则查继电器及接线。</p><p><strong>电量跳变：</strong>连接配置工具查看各电芯压差，压差过大联系售后更换电池；电芯正常则读取电池固件版本与告警记录，判断是否需要升级固件。</p><p><strong>无电量显示：</strong>其他信息正常说明显示屏与主控通讯正常，重点查电池到主控的通讯线束与接口；若整屏无显示，则查主控到显示屏的线束与接口。</p>
+
+        <h2 id="s5">举升与导感类告警</h2>
+        <p><strong>上举、下放未到位或出现外力上举/下放：</strong>检查拉线传感器工作状态与拉线是否异常；检查举升机构有无异物卡涩；电动举升机型检查举升电机、减速器及减速机与电机轴是否锁紧；液压举升机型检查油量与是否漏油。</p><p><strong>货物检测传感器异常：</strong>多为检测状态与车辆运行状态不符。先检查检测机构是否卡住并复位，再检查传感器接线是否松脱，最后用万用表测量零位传感器到 IO 板或主板之间的线芯通断，不通则换线测试。</p><p><strong>货叉卡住：</strong>定义是货叉动作后一定时间内拉线编码器数值无变化。先排除货叉被障碍物卡住，再手动拉动线束观察举升高度是否有变化，无变化则更换拉线传感器。</p><p><strong>驱动器或电机异常：</strong>依次排查货架是否过重、是否撞到障碍物、驱动轮与脚轮是否卡涩；拍急停后确认电机能否锁死，不能锁死可能是电机内部故障，可用正常电机交叉验证；检查故障驱动板接线有无烧黄、烧焦或松动；仍无法恢复则导出日志分析。</p><p><strong>读码组件外参未标：</strong>主控内缺少读码头外参标定参数。</p><ol><li>连接主控，进入挂载目录查看外参文件是否齐全。</li><li>缺少文件时，从已有外参的主控导出标定文件。</li><li>上传全部外参文件到主控对应目录。</li><li>执行写入命令保存到主控存储，并重新读取确认。</li></ol>
+
+        <h2 id="s6">导航与安全类告警</h2>
+        <p><strong>陀螺仪数据异常：</strong>通过配置工具登录车辆，进入功能标定的陀螺仪标定项并开始标定，等待结果；仍异常则更换陀螺仪或线束验证是否为硬件问题。</p><p><strong>电机 CAN 线不通：</strong></p><ul><li>单电机：检查该驱动板 CAN 线两端是否松动、脱线，出现扩孔或退针应更换线束；换线无效则更换驱动板。</li><li>多电机串联同时报错：优先检查主控侧总 COM 线是否松动，紧固或重新插拔；无效则更换主控验证；仍无效判断为总 COM 线故障并更换。</li></ul><p><strong>电机速度跟随异常：</strong>举升电机异常查负载是否过重与举升机构卡滞；旋转电机异常查托盘是否被阻挡、旋转机构是否卡滞；左右电机异常查异物阻碍、驱动减速器与电机卡滞；无外部阻碍时检查电机与减速箱连接处是否松动，紧固抱轴螺丝。</p><p><strong>前方遇障（激光误检测）：</strong></p><ol><li>把车推到空旷路段观察是否仍报障。</li><li>用干净无尘布擦拭激光表面，去除灰尘与污渍。</li><li>检查激光表面划伤或碰撞痕迹，有明显损伤则更换。</li><li>检查前壳是否变形导致误检测。</li><li>用激光调试工具连接查看扫描图，确认是否存在误检。</li><li>空旷处正常、运行时复现的，核对激光方案是否调用错误，必要时重新烧录方案。</li></ol><p><strong>激光传感器异常：</strong>通过激光软件或表面数码管读取告警与固件版本；检查线束并重新插拔；调换激光板验证。</p>
+
+        <h2 id="s7">声光硬件与特殊故障</h2>
+        <p><strong>灯条不亮或颜色异常：</strong>检查接线是否松动、脱线、变形，接口是否脱焊；肉眼无法判断时用正常灯条交叉替换，区分灯条与线束问题。</p><p><strong>小车无声音：</strong>检查扬声器两端接线；开机状态下测量扬声器供电端子是否有约 12V 直流；把扬声器当作存储设备连接电脑，确认语音文件是否存在；确认系统音量未被调至过低；最后更换扬声器验证。</p><p><strong>显示屏显示异常：</strong>先排除外力损坏；无图像且触摸无反应时检查显示屏到主控的接线；换屏验证；新屏显示非常规界面则重新下载显示屏程序。</p><p><strong>电池过放（仍可开机）：</strong>只有车辆有电时才能借助充电桩手动补电。</p><ul><li>让车辆充电板与充电桩伸缩充电头保持接触。</li><li>通过车端屏幕按钮或调试命令开启充电继电器，成功时刷板电压约 30~60V；不同机型占空比不同，需按对应值执行。</li><li>在充电桩调试界面设定输入电压、电流与电池模拟电压，并将电池管理切换为调试模式。</li><li>观察桩面板输出电压与电流，结束后关机。</li><li>电压电流归零后关闭充电继电器，退出界面并恢复自动充电。</li></ul><p><strong>电池过放且无法开机：</strong>关机、断开电池接口，用补电工装补电，失败则更换电池。</p><p><strong>读码头通讯异常：</strong>多数为运输振动导致内部接口接触不良。拆下后盖与电路板固定螺丝，轻撬电路板并注意线束，重点检查板间固定接口是否完好、两个线束接口是否紧固，复原后装车测试，仍异常则更换读码头。</p>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>失联时先核对车端平台地址、注册端口、无线名与密码，再从车端和服务器双向 ping</li>
+          <li>检查车是否停在地码上并已识别码值，工作模式是否为正常模式</li>
+          <li>全场失联时确认防火墙已关闭，默认注册端口未被占用，有线与无线不在同一网段</li>
+          <li>切图后车辆不接任务时，按释放车辆、停关联车辆、远程配置、恢复的顺序处理</li>
+          <li>无法开机先量电池电压，48~55V 为正常，40~46V 按过放流程处理</li>
+          <li>充电异常先区分是单桩对全部车辆失效还是单台车辆问题，再查线束与继电器</li>
+          <li>报读码外参未标时，确认主控目录下外参文件齐全并已写入存储</li>
+          <li>处理激光误检测时完成清洁、外观检查、扫描图确认与激光方案核对四步</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v19.html"><span class="pager-label">上一篇</span><span class="pager-title">终端工具连接机器人与服务端的常用操作</span></a>
+        <a class="next" href="v12.html"><span class="pager-label">下一篇</span><span class="pager-title">监控客户端登录与现场管控操作要点</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与排查原则</a>
+        <a href="#s2">平台失联：个别与全部机器人不在线</a>
+        <a href="#s3">地图切换、旋转与平台指令类异常</a>
+        <a href="#s4">能源类告警：充电与电量</a>
+        <a href="#s5">举升与导感类告警</a>
+        <a href="#s6">导航与安全类告警</a>
+        <a href="#s7">声光硬件与特殊故障</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

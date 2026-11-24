@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>调度系统 HTTP API 签名与任务接口 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html" class="active">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>接口与对接</span></div>
+      <h1>调度系统 HTTP API 签名与任务接口</h1>
+      <p class="lede">面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。</p>
+      <div class="doc-meta">
+        <span>整理自 内部接口文档 V4.1（时间以修订记录为准）</span>
+        <span class="chip">接口与对接</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>接口与对接目录</summary>
+        <nav>
+          <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+          <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+          <a href="v18.html" class="active">调度系统 HTTP API 签名与任务接口</a>
+          <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与对接准备</h2>
+        <p>适用于业务系统（WMS、MES 等）通过 HTTP + JSON 调用调度系统完成下发、继续、取消与查询，并接收调度系统回调的对接场景。</p><ul><li>服务前缀统一为 /rcs/rtas，接口路径形如 /api/robot/controller/task/submit。</li><li>对接前需取得 appKey 与 appSecret，并确认所用接口版本号。</li><li>调度系统调用上层接口时，连接超时默认 30 秒、数据返回超时默认 60 秒，超时按连接失败处理。</li><li>请求与应答均为 JSON 对象，不使用数组作为顶层结构。</li></ul>
+
+        <h2 id="s2">请求头与报文格式</h2>
+        <ul><li>Authorization：固定格式 nonce="…",method="HMAC-SHA256",timestamp="…"，nonce 建议每次随机。</li><li>X-lr-appkey 为调度系统颁发的应用唯一标识；X-lr-request-id 为本次业务请求的唯一标识。</li><li>X-lr-version 为接口版本，同一接口可能存在多个版本实现；X-lr-trace-id 建议用 UUID，并在响应中原样返回。</li><li>Content-Type 固定为 application/json;charset=UTF-8；X-lr-source 可用于标注指令来源，便于定位故障。</li><li>请求体只允许 JSON 对象或空字符串，UTF-8 编码，业务参数全部放在报文体中。</li></ul>
+
+        <h2 id="s3">签名与验签</h2>
+        <ul><li>参与签名的内容为：请求行、指定首部字段、空行和请求体；首部按文档给定顺序排列，字段名转为大写。</li><li>参与字段包括 AUTHORIZATION、HOST、X-LR-APPKEY、X-LR-REQUEST-ID、X-LR-SOURCE、X-LR-TRACE-ID、X-LR-VERSION。</li><li>签名 = MD5（加盐哈希（appSecret，签名原串）），加盐算法推荐 HMAC-SHA256，也可用 HMAC-SHA512。</li><li>签名作为查询参数放在最后，参数名为 sign。</li><li>服务端验签时按相同步骤重算并比对；用 timestamp 做重放校验，建议合法时间窗不超过 120 秒。</li></ul><div class="callout warn"><span class="callout-title">签名常见失败原因</span><p>Host 与请求行不一致、首部顺序或大小写变化、空行缺失、请求体被网关改写，都会导致 401，排查时优先抓原始报文比对。</p></div>
+
+        <h2 id="s4">响应与状态码处理</h2>
+        <ul><li>响应体固定为 code、message、data 三字段，data 最大 10 MB。</li><li>200 只代表 HTTP 层处理成功，业务是否成功仍需看 code；SUCCESS 才算成功。</li><li>401 签名认证失败，多为签名过期或 appKey/appSecret 失效，需重新加签或重新申请。</li><li>403 权限不足，例如尝试取消非本系统创建的任务；406 表示 Content-Type 不符合要求。</li><li>400 属客户端请求错误，重试无意义；500 为服务端异常，可按业务设定次数与间隔重试。</li><li>通用业务码还包括 Err_Internal、Err_DataValidationFailed、Err_RequestDuplicate、Err_InvalidVersion。</li></ul>
+
+        <h2 id="s5">任务组与任务下发</h2>
+        <ul><li>任务之间存在依赖时，先调任务组接口 /api/robot/controller/task/group 声明策略，再调任务下发接口。</li><li>任务组策略含按组顺序出库、按组分配（工作站任务）、载具整理；顺序出库时 groupSeq 必须由小到大依次下发，不支持倒序补发。</li><li>strategyValue：0 组间与组内都无序、1 都需有序、2 组间有序组内无序、3 组间无序组内有序。</li><li>任务下发参数：taskType（如 TRANSPORT）、targetRoute 数组（seq 从 0 开始）、initPriority 1~120、deadline、robotType/robotCode、interrupt、groupCode、extra。</li><li>targetRoute 的 type 支持 SITE、ZONE、STORAGE、CARRIER、STACK、EQPT、PTL_WALL、CARRIER_TYPE、PILE_COUNT 等；ZONE 可用逗号分隔多个区域，按序查找。</li><li>operation 支持 COLLECT、DELIVERY、ROTATE；指定终点角度或载具时通过 extra.angleInfo、extra.carrierInfo 传入，角度取值 0、90、180、-90、360。</li></ul>
+
+        <h2 id="s6">继续、取消与查询</h2>
+        <ul><li>多步骤任务每完成一步都要调 /api/robot/controller/task/extend/continue 驱动下一步，第一步也通过该接口启动。</li><li>继续接口的 triggerType 支持 SITE、CARRIER、ROBOT、TASK，triggerCode 与之对应；已设为自动开始的步骤可不调，但重复调用需幂等处理，已完成或跳过的步骤应返回错误。</li><li>取消接口 /api/robot/controller/task/cancel：cancelType 为 CANCEL 或 DROP（人工介入），可同时给机器人下发新任务；待分配任务被取消后会新建待调度任务，并沿用优先级与机器人范围。</li><li>查询接口 /api/robot/controller/task/query 按任务号查询，taskStatus 取 QUEUE、WAIT、EXECUTING、MANUALED、FINISHED、CANCELLED，并返回当前步骤序号与告警对象。</li><li>载具与站点绑定要求二者均未被任务占用，否则返回 Err_TaskFound；已与其他对象绑定返回 Err_Bound。</li></ul>
+
+        <h2 id="s7">回调接口与常见问题</h2>
+        <ul><li>任务执行回馈：/api/robot/reporter/task，method 默认取 start、outbin、end，需回传任务号、机器人编号与当前步骤序号。</li><li>交管区域申请与释放：/api/robot/reporter/zone，invoke 为 APPLY 或 RELEASE。</li><li>资源申请（WMS/WCS）、归巢完成、驱离完成均走 SPI 回调。</li><li>机器人告警上报：/api/robot/reporter/robot/warning，仅推送一次，含故障码、位置与首次发生时间。</li><li>任务一直停在 WAIT：检查是否漏调继续接口，或上一步完成事件未被上层正确接收。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>已取得 appKey 与 appSecret，接口版本与调度系统一致</li>
+          <li>请求头字段齐全，Content-Type 为 application/json;charset=UTF-8</li>
+          <li>签名原串含请求行、指定首部、空行与请求体，字段名大写且顺序正确</li>
+          <li>签名通过后能收到 code=SUCCESS 的响应</li>
+          <li>请求时间戳与服务器时间偏差控制在 120 秒以内</li>
+          <li>任务组 groupSeq 按由小到大顺序下发</li>
+          <li>多步骤任务每步完成后调用继续接口，重复调用不产生重复执行</li>
+          <li>回调地址与超时策略（连接 30 秒、返回 60 秒）已与对方书面确认</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v09.html"><span class="pager-label">上一篇</span><span class="pager-title">外设对接：呼叫器、自动门与电梯配置</span></a>
+        <a class="next" href="v20.html"><span class="pager-label">下一篇</span><span class="pager-title">ClientView 低代码页面配置与接口绑定</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与对接准备</a>
+        <a href="#s2">请求头与报文格式</a>
+        <a href="#s3">签名与验签</a>
+        <a href="#s4">响应与状态码处理</a>
+        <a href="#s5">任务组与任务下发</a>
+        <a href="#s6">继续、取消与查询</a>
+        <a href="#s7">回调接口与常见问题</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

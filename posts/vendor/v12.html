@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>监控客户端登录与现场管控操作要点 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="说明监控客户端如何登录平台、录制现场画面，并用封锁区、收工、关机和路径查询完成日常运维。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html" class="active">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>运维与排障</span></div>
+      <h1>监控客户端登录与现场管控操作要点</h1>
+      <p class="lede">说明监控客户端如何登录平台、录制现场画面，并用封锁区、收工、关机和路径查询完成日常运维。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2025-01</span>
+        <span class="chip">运维与排障</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>运维与排障目录</summary>
+        <nav>
+          <a href="v10.html">叉车机器人常见告警排查</a>
+          <a href="v12.html" class="active">监控客户端登录与现场管控操作要点</a>
+          <a href="v13.html">现场问题反馈与排查规范</a>
+          <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与前置条件</h2>
+        <p>该客户端面向技术支持、现场实施和项目管理人员，主要提供仓库地图实时监控、机器人控制、平台任务显示与调度等基础能力，适用于调度平台各版本。客户端与平台之间存在版本兼容性，建议直接从平台首页下载配套客户端，而不是使用来源不明的安装包。</p><ul><li>需要平台账号与密码，以及平台服务器 IP。</li><li>客户端所在电脑需能访问平台端口，端口随平台版本变化。</li><li>涉及关机、收工等批量动作前，先确认现场无人作业且机器人处于可控状态。</li></ul>
+
+        <h2 id="s2">下载与登录</h2>
+        <p>登录时输入平台账号密码，在“服务信息”中填写平台 IP 与端口。不同版本的平台端口不同，填错会直接连不上，可按下表核对：</p><table><thead><tr><th>平台版本</th><th>端口</th></tr></thead><tbody><tr><td>V2.X</td><td>80</td></tr><tr><td>V3.0～V3.1.3</td><td>8182</td></tr><tr><td>V3.1.4～V3.3</td><td>443</td></tr><tr><td>V4.0</td><td>38182</td></tr><tr><td>V4.1 及之后</td><td>443</td></tr><tr><td>RCS-Lite</td><td>6543</td></tr></tbody></table><div class="callout ok"><span class="callout-title">排障提示</span><p>能 ping 通服务器但客户端登录失败，优先核对端口与协议，再确认平台服务是否正常启动。</p></div>
+
+        <h2 id="s3">监控录制与录像存放</h2>
+        <p>进入地图后点击“录制”即可记录当前地图内机器人的运行情况，适合复现走偏、撞货架、异常停车等问题。录像的保存路径在“设置”中的“录像存储路径”里查看，如果现场反馈找不到录像，多数是保存目录被改到了其他磁盘。</p><ul><li>录制前确认磁盘剩余空间，长时间录制会持续占用空间。</li><li>问题复现后及时停止录制并导出，避免被后续录像覆盖。</li><li>录像文件名带时间信息，可作为问题反馈中的时间证据。</li></ul>
+
+        <h2 id="s4">预设封锁区</h2>
+        <p>封锁区用于让机器人绕开某片区域，同时允许人员进入该区域作业。操作路径为：控制界面点击“预设封锁区”，点击“添加预设封锁区”，再用“框选”在地图上圈出范围，最后点击“封锁”并填写封锁原因。</p><ul><li>封锁原因建议写清施工、检修或临时堆放，便于交接班识别。</li><li>人员撤离后点击“解封”即可恢复通行，解封前确认区域内无遗留人员和物料。</li><li>封锁区范围不要压住唯一通道，否则可能造成大面积无路径告警。</li></ul>
+
+        <h2 id="s5">一键收工</h2>
+        <p>一键收工用于把多台机器人批量停到固定区域暂驻。进入“收工方案”后点击“添加方案”，通过“点位选择”框选收工点，再通过“AMR 选择”框选机器人；重复框选可取消选择，也可用“重置”清空。方案支持重命名、删除，配置完成后点击“保存”，再点击“收工”下发。</p><div class="callout warn"><span class="callout-title">数量约束</span><p>收工点数量不得小于所选机器人数量，否则无法完成全部收工。点位不足时应先增加收工点或减少机器人。</p></div>
+
+        <h2 id="s6">一键关机与关机策略</h2>
+        <p>一键关机可批量关闭机器人，省去逐台按关机按钮。界面由“参数查询”“一键关机”按钮和机器人状态组成，建议先点“参数查询”确认当前参数，再下发命令。</p><ul><li>关机模式：“收工后关机”表示执行完当前任务并进入空闲后关机；“立即关机”不等待任务结束。</li><li>控制范围：“当前地图全部机器人”或“手动框选”，批量操作前务必核对范围。</li><li>自动唤醒：打开后可设置唤醒时间，到点自动开机；不打开则表示永久关机，需要人工开机。</li><li>准关电量：打开后可设最低电量，机器人需高于该电量才能关机；低于阈值时通常会先去充电再关机。</li><li>超时时间：仅对“收工后关机”生效，超时仍未满足关机条件的机器人不再关机。</li></ul><div class="callout warn"><span class="callout-title">谨慎使用立即关机</span><p>机器人正在举升或背货时立即关机，可能导致货架位置异常。建议优先使用收工后关机，并设置合理的准关电量与超时时间。</p></div>
+
+        <h2 id="s7">地图背景与路径连通性查询</h2>
+        <p>地图背景用于把拓扑地图和现场布局对应起来。点击“绘制地图背景”后可插入文字、绘制自定义图形和矩形；文字对象可再设置颜色与字体；编辑完成后点击保存，关闭编辑窗口，最后点击“更新地图背景”使修改生效。</p><p>路径连通性查询用于排查“无有效路径”类告警：在控制界面进入“路径连通性查询”，先选择机器人，再依次选择路径上的关键点，点击查询即可看到结果。选点时相邻两点之间必须存在连线，否则会得到错误的失败示例，不能作为判断依据。</p><ul><li>查询前确认机器人处于空闲状态，避免任务占用干扰判断。</li><li>结果只说明所选区段是否连通，整条线路仍需结合拓扑配置一起看。</li><li>背景图和拓扑是两套数据，改背景不会改变实际可走路径。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>客户端从平台首页下载，版本与平台匹配。</li>
+          <li>登录时填写的端口与平台版本对应（如 V4.1 及之后为 443）。</li>
+          <li>录制前确认磁盘空间充足，录像存储路径可写。</li>
+          <li>封锁区框选范围未阻断唯一通道，封锁原因已填写，解封前确认区域已清空。</li>
+          <li>收工点数量不少于所选机器人数量，方案保存后再下发收工。</li>
+          <li>关机前核对控制范围，优先选收工后关机，并按需设置自动唤醒、准关电量与超时时间。</li>
+          <li>路径连通性查询选点时，相邻两点之间均存在连线。</li>
+          <li>修改地图背景后执行更新，并在图上确认文字与图形位置正确。</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v10.html"><span class="pager-label">上一篇</span><span class="pager-title">叉车机器人常见告警排查</span></a>
+        <a class="next" href="v13.html"><span class="pager-label">下一篇</span><span class="pager-title">现场问题反馈与排查规范</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与前置条件</a>
+        <a href="#s2">下载与登录</a>
+        <a href="#s3">监控录制与录像存放</a>
+        <a href="#s4">预设封锁区</a>
+        <a href="#s5">一键收工</a>
+        <a href="#s6">一键关机与关机策略</a>
+        <a href="#s7">地图背景与路径连通性查询</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>叉取机器人 SLAM 建图与上线 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="覆盖叉取机器人从反光条布置、离线建图到平台上线与灯语排障的完整操作顺序和判断标准。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html" class="active">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>地图与标定</span></div>
+      <h1>叉取机器人 SLAM 建图与上线</h1>
+      <p class="lede">覆盖叉取机器人从反光条布置、离线建图到平台上线与灯语排障的完整操作顺序和判断标准。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2021</span>
+        <span class="chip">地图与标定</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>地图与标定目录</summary>
+        <nav>
+          <a href="v02.html">叉取机器人地图规划与业务部署</a>
+          <a href="v05.html">L-SLAM 地图编辑要点</a>
+          <a href="v06.html">机器人点位方向与货架方向配置</a>
+          <a href="v08.html" class="active">叉取机器人 SLAM 建图与上线</a>
+          <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+          <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+          <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">前置条件与现场准备</h2>
+        <p>实施顺序为先部署反光条、再 SLAM 建图、再平台上线并绘制拓扑地图。开始前用调试线连接笔记本与机器人调试口（位于车体左侧），并把笔记本有线网卡设为与机器人同网段：机器人有线 IP 为 192.168.1.64，笔记本末位建议在 100-253 之间，避免与车内组件冲突。</p><ul><li>按设计 CAD 图纸实测现场空间并核对误差，重点测量立柱、机台位置。</li><li>核算机器人旋转空间是否与实际空间冲突。</li><li>无线网络：填写 SSID 与密钥；无密码网络安全模式选 None-Encrypted；开启 DHCP 可自动分配，关闭后手动配固定 IP；应用后约一分钟刷新，看到设备 IP 即表示配置成功。</li></ul>
+
+        <h2 id="s2">反光条与反光柱布置</h2>
+        <p>叉取机器人导航激光安装位置较高，轮廓信息薄弱，除 3D 叉车外主要依靠反光条定位，布置是否合理直接决定建图与定位质量。</p><table><thead><tr><th>项目</th><th>要求</th></tr></thead><tbody><tr><td>定位条件</td><td>以导航激光为原点，20m 范围内至少在三个象限内同时扫到 5 根以上反光条</td></tr><tr><td>规格</td><td>标准宽度 40mm；人工裁剪时单根长度 500-700mm</td></tr><tr><td>间距</td><td>相邻间距大于 500mm，且不要过度一致，人为制造差异</td></tr><tr><td>高度</td><td>反光条中心与导航激光高度齐平</td></tr><tr><td>安装面</td><td>相对平整、不易遮挡，避开玻璃、不锈钢、消防柜等高反物体</td></tr><tr><td>角度</td><td>平面反光条存在可见角度限制，需多角度混合粘贴</td></tr></tbody></table><ul><li>不要两根并排粘贴或人为加宽，采集时按 40mm 宽度识别，加宽不会提高精度反而易误定位。</li><li>大门正反面反光条要错开，两处间距应大于 1 米。</li><li>反光柱内部为 PVC 管、外覆反光材料，长度一般 500mm 以上、直径 70-100mm；应垂直安装，中心与激光等高，避免对称布置。</li></ul>
+
+        <h2 id="s3">数据采集与日志下载</h2>
+        <p>在线建图有可能丢数据导致地图不完整，目前建议使用离线建图。</p><ol><li>规划运行区域，遥控机器人沿区域走一个完整闭环，记录移动开始与结束时间。</li><li>采集过程车速控制在 0.5m/s 以内；尽量不要原地旋转 180°，否则影响地图质量。</li><li>手机 APP 遥控可能出现卡顿，现场有手操器时优先使用手操器。</li><li>主控 4.0 日志：/mnt/agv_log 为 AGV 日志，<code>/mnt/lidar_&lt;型号&gt;_.../data</code> 为导航激光日志，sick 等目录为避障激光数据；目录名后缀三位分别代表 X、Y 与角度，Y 为正表示左激光。</li><li>用 CRT 或同类工具进入导航激光目录，用 ls 确认文件，按文件名中的起止时间挑选覆盖行走全程的日志下载。</li></ol>
+
+        <h2 id="s4">离线建图与地图编辑</h2>
+        <p>建图工具为离线建图软件，主控 4.0 需先确认工具版本为最新，否则可能出现兼容问题。</p><ol><li>新建地图单元并命名，再新建运行地图，在 LSLAM 地图一栏选择本地导入。</li><li>导入下载的导航激光数据，设置基础数据后进入建图；地图名称一般用两位英文字母。</li><li>软件自动跑完数据，路线出现圆圈标记说明构成为闭环；完成后选择文件夹保存，地图为专有格式，黄色圆点即识别到的反光条。</li><li>进入旋转：可用 90° 快捷旋转，也可用辅助线判断倾斜；智能旋转沿一段完整固定轮廓画线，软件自动调垂直，残留倾斜可重复操作或在旋转角度中人工输入。</li><li>进入地图编辑：把地图中的反光点与实际粘贴位置逐处比对，现场未粘贴却有反光点的即为误识别，点击该点按 delete 删除。</li><li>编辑完成后保存。</li></ol><div class="callout warn"><span class="callout-title">注意</span><p>不锈钢、玻璃等高反材质在扫图时容易被误识别为反光条，不删除会在上线后引起定位跳变。</p></div>
+
+        <h2 id="s5">平台上线配置</h2>
+        <p>平台侧配置的关键是让机器人下载到正确地图并注册上线。</p><ul><li>服务配置：修改 RCS 服务的 IP 地址与数据库 URL；单机部署填服务器 IP，集群部署填服务分配的虚拟 IP。</li><li>工作模式：出厂为测试模式，新车到厂须改为正常模式；导航模式选择 LSLAM。</li><li>平台 IP：机器人按此处配置的 RCS IP 与端口注册上线，须与平台服务配置中的 IP 和注册端口一致。</li><li>地图：新建拓扑地图；在 SLAM 地图管理中添加两位字母名称的地图并导入离线建图结果。</li><li>拓扑绘制：勾选 SLAM 背景作为底图，先画主通道；初次上线只需添加高速区点位，批量选点后可统一修改点位大小、水平对齐、批量划线；按 1:1 查看若整体偏移，框选全部点位用方向键整体平移。</li><li>关联与车型：在服务配置中关联拓扑地图并保存；AGV 类型按铭牌填写长宽等参数，AGV 配置中选择所属地图与激光导航类型。</li></ul>
+
+        <h2 id="s6">上线状态判断与异常分析</h2>
+        <p>把机器人遥控到拓扑路线附近，退出遥控、关闭手动模式后复位；定位环境良好时可自动上线，无需手动重定位。上线状态可通过车灯与显示屏提示判断。</p><table><thead><tr><th>灯态与提示</th><th>含义</th><th>处理</th></tr></thead><tbody><tr><td>绿灯·任务空闲</td><td>正常上线</td><td>无需处理</td></tr><tr><td>黄灯·小车不在拓扑元素中</td><td>已上线但偏离拓扑路线较远</td><td>在监控客户端查看实际位置，遥控回拓扑路线</td></tr><tr><td>黄转红·定位数据不可信</td><td>当前位置不满足上线条条件</td><td>检查周边反光条数量是否足够，先移到环境较好区域上线</td></tr><tr><td>红灯·slam 地图未配置</td><td>未从平台下载到地图</td><td>检查服务、工作模式与平台 IP 配置，/mnt/map_list 下多个地图只保留正确的</td></tr></tbody></table><p>主控 4.0 下载的地图文件名为 MAP_XX_Y.lmap，XX 为地图编号、Y 为版本号，应与平台地图管理中的编号和版本一致，可据此核对下载是否正确。</p>
+
+        <h2 id="s7">常见返工原因</h2>
+        <ul><li>反光条间距过于均匀或对称布置，场景高度相似导致机器人行驶中“迷路”。</li><li>两根反光条并排粘贴或人为加宽，引起误定位、影响行走精度。</li><li>反光条中心与导航激光不等高，或贴在凹凸面、靠近高反物体，识别不稳定。</li><li>采集车速过快、原地旋转 180° 或闭环不完整，建图出现累积误差。</li><li>误识别反光条未删除，上线后定位跳变。</li><li>平台 IP、端口或地图编号不匹配，机器人反复提示地图未配置。</li><li>拓扑点位坐标未在监控客户端复核，储位与实际位置偏差较大。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>按 CAD 图纸实测立柱、机台位置，并确认机器人旋转空间无冲突。</li>
+          <li>抽测反光条：宽 40mm、单根长 500-700mm、中心与导航激光等高、相邻间距大于 500mm 且不完全均匀。</li>
+          <li>以导航激光为原点，确认 20m 内至少三个象限能同时扫到 5 根以上反光条，且无并排加宽、无对称布置。</li>
+          <li>采集时抽查车速不超过 0.5m/s，全程无原地旋转 180°，路线形成完整闭环并记录起止时间。</li>
+          <li>确认下载的激光日志时间范围完整覆盖行走开始到结束。</li>
+          <li>逐点比对地图黄色反光点与现场粘贴位置，删除全部误识别点后再保存。</li>
+          <li>上线后确认灯语为绿灯“任务空闲”，并在监控客户端核对实际位置贴合拓扑路线。</li>
+          <li>核对 /mnt/map_list 仅保留正确地图，文件名中的地图编号与版本和平台一致。</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v06.html"><span class="pager-label">上一篇</span><span class="pager-title">机器人点位方向与货架方向配置</span></a>
+        <a class="next" href="v15.html"><span class="pager-label">下一篇</span><span class="pager-title">L-SLAM 建图流程与路径规划</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">前置条件与现场准备</a>
+        <a href="#s2">反光条与反光柱布置</a>
+        <a href="#s3">数据采集与日志下载</a>
+        <a href="#s4">离线建图与地图编辑</a>
+        <a href="#s5">平台上线配置</a>
+        <a href="#s6">上线状态判断与异常分析</a>
+        <a href="#s7">常见返工原因</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

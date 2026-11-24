@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>调度系统安装、升级与配套软件部署 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html" class="active">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>系统与部署</span></div>
+      <h1>调度系统安装、升级与配套软件部署</h1>
+      <p class="lede">说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2023-09</span>
+        <span class="chip">系统与部署</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>系统与部署目录</summary>
+        <nav>
+          <a href="v04.html">潜伏机器人典型业务场景部署</a>
+          <a href="v07.html" class="active">调度系统安装、升级与配套软件部署</a>
+          <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与前置条件</h2>
+        <p>适用于调度系统在服务器上的全新安装、版本升级、卸载，以及监控客户端、PDA 和数据库的配套准备。</p><ul><li>硬件：CPU 建议 i5 及以上，内存 8 GB 及以上，安装盘至少预留 70 GB。</li><li>软件：64 位 Windows 7/10/11，或 Windows Server 2016/2019。</li><li>若服务器已装同系列旧版本调度系统，需先卸载旧版本再安装，避免服务与端口冲突。</li><li>数据库无需提前准备：安装过程会自动安装 PostgreSQL，安装包内也自带 SQLite。</li></ul>
+
+        <h2 id="s2">首次安装</h2>
+        <ol><li>Windows Server 环境先进入安装盘的运行时库目录，安装 VC 2015 运行库。</li><li>运行安装包，按开机向导逐步执行安装。</li><li>确认安装目录所在磁盘在装完后仍有充足空间。</li></ol><div class="callout warn"><span class="callout-title">空间不足会中途失败</span><p>安装盘至少预留 70 GB，且应预留日志与数据库增长空间，不建议卡着下限部署。</p></div>
+
+        <h2 id="s3">登录与业务类型</h2>
+        <ul><li>首次运行客户端需选择业务类型，选择后不再询问。</li><li>需要切换业务类型时，删除安装目录下 Param\clientType.xml，再重新运行客户端。</li><li>不同业务类型的数据库不通用，切换模式需要重建数据库。</li><li>登录需填写用户名、密码、服务器 IP 与端口；客户端端口默认 6543，多网卡服务器要选对业务网段 IP。</li><li>首次登录需先导入 License 才能进入系统；登录后应立即修改默认密码并定期更换。</li></ul>
+
+        <h2 id="s4">升级与卸载</h2>
+        <ul><li>升级统一采用补丁包方式，无论是否跨版本流程一致。</li><li>升级步骤：关闭程序，运行补丁包中的 PatchInstall，按命令行提示操作，结束后重启程序。</li><li>卸载步骤：关闭程序，进入安装目录运行 uninst.exe。</li><li>升级与卸载前建议先导出配置并备份数据库，便于回退。</li></ul>
+
+        <h2 id="s5">配套软件版本匹配</h2>
+        <p>客户端与 PDA 对版本较敏感，版本不配套通常表现为无法登录或功能缺失，部署前先核对。</p><table><thead><tr><th>配套软件</th><th>支持版本</th><th>默认端口</th></tr></thead><tbody><tr><td>监控客户端</td><td>V3.2.0，其他版本不兼容</td><td>6543</td></tr><tr><td>PDA</td><td>V1.0.1，其他版本不兼容</td><td>8182</td></tr></tbody></table><ul><li>监控客户端启动时业务选择“搬运系统”，IP 填调度服务器地址。</li><li>PDA 登录同样使用调度服务器 IP，端口为 8182。</li></ul>
+
+        <h2 id="s6">数据库与切换</h2>
+        <ul><li>运行安装目录下的 DbTool.exe 可查看当前数据库类型。</li><li>默认使用 SQLite；若要切换为 PostgreSQL，需先手动安装 PostgreSQL 服务。</li><li>安装 PostgreSQL 时记录数据库密码与端口（默认 5432），后续在 DbTool 中填写。</li><li>在 DbTool 中选择 PostgreSQL，填写库名、用户名、密码、服务器 IP 与端口后点击设置。</li></ul><div class="callout warn"><span class="callout-title">切换需停机</span><p>不同业务模式的数据库不通用，切换模式或数据库类型会影响既有数据，应在停机窗口内完成并提前备份。</p></div>
+
+        <h2 id="s7">常见问题</h2>
+        <ul><li>安装或启动报缺少运行库：Windows Server 未装 VC 2015 运行时，补装后重试。</li><li>客户端登录失败：先确认客户端版本与服务端配套，再核对 IP 与 6543 端口。</li><li>能登录但业务异常：多网卡环境选错 IP，需与服务器网卡地址逐项核对。</li><li>PDA 连不上：优先检查 8182 端口与服务器防火墙策略。</li><li>切换业务类型后无数据：属正常现象，不同模式的数据库相互独立。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>服务器 CPU、内存、磁盘满足 i5、8 GB、70 GB 要求</li>
+          <li>操作系统为 64 位且属于受支持版本</li>
+          <li>旧版本已卸载，安装盘剩余空间充足</li>
+          <li>Windows Server 已安装 VC 2015 运行时库</li>
+          <li>首次登录已导入 License 并修改默认密码</li>
+          <li>监控客户端与 PDA 版本分别为 V3.2.0、V1.0.1</li>
+          <li>多网卡服务器登录 IP 已选对，端口使用 6543</li>
+          <li>切换 PostgreSQL 前已记录密码与端口并在 DbTool 中验证</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v04.html"><span class="pager-label">上一篇</span><span class="pager-title">潜伏机器人典型业务场景部署</span></a>
+        <a class="next" href="v11.html"><span class="pager-label">下一篇</span><span class="pager-title">潜伏机器人平台搭建与任务配置</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与前置条件</a>
+        <a href="#s2">首次安装</a>
+        <a href="#s3">登录与业务类型</a>
+        <a href="#s4">升级与卸载</a>
+        <a href="#s5">配套软件版本匹配</a>
+        <a href="#s6">数据库与切换</a>
+        <a href="#s7">常见问题</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

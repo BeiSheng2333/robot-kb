@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>终端工具连接机器人与服务端的常用操作 — 厂商手册速览 — 现场笔记</title>
+<meta name="description" content="介绍用 PuTTY 和 MobaXterm 登录机器人或服务器、上传下载文件、开打印和在线改配置的常用手法。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">厂商手册速览</p>
+      <nav>
+        <span class="side-group">系统与部署</span>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <span class="side-group">接口与对接</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与标定</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v19.html" class="active">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">运维与排障</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="index.html">← 速览总目录</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><a href="index.html">厂商手册速览</a><span class="sep">/</span><span>配置与工具</span></div>
+      <h1>终端工具连接机器人与服务端的常用操作</h1>
+      <p class="lede">介绍用 PuTTY 和 MobaXterm 登录机器人或服务器、上传下载文件、开打印和在线改配置的常用手法。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2023-04</span>
+        <span class="chip">配置与工具</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>配置与工具目录</summary>
+        <nav>
+          <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+          <a href="v19.html" class="active">终端工具连接机器人与服务端的常用操作</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与前置条件</h2>
+        <p>现场两类连接需求：一类是登录机器人主控查看日志、执行调试命令，另一类是登录服务器查看服务日志、修改配置文件。前者用轻量的终端工具即可，后者更适合带文件浏览器和 SFTP 的工具。两者都只需要目标设备的 IP、账号和密码。</p><ul><li>确认本机与目标设备网络可达，SSH 端口未被封锁。</li><li>确认账号有对应权限，避免只能读取不能写入。</li><li>机器人侧若无法登录，先确认 SSH 开关已打开。</li></ul>
+
+        <h2 id="s2">用终端工具连接机器人</h2>
+        <p>解压终端工具压缩包后直接运行可执行文件，无需安装。连接步骤：</p><ol><li>打开工具，在主机地址栏输入机器人 IP，点击“open”。</li><li>首次连接会出现主机密钥提示，按现场规范选择“否”继续。</li><li>输入用户名 root，回车后再输入密码，回车完成登录。</li></ol><p>登录后即进入机器人命令行环境，可直接执行查看日志、重启、刷新日志等命令。若提示连接被拒绝，优先检查机器人 SSH 开关和 IP 是否可 ping 通。</p>
+
+        <h2 id="s3">开启打印并保存输出</h2>
+        <p>排查现场动作类问题时，常需要实时观察机器人打印。先执行 <code>castor_cli -T 1</code> 打开打印，复现问题后再执行 <code>castor_cli -T 0</code> 结束打印。为了把打印内容留作证据，可在会话设置中配置日志保存路径，配置完成后点击“Apply”生效。</p><div class="callout ok"><span class="callout-title">建议</span><p>先设好保存路径再开打印，避免中途配置导致前半段输出丢失；保存的文件按时间命名，便于与故障时间点对应。</p></div>
+
+        <h2 id="s4">用 MobaXterm 连接服务器</h2>
+        <p>解压后运行便携版可执行文件即可。连接有两种方式：</p><ul><li><strong>会话方式</strong>：点击 Session，选择 SSH，填写主机地址、用户名和端口后点击 OK。</li><li><strong>命令行方式</strong>：点击 Start local terminal，输入 <code>ssh root@服务器IP</code> 回车；默认远程端口为 22，若服务器端口不是 22，用 <code>-p 端口号</code> 指定，例如 <code>ssh -p 55555 root@服务器IP</code>。</li></ul><p>命令行方式不写 <code>-p</code> 时默认走 22 端口，端口填错会表现为连接超时或拒绝。</p>
+
+        <h2 id="s5">上传与下载文件</h2>
+        <p>该工具登录后左侧自带 SFTP 面板，可直接浏览服务器目录。</p><ul><li><strong>下载</strong>：在目录框输入目标目录（例如服务账号的 home 目录）回车，选中文件后点击下载图标，在弹窗中选择本地保存位置。</li><li><strong>上传</strong>：同样进入目标目录，点击上传图标，在弹窗中选择本地文件并打开即可上传到当前目录。</li><li>传输大文件时保持会话不中断，中断后可重新连接续传。</li></ul>
+
+        <h2 id="s6">在线查看与修改配置文件</h2>
+        <p>以服务端配置文件为例，典型流程是进入目录、查看内容、再编辑保存：</p><ol><li>用 <code>cd</code> 切换到组件配置文件所在目录，再用 <code>ls</code> 确认文件名。</li><li>用 <code>cat 文件名</code> 查看当前配置，先确认要改的键在哪个位置。</li><li>用 <code>vim 文件名</code> 进入编辑，按 <code>i</code> 进入编辑模式，修改完成后按 <code>Esc</code> 退出编辑模式，输入 <code>:wq</code> 回车保存并退出。</li><li>若不希望保存，按 <code>Esc</code> 后输入 <code>:q!</code> 强制退出。</li></ol><div class="callout warn"><span class="callout-title">改配置前先备份</span><p>修改前先用下载功能把原文件取回本地；修改后需重启对应服务并验证效果。密码、连接串之类的值写错，可能导致服务启动失败或无法连接数据库，建议改完立即做一次服务状态检查。</p></div>
+
+        <h2 id="s7">常见问题与注意事项</h2>
+        <ul><li>首次连接的主机指纹提示只出现一次，误点后可清理本地已知主机记录再重连。</li><li>机器人登录不上：确认 IP 正确、SSH 开关已开、账号密码未变更。</li><li>服务器连接超时：核对端口，检查防火墙与安全组策略。</li><li>上传下载无响应：确认当前目录有读写权限，磁盘空间是否充足。</li><li>编辑时误按导致界面异常：按 <code>Esc</code> 后输入 <code>:q!</code> 退出重来，不要强行关闭终端。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>已确认目标设备 IP 可 ping 通，SSH 端口未被拦截。</li>
+          <li>机器人侧 SSH 开关已打开，root 账号可正常登录。</li>
+          <li>开打印前已配置输出保存路径，并确认文件成功落盘。</li>
+          <li>服务器连接使用了正确端口，非 22 端口时命令带 -p 参数。</li>
+          <li>修改配置文件前已将原文件下载备份到本地。</li>
+          <li>编辑完成后使用 :wq 保存，或使用 :q! 放弃修改，未产生半截文件。</li>
+          <li>配置修改后重启对应服务，并确认服务状态与日志正常。</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v03.html"><span class="pager-label">上一篇</span><span class="pager-title">主控配置文件 castor_conf 配置项速查</span></a>
+        <a class="next" href="v10.html"><span class="pager-label">下一篇</span><span class="pager-title">叉车机器人常见告警排查</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与前置条件</a>
+        <a href="#s2">用终端工具连接机器人</a>
+        <a href="#s3">开启打印并保存输出</a>
+        <a href="#s4">用 MobaXterm 连接服务器</a>
+        <a href="#s5">上传与下载文件</a>
+        <a href="#s6">在线查看与修改配置文件</a>
+        <a href="#s7">常见问题与注意事项</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
