@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>现场地面勘测与整改要点 — 实施部署 — 现场笔记</title>
+<meta name="description" content="面向 STU、Q1P、CTU 等移动机器人运行路径，本篇按初次全场测量、精细复测、打磨固化、裂缝与凹处修补、硬度摩擦检测到最终复测的顺序，整理地面勘测整改流程。每一步均给出测点间距、工具读数、施工配比和合格判据，并单列原文阈值差异，便于现场先统一验收口径再闭环施工。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">文档目录</p>
+      <nav>
+        <span class="side-group">实施部署</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <a href="v27.html" class="active">现场地面勘测与整改要点</a>
+        <span class="side-group">通信与接口</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <a href="v26.html">移动机器人无线网络测试与部署</a>
+        <span class="side-group">地图与定位</span>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <a href="v22.html">L-SLAM 定位异常的分层排查</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <span class="side-group">排障方法</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        <a href="v23.html">机器人任务空闲但不执行排查</a>
+        <a href="v24.html">机器人充电异常排查</a>
+        <a href="v25.html">机器人异常重启排查与日志采集</a>
+      </nav>
+      <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
+      <h1>现场地面勘测与整改要点</h1>
+      <p class="lede">面向 STU、Q1P、CTU 等移动机器人运行路径，本篇按初次全场测量、精细复测、打磨固化、裂缝与凹处修补、硬度摩擦检测到最终复测的顺序，整理地面勘测整改流程。每一步均给出测点间距、工具读数、施工配比和合格判据，并单列原文阈值差异，便于现场先统一验收口径再闭环施工。</p>
+      <div class="doc-meta">
+        <span>整理自 机器人技术 Wiki 离线文档（11 页）</span>
+        <span class="chip">实施部署</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>实施部署目录</summary>
+        <nav>
+          <a href="v02.html">叉取机器人地图规划与业务部署</a>
+          <a href="v04.html">潜伏机器人典型业务场景部署</a>
+          <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+          <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+          <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+          <a href="v27.html" class="active">现场地面勘测与整改要点</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">阶段一 · 固定勘测边界、路径与工具</h2>
+        <ol><li>先取得现场 CAD 布局、机器人运行路径和理论地面标高，标出 STU/Q1P 主通道、左右轮或脚轮轮印、精确定位停车点以及 CTU 路径；后续所有测点都挂接到这一基准。</li><li>按<strong>初测 → 整改 → 复测</strong>准备工具，确认靠尺为 1 m、卷尺量程满足布点，测量记录表能逐点保存原始读数。</li><li>先确定全场和各类路径分别采用哪套阈值，再动工；不要边施工边更换判定口径。</li></ol><table><thead><tr><th>工具</th><th>用途</th><th>使用判断</th></tr></thead><tbody><tr><td>水准仪＋塔尺</td><td>全场坡度与起伏初测</td><td>适合进场后的大范围快速测量</td></tr><tr><td>激光水平仪＋三角钢尺</td><td>基础整改后的精细测量</td><td>适合 10 m 内，环境光线不能太强</td></tr><tr><td>1 m 靠尺＋楔形游标塞尺</td><td>局部坡度和打磨后复测</td><td>范围小但准确度高</td></tr><tr><td>50 m 卷尺＋棉线</td><td>标记测量线、测量点</td><td>棉线便于反复调整并辅助观察起伏</td></tr><tr><td>3 m 卷尺</td><td>沟宽与台阶高度</td><td>用于局部几何异常复核</td></tr><tr><td>莫氏硬度笔</td><td>地面硬度</td><td>由低到高试划并观察划痕</td></tr><tr><td>拉力计＋驱动轮＋配重</td><td>摩擦系数</td><td>匀速拉动并读取拉力，结合工装重量计算</td></tr></tbody></table><p>测量表至少要能还原<strong>坐标、左右轮位置、原始读数、测点时间和异常处理状态</strong>；仅保留最高/最低结果，无法支撑后续局部整改。</p>
+
+        <h2 id="s2">阶段一 · 先统一平整度、坡度与局部异常阈值</h2>
+        <p>原文按全场、车型路径和局部几何异常分别给出标准，不能相互替代。平整度/起伏按<strong>基准范围内最高高度与最低高度之差</strong>计算；坡度按 H/L，即在 100 mm 以上长度内，水平高度差与路线长度的最大比值。</p><table><thead><tr><th>对象</th><th>标准</th><th>判定说明</th></tr></thead><tbody><tr><td>全场平整度</td><td>2.25㎡ 范围内 ±3 mm（含 3 mm）</td><td>按区域内最高、最低点核对</td></tr><tr><td>Q1P 路径</td><td>1 m 内起伏＜4 mm；左右轮行驶路径高低差按≤3 mm 控制；轮印区域执行 2.25㎡ ±3 mm</td><td>左右轮差与单轮路径起伏分别检查</td></tr><tr><td>STU 整条巷道</td><td>相对理论地面为 -50～+10 mm</td><td>即最低可矮 50 mm、最高可高 10 mm</td></tr><tr><td>CTU 整条巷道</td><td>高低差在 ±10 mm 内</td><td>按整条行驶路径判定</td></tr><tr><td>一般路面坡度</td><td>H/L≤0.03</td><td>低于最大允许值时应能可控地按额定速度行驶</td></tr><tr><td>精确定位停车点坡度</td><td>H/L≤0.01</td><td>采用比一般路面更严的口径</td></tr><tr><td>台阶</td><td>100 mm 以内长度中的最大高度差≤2 mm</td><td>停车位置不允许出现台阶</td></tr><tr><td>沟槽</td><td>沟宽≤3 mm；超过时改按台阶高度要求</td><td>停车位置不允许出现沟槽</td></tr></tbody></table><div class="callout danger"><span class="callout-title">原文存在两处口径差异，验收前必须统一</span><p>Q1P 左右轮高度差在前文标准及流程多处写为≤3 mm或＜3 mm，后段施工说明出现＜4 mm；摩擦系数也有一般说明＞0.45与施工验收≥0.46两种写法。未获得项目受控版本确认前，本篇分别按前文标准中的<strong>≤3 mm</strong>和施工终验的<strong>≥0.46</strong>整理；若受控方案规定＜3 mm等更严值，从其规定，不能用后段较宽口径覆盖前段标准。</p></div>
+
+        <h2 id="s3">阶段二 · 用水准仪完成 1.5 m 网格初测</h2>
+        <ol><li>把水准仪支架放在基准点后调平，固定仪器并再次调节；<strong>气泡居中</strong>才说明仪器水平。</li><li>在拟定机器人运行区域建立基点和坐标系，横向、纵向均每隔 <strong>1.5 m</strong> 设置观测点；塔尺放在测点上并保持与地面垂直。</li><li>逐点读取塔尺高度并记录。该读数越大，表示对应点位地面凹陷越大，不能把读数大小直接当成地面更高。</li><li>将数据录入测量表，计算全场最低点、最高点和高度差，并按高度范围标色，形成起伏分布，为打磨、修补及货架安装高度基准提供依据。</li></ol><table><thead><tr><th>初测输出</th><th>判断与下一步</th></tr></thead><tbody><tr><td>单点读数与坐标</td><td>保留原始值，能回到现场同一测点</td></tr><tr><td>最高点、最低点、极差</td><td>评估全场起伏和整改工程量</td></tr><tr><td>大面积两点在 1.5 m 距离内高低偏差＞10 mm</td><td>原文认为无法仅靠地面打磨修复，建议采用自流平或环氧树脂修复，并同步相关供应方</td></tr><tr><td>局部高点或凹点</td><td>进入后续通道精测，区分打磨与填补</td></tr></tbody></table><p>初测的目的不是直接宣布合格，而是决定<strong>能否打磨修正、哪些区域需要自流平或环氧修复</strong>。若初测已显示大面积超差，不应先全场打磨再补做决策。</p>
+
+        <h2 id="s4">阶段二 · 用激光水平仪做通道精细测量</h2>
+        <p>基础整改后需要按轮印复测时采用本法。先在 CAD 对应的 STU 行走巷道弹出中心线，在一侧选择位于同一直线上的基准点；测量距离不得超过 <strong>10 m</strong>。测点按实际驱动轮轮距相对中心线对称分布，原文图示为中心线上下各 <strong>470 mm</strong>，该值须随车型轮距调整，不能固定照搬。</p><ol><li>将激光水平仪放在基准测量点，调节四个支腿，直到顶部中间气泡居中。</li><li>打开仪器 V、H 开关，形成一条垂直和一条水平激光线。</li><li>从基准点向巷道尾部拉 50 m 卷尺，保持卷尺水平、紧绷；沿轮印每隔 <strong>500 mm</strong> 标记一个测量点。</li><li>在对应点放置三角钢尺并保持垂直，统一以<strong>激光上边缘</strong>为读数线，记录钢尺刻度。</li><li>把左右轮数据填入对应表格，逐组计算左右轮高度差，并结合 2.25㎡ 区域标准检查轮印起伏；异常点回标到地面。</li></ol><table><thead><tr><th>控制项</th><th>取值/动作</th><th>误判防范</th></tr></thead><tbody><tr><td>仪器状态</td><td>顶部气泡居中，V/H 均打开</td><td>未调平就直接读数会使整组数据失效</td></tr><tr><td>测量距离</td><td>≤10 m</td><td>超出后准确度大幅降低，应改用其他方法或重新设站</td></tr><tr><td>纵向点距</td><td>500 mm</td><td>左右轮必须成组记录</td></tr><tr><td>横向位置</td><td>按实际轮距对称；470 mm 仅为原文示例</td><td>不能把中心线点当成轮印点</td></tr><tr><td>读数线</td><td>统一取激光上边缘</td><td>全组不得混用上、下边缘</td></tr></tbody></table>
+
+        <h2 id="s5">阶段二 · 用靠尺塞尺复核坡度与局部几何</h2>
+        <ol><li>将 1 m 水平靠尺横置于待测地面，调整至检验气泡居中，再把楔形游标塞尺沿靠尺与地面的缝隙轻轻推入，读取偏差。</li><li>每处检测多个点，并在原位左右交叉 <strong>45°</strong> 方向补测，取多点平均值；端头位置按原文要求扣除 <strong>100 mm</strong> 后再测定平整度。</li><li>通道坡度复测时，将 1 m 靠尺每隔 1 m 放在相邻两个测量点之间，以塞尺读数记录顺平差；施工流程要求 <strong>1 m 内＜3.5 mm</strong>。</li><li>用 3 m 卷尺和塞尺复核台阶、沟槽，并按第二节的≤2 mm、≤3 mm标准判定；精确定位停车点还要单独核对坡度≤0.01。</li></ol><table><thead><tr><th>方法</th><th>适用范围</th><th>优点</th><th>限制</th></tr></thead><tbody><tr><td>激光水平仪</td><td>10 m 内精细测量</td><td>便携，工具箱可配套</td><td>范围小，强光环境不适用</td></tr><tr><td>水准仪</td><td>50 m 内、大范围初测</td><td>范围较大、效率高</td><td>通常需额外采购</td></tr><tr><td>靠尺＋塞尺</td><td>局部小区域复测</td><td>准确度高</td><td>测试范围很小，需多点交叉</td></tr></tbody></table><div class="callout warn"><span class="callout-title">不要用单一顺平差代替全部坡度判定</span><p>1 m＜3.5 mm 是施工流程中的顺平差要求；通用坡度仍以 H/L≤0.03、精确定位停车点≤0.01判定。台阶和沟槽也必须另测，停车位置出现台阶或沟槽时，不能因顺平差合格而放行。</p></div>
+
+        <h2 id="s6">阶段三 · 开面、粗磨并识别凹凸区域</h2>
+        <ol><li>若原地面已经固化，用 <strong>3 目金属刀片</strong>开面，清除原表面固化层；原地面未固化时可跳过开面。</li><li>开面后清除浮灰，再用 <strong>16 目金属刀片</strong>粗磨，修补 3 目刀痕并进一步优化起伏，重点处理肉眼可见高点。</li><li>开面与粗磨均全场沿<strong>机器人运行方向</strong>打磨，每一步结束及时用尘铲等工具清灰。</li><li>粗磨后洒水清洁，观察有无积水较多的区域；积水集中处作为局部起伏较大的疑点，纳入通道精测。</li></ol><table><thead><tr><th>工序</th><th>刀片/动作</th><th>完成判据</th></tr></thead><tbody><tr><td>开面</td><td>3 目；仅原地面已固化时需要</td><td>原固化层清除，随后无浮灰残留</td></tr><tr><td>粗磨</td><td>16 目；重点处理可见高点</td><td>3 目刀痕得到修补，起伏进一步优化</td></tr><tr><td>清洁观察</td><td>清灰后洒水</td><td>记录积水较多的疑似凹区，不用目测替代测量</td></tr></tbody></table><p>开面、粗磨只是为精测和局部整改建立基础，不能跳过随后的 500 mm 轮印测量直接固化。</p>
+
+        <h2 id="s7">阶段三 · 标记轮印并闭环局部打磨或填补</h2>
+        <ol><li>根据 CAD 布局用棉线拉出 STU、Q1P 主通道。后续仍需打磨时先用棉线而不是急于弹墨线，以便快速调整基准并辅助观察起伏。</li><li>沿 STU 脚轮、Q1P 驱动轮的左右行驶路径，每隔 <strong>500 mm</strong> 测一组，把读数和异常位置标回地面。</li><li>逐组核对左右轮高度差，并按前文≤3 mm口径控制；轮印区域同时核对 2.25㎡ ±3 mm。再用 1 m 靠尺复测顺平差，要求＜3.5 mm。</li><li>已标识高点进行局部打磨；凹处先修补再打磨。施工中同步用靠尺和塞尺检查，局部调整目标为<strong>±2 mm 偏差以内</strong>，完成后及时清理浮尘。</li></ol><table><thead><tr><th>异常类型</th><th>处理</th><th>复测依据</th></tr></thead><tbody><tr><td>凸出高点</td><td>局部打磨</td><td>边磨边用靠尺、塞尺检查，避免只凭外观</td></tr><tr><td>凹陷区域</td><td>先填补，再打磨</td><td>修补后重新回到同一点位测量</td></tr><tr><td>左右轮成组超差</td><td>按轮印位置处理，不只磨通道中心</td><td>同组左右轮差≤3 mm，且轮印区域满足全场标准</td></tr></tbody></table><p>所有返修点必须保留“原读数—处理—复读数”的闭环，后续固化、精磨后还要再次复测。</p>
+
+        <h2 id="s8">阶段三 · 两次固化与 60/120 目精磨</h2>
+        <p>局部异常处理并清灰后，按<strong>第一次固化 → 60 目精磨 → 清灰 → 第二次固化 → 120 目精磨 → 清灰</strong>执行。两次固化均使用固化剂与水 <strong>1:6</strong> 混合，均匀涂抹；根据天气保持地面湿润 <strong>1 小时以上</strong>，整体固化 <strong>4 小时以上</strong>。</p><table><thead><tr><th>顺序</th><th>工序与参数</th><th>目的/判断</th></tr></thead><tbody><tr><td>1</td><td>第一次固化：1:6，保湿≥1 h，整体固化≥4 h</td><td>增加地面硬度，达到时间后再进入精磨</td></tr><tr><td>2</td><td>60 目金属刀片第一遍精磨</td><td>清除残留固化剂、修补 16 目刀痕</td></tr><tr><td>3</td><td>彻底清灰后进行第二次固化，参数同第一次</td><td>进一步增加硬度</td></tr><tr><td>4</td><td>120 目金属刀片第二遍精磨</td><td>清除残留固化剂、修补 60 目刀痕并增加地面摩擦力</td></tr><tr><td>5</td><td>最终清灰</td><td>表面无浮尘堆积，才能进行硬度与摩擦测量</td></tr></tbody></table><div class="callout warn"><span class="callout-title">方向和时间都不能省</span><p>全场打磨始终沿机器人运行方向。保湿时间和整体固化时间是两个不同要求，不能将“保湿 1 小时”误当成“固化 1 小时”；返修区域在整改完成后仍需再次固化、精磨。</p></div>
+
+        <h2 id="s9">阶段三 · 修补裂缝、地缝与凹处</h2>
+        <p><strong>裂缝/地缝：</strong>原文列示的填缝工艺采用硅酮密封胶，实际材料应由现场方案和供应方确认。先在填缝前粘贴美纹胶布，用尖锐刀片刮出或吸尘器吸出缝内异物；粘贴胶布前可不清扫，避免胶布粘性损伤地面薄弱处。胶枪填充后，用打湿的小汤勺或手指胶套压平高于地面的填充胶，十几分钟后撕去美纹胶布，避免久置难撕。</p><table><thead><tr><th>修补对象</th><th>步骤</th><th>时间/完成后检查</th></tr></thead><tbody><tr><td>裂缝、地缝</td><td>贴美纹胶布 → 清除缝内异物 → 胶枪填充 → 打湿工具压平 → 撕胶布</td><td>填后 2 h 初步干燥、12 h 完全干燥；表面不得高于周边地面</td></tr><tr><td>一般凹处</td><td>先磨平凹处中的凸点，再用底漆＋砂浆填平并刮平</td><td>刮平后进入灌浆和复测，不保留局部凸点</td></tr><tr><td>第一次灌浆</td><td>环氧树脂＋石英砂刮平，随后用 120 目刀片打磨</td><td>与周围地面顺接</td></tr><tr><td>第二次灌浆</td><td>再次用环氧树脂＋石英砂刮平，再用 120 目刀片打磨</td><td>消除残留高差</td></tr><tr><td>最终表面</td><td>平涂漆混合 100 目石英砂刮平</td><td>再按对应区域平整度、坡度和摩擦要求复测</td></tr></tbody></table><p>材料干燥期间不得把“已刮平”视为最终合格；完全干燥后仍需回到同一坐标复测，必要时再次打磨、固化和精磨。</p>
+
+        <h2 id="s10">阶段四 · 测量莫氏硬度与摩擦系数</h2>
+        <p><strong>硬度布点：</strong>按下表确定测量组数。先选低于预测硬度 1～2 级的笔，由低到高依次刻划；握笔与地面成 <strong>45°</strong>，左右滑动观察划痕。无划痕说明地面硬度高于该笔，轻微划痕表示与该笔相当，明显划痕表示低于该笔；最终要求<strong>莫氏硬度＞5</strong>。</p><table><thead><tr><th>仓库面积</th><th>测量点位数量</th></tr></thead><tbody><tr><td>1000㎡ 以下</td><td>3</td></tr><tr><td>1000～5000㎡</td><td>5</td></tr><tr><td>5000～10000㎡</td><td>10</td></tr><tr><td>10000㎡ 以上</td><td>15</td></tr></tbody></table><p><strong>摩擦系数：</strong>全场每隔 <strong>20 m</strong> 取一个样点，用拉力计匀速拉动由驱动轮和配重组成的工装，读取拉力。按 <code>μ = 拉力 / 工装重量（N）</code> 计算，<code>1 公斤力 = 9.8 N</code>；施工验收按<strong>μ≥0.46</strong>控制。</p><table><thead><tr><th>检测</th><th>原始记录</th><th>合格判断</th></tr></thead><tbody><tr><td>莫氏硬度</td><td>点位、使用笔级、划痕情况</td><td>硬度＞5，整理到报告</td></tr><tr><td>摩擦系数</td><td>点位、拉力、工装重量、计算结果</td><td>μ≥0.46；若项目另有更严受控标准，从其规定</td></tr></tbody></table><p>硬度笔必须由低到高试划，摩擦测试必须匀速拉动；施力方式不一致会使读数失去可比性。</p>
+
+        <h2 id="s11">收尾 · 复测、保洁与交付注意事项</h2>
+        <ol><li>再次按轮印 500 mm 点距、1 m 靠尺顺平差及局部异常测量方法复测 STU/Q1P 通道，直至达到受控标准；整改过的地方仍要重新固化、精磨，不能只做干磨后放行。</li><li>基础施工结束后，用水和拖把多遍清洁，做到无灰尘堆积、目视整洁，再完成硬度、摩擦及最终几何复测。</li><li>按 1.5 m×1.5 m 网格完成全场水平高度终测。原文指定由货架供应方据此确定货架安装高度基准点，现场应把最终数据交接给对应责任方。</li><li>交付地面勘测修复检查表、原始读数、最高/最低点及极差、异常点整改闭环、硬度与摩擦报告；同时明确所采用的 Q1P 轮差和摩擦系数口径。</li></ol><div class="callout danger"><span class="callout-title">不能放行的收尾情形</span><p>停车位仍有台阶或沟槽、精确定位点坡度＞0.01、返修区域未重新固化精磨、Q1P 轮差标准仍未统一、硬度或摩擦未达最终口径，任一情况都不能仅凭“全场已打磨、外观整洁”验收。</p></div><ul><li>470 mm 只是原文轮距示例，现场必须按车型实际轮距布点；激光测量超过 10 m 时重新设站或换方法。</li><li>水准仪读数越大代表凹陷越大，激光读数又必须统一取上边缘，记录表不要混用解释。</li><li>所有打磨沿机器人运行方向，各道工序之间及时清灰；固化保湿≥1 h、整体固化≥4 h。</li><li>水准仪用于初测、激光水平仪用于 10 m 内精测、靠尺用于局部复测；更换方法后仍须回到相同路径和测点核对，不用外观印象代替数据。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>CAD 路径、理论标高、STU/Q1P/CTU 适用范围及左右轮实际轮距已确认，Q1P 轮差与摩擦系数验收口径已统一</li>
+          <li>水准仪、激光水平仪、1 m 靠尺、塞尺、卷尺、硬度笔和摩擦工装齐备，记录表可追溯到每个坐标</li>
+          <li>全场初测按横纵 1.5 m 布点，仪器气泡居中、塔尺垂直，最高/最低点及高度差已计算并标色</li>
+          <li>大面积 1.5 m 两点高差＞10 mm 的区域已转为自流平或环氧修复评估，未强行仅靠打磨处理</li>
+          <li>激光精测距离≤10 m、纵向点距 500 mm，横向按实际轮距对称布点，全组统一读取激光上边缘</li>
+          <li>靠尺多点及左右交叉 45° 复测完成；一般坡度≤0.03、精确定位停车点≤0.01，台阶≤2 mm、沟宽≤3 mm</li>
+          <li>开面/粗磨/精磨按需要的 3 目、16 目、60 目、120 目顺序执行，全程沿机器人运行方向并逐步清灰</li>
+          <li>STU/Q1P 轮印每 500 mm 成组复测，左右轮差按≤3 mm、2.25㎡ ±3 mm、1 m 顺平差＜3.5 mm核对，局部调整到±2 mm内</li>
+          <li>两次固化均按固化剂:水=1:6、保湿≥1 h、整体固化≥4 h执行，返修区域也已重新固化和精磨</li>
+          <li>裂缝填缝的异物清理、压平、撕胶布及 2 h/12 h 干燥时间已记录，凹处两次灌浆与 120 目打磨、100 目石英砂刮平已完成</li>
+          <li>硬度点位数量符合面积分档且莫氏硬度＞5；摩擦样点每 20 m 一个，按 μ=拉力/重量计算并达到≥0.46</li>
+          <li>最终全场与通道复测合格，地面无积尘，货架高度基准数据及勘测修复检查表、整改闭环和检测报告已交接</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v21.html"><span class="pager-label">上一篇</span><span class="pager-title">AGV 加密文件修改与导入刷写流程（软标定制）</span></a>
+        <a class="next" href="v01.html"><span class="pager-label">下一篇</span><span class="pager-title">调度系统与上层平台的 REST 接口对接</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">阶段一 · 固定勘测边界、路径与工具</a>
+        <a href="#s2">阶段一 · 先统一平整度、坡度与局部异常阈值</a>
+        <a href="#s3">阶段二 · 用水准仪完成 1.5 m 网格初测</a>
+        <a href="#s4">阶段二 · 用激光水平仪做通道精细测量</a>
+        <a href="#s5">阶段二 · 用靠尺塞尺复核坡度与局部几何</a>
+        <a href="#s6">阶段三 · 开面、粗磨并识别凹凸区域</a>
+        <a href="#s7">阶段三 · 标记轮印并闭环局部打磨或填补</a>
+        <a href="#s8">阶段三 · 两次固化与 60/120 目精磨</a>
+        <a href="#s9">阶段三 · 修补裂缝、地缝与凹处</a>
+        <a href="#s10">阶段四 · 测量莫氏硬度与摩擦系数</a>
+        <a href="#s11">收尾 · 复测、保洁与交付注意事项</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

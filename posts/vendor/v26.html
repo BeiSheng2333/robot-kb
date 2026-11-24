@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移动机器人无线网络测试与部署 — 通信与接口 — 现场笔记</title>
+<meta name="description" content="面向移动机器人上线前的无线规划、施工配置与网络验收，本篇把三篇通用 Wiki 合并为一条可执行流程：先完成地址、VLAN、AC/AP 与安装部署，再依次验证信号、延迟丢包、速率、信道、漫游和负载，并给出可直接对照的阈值、命令、日志关键字及判定方法。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">文档目录</p>
+      <nav>
+        <span class="side-group">实施部署</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <a href="v27.html">现场地面勘测与整改要点</a>
+        <span class="side-group">通信与接口</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <a href="v26.html" class="active">移动机器人无线网络测试与部署</a>
+        <span class="side-group">地图与定位</span>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <a href="v22.html">L-SLAM 定位异常的分层排查</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <span class="side-group">排障方法</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        <a href="v23.html">机器人任务空闲但不执行排查</a>
+        <a href="v24.html">机器人充电异常排查</a>
+        <a href="v25.html">机器人异常重启排查与日志采集</a>
+      </nav>
+      <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>通信与接口</span></div>
+      <h1>移动机器人无线网络测试与部署</h1>
+      <p class="lede">面向移动机器人上线前的无线规划、施工配置与网络验收，本篇把三篇通用 Wiki 合并为一条可执行流程：先完成地址、VLAN、AC/AP 与安装部署，再依次验证信号、延迟丢包、速率、信道、漫游和负载，并给出可直接对照的阈值、命令、日志关键字及判定方法。</p>
+      <div class="doc-meta">
+        <span>整理自 机器人技术 Wiki 离线文档（27 页，3 篇合并）</span>
+        <span class="chip">通信与接口</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>通信与接口目录</summary>
+        <nav>
+          <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+          <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+          <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+          <a href="v26.html" class="active">移动机器人无线网络测试与部署</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">阶段一 · 明确测试路线与验收基线</h2>
+        <p>网络工作按<strong>规划与部署 → 单项测试 → 负载复核 → 验收留档</strong>推进。先标出主要活动区域、边缘活动区域和固定有线链路，再确定测试对象：现场有 AMR 时以其测试结果为准；没有 AMR 时才用手机或电脑替代，且终端结果只能作为参考。</p><ol><li>把测试路线覆盖到全部运行区域，主要区与边缘区分开记录起止时间和结果。</li><li>信号、网络质量、速率、信道、漫游分别测试；需要取平均的项目测试 <strong>3～5 次</strong>，不要以单次最好值验收。</li><li>按下表先建立判定基线，后续每一节再展开操作和取证方法。</li></ol><table><thead><tr><th>项目</th><th>运行/验收标准</th><th>判定口径</th></tr></thead><tbody><tr><td>信号强度</td><td>主要区＞-55 dBm；边缘区＞-65 dBm</td><td>优先采用 AMR 实际识别值</td></tr><tr><td>无线延迟</td><td>主要区＜100 ms；边缘区＜200 ms</td><td>AMR 到调度服务器</td></tr><tr><td>无线丢包</td><td>连续丢包＜2 个；总丢包率＜1%</td><td>漫游切换丢包也按连续丢包判定</td></tr><tr><td>无线抖动</td><td>＜100 ms</td><td>最大延迟减最小延迟</td></tr><tr><td>单台速率</td><td>平均 2 Mbps；峰值最低 10 Mbps</td><td>下载地图、升级会触及峰值</td></tr><tr><td>漫游</td><td>切换＜500 ms；连续丢包＜2 个</td><td>原文切换时长标准对应 PSK 场景</td></tr><tr><td>有线网络</td><td>延迟＜10 ms；连续丢包＜2 个；总丢包率＜1‰；抖动＜10 ms</td><td>有线网口到服务器</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v26/01-test-overview.png" target="_blank" rel="noopener"><img src="../../assets/img/v26/01-test-overview.png" alt="移动机器人无线网络六类测试总览"></a>
+          <figcaption><b>图 1</b> 六类测试的关系：信号、网络质量、速率、信道、漫游逐项验证，最后用负载测试复核实际业务能力。</figcaption>
+        </figure>
+
+        <h2 id="s2">阶段一 · 规划有线拓扑、地址与 VLAN</h2>
+        <p>先完成有线底座，再调无线。核心/汇聚层负责数据汇聚，接入/PoE 交换机连接 AP 并供电，AC 集中管理 AP；服务器、充电桩和固定外设接入有线网络，移动终端使用无线网络。</p><ol><li>采用星型或树型拓扑，树形结构避免多级级联。核心与接入层之间用光纤或工业级屏蔽双绞线，核心/汇聚支持万兆上下行，接入层具备线速转发能力。</li><li>所有可网管设备开启 SSH、WEB 或 Console 管理；配置 STP、边缘端口、环路检测、广播抑制，并通过堆叠和链路聚合提供冗余。连接 AP 或服务器的端口设为边缘端口，减少拓扑频繁变化。</li><li>按设备数量选择 /23 或 /24，/23 可用地址 510 个，/24 可用地址 254 个；同一网络内掩码必须一致，不使用 /16 这类过大广播域。</li><li>有线与无线规划均避开机器人内部通信已占用的网段。除运维电脑外，AMR、充电桩和外设使用固定地址；若网络中另有 DHCP 地址池，必须避开全部固定地址。</li><li>按下表隔离管理与业务。VLAN 编号是原文规划示例，现场可按受控方案调整，但管理、注册、业务和运维边界不能混用。</li></ol><table><thead><tr><th>规划项</th><th>推荐值/做法</th><th>检查依据</th></tr></thead><tbody><tr><td>通信网线</td><td>Cat6A 及以上或光纤；长度≤90 m</td><td>降低电磁干扰并保证链路能力</td></tr><tr><td>PoE 供电网线</td><td>＜80 m</td><td>距离过远会影响供电</td></tr><tr><td>管理 VLAN</td><td>示例 10：AC、交换机管理</td><td>管理地址独立</td></tr><tr><td>注册 VLAN</td><td>示例 20：AC 与 AP 注册</td><td>保障管理控制信息交互</td></tr><tr><td>业务 VLAN</td><td>示例 30：服务器、AMR、充电桩、外设</td><td>业务数据独立传输</td></tr><tr><td>运维 VLAN</td><td>示例 40：运维电脑</td><td>避免运维上下线影响业务</td></tr><tr><td>默认 VLAN</td><td>不使用 VLAN 1 承载上述业务</td><td>按功能或独立物理区域划分</td></tr></tbody></table><p>PoE 交换机按总功率核算带机量。原文示例为 250 W 交换机配 30 W AP，实际带机量为 8 台；现场应代入设备实际功耗重新计算。</p>
+
+        <h2 id="s3">阶段一 · 配置无线参数与 AC 行为</h2>
+        <ol><li>按点位图手动固定信道和功率，相邻 AP 使用不重叠信道；优先 5 GHz、20 MHz 频宽，避免因自动调优或扩宽频宽引入同频干扰。</li><li>采用设备实际支持的工作标准和加密方式，确认 SSID、密码及认证方式后再批量接入终端。</li><li>AC 采用旁路部署，数据优先本地转发；开启 ARP 快速应答或同类能力，漫游和堆叠场景开启 MAC 地址快速更新。</li><li>存在无线设备对接业务时禁止无线二层隔离，否则会直接阻断终端间通信。</li></ol><table><thead><tr><th>参数</th><th>推荐配置</th><th>备注</th></tr></thead><tbody><tr><td>WLAN 标准</td><td>802.11be / ax / ac，并开启向下兼容</td><td>be、ax 能力需确认硬件支持</td></tr><tr><td>快速漫游</td><td>802.11r</td><td>需确认硬件支持</td></tr><tr><td>频段/频宽</td><td>优先 5 GHz；20 MHz</td><td>以稳定和不重叠为优先</td></tr><tr><td>2.4 GHz 默认扫描信道</td><td>1、6、11</td><td>仅作为默认扫描范围</td></tr><tr><td>加密协议</td><td>CCMP-128（AES-128）默认支持</td><td>TKIP 较老，不推荐；其他加密能力按硬件确认</td></tr><tr><td>安全标准</td><td>WPA2 / WPA3</td><td>WPA3 需确认硬件支持</td></tr><tr><td>SSID</td><td>英文字母，可支持隐藏 SSID</td><td>不在公开记录中写现场真实名称</td></tr><tr><td>密码</td><td>8～32 位，复杂度≥2</td><td>大小写、数字、字母等类型至少组合两类</td></tr></tbody></table><p>交换机 MAC 更新配置原文给出以下命令示例，实际命令行应以现场设备语法为准：</p><pre>mac-address mac-move fast-update
+        mac-address mac-roaming enable</pre><div class="callout danger"><span class="callout-title">主动漫游与 AP 优化不能混开</span><p>AMR 自身有主动漫游机制。应禁用漫游导航、禁止弱信号接入、频谱导航、AP 智能天线、负载均衡及 802.11k/v 等会干预终端的优化项；这些功能可能使 AMR 被 AP 踢下线并造成业务异常。不要因 AP 支持这些功能就默认开启。</p></div>
+
+        <h2 id="s4">阶段一 · 按货架与通道部署 AP</h2>
+        <ol><li>先实地勘测货架高度、材质、通道长度和机器人载货状态，再确定 AP 高度、方向、功率与点位。一般规划可按全向 AP 15～20 m、定向 AP 35～40 m 估算，最终范围必须随背负物材质和实测调整。</li><li>普通区域按单 AP 连接数≤20 台规划；密集区应选高密款型并做负载实测。高位货架表中的接入上限为 35 个，不应直接套用到普通区域。</li><li>按下表复核安装方式，PoE 网线均保持＜80 m，发射功率均＜30 dBm。</li></ol><table><thead><tr><th>场景</th><th>安装与方向</th><th>距离/角度</th><th>覆盖与接入</th></tr></thead><tbody><tr><td>搬运或货架高≤3 m</td><td>3～5 m 高，吸顶或吊杆，全向天线，垂直正对货架通道</td><td>距货架垂直方向 2 m</td><td>背负金属货架约 15 m；无金属货架约 20 m；≤20 终端。覆盖估算基于 AP 20 dBm</td></tr><tr><td>3 m＜货架高≤15 m</td><td>3～5 m 高，壁挂或吊杆，定向天线，水平正对货架通道</td><td>距货架水平方向 2 m；倾斜 7～9°</td><td>约 40 m、3～5 个通道；≤35 终端</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v26/02-ap-low-rack.png" target="_blank" rel="noopener"><img src="../../assets/img/v26/02-ap-low-rack.png" alt="低位货架上方全向 AP 覆盖示意"></a>
+          <figcaption><b>图 2</b> 低位货架采用顶装全向 AP：安装点位于通道上方，用垂直覆盖核对货架遮挡和机器人活动区。</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="../../assets/img/v26/03-ap-high-rack.png" target="_blank" rel="noopener"><img src="../../assets/img/v26/03-ap-high-rack.png" alt="高位货架侧面定向 AP 覆盖示意"></a>
+          <figcaption><b>图 3</b> 高位货架采用定向 AP 沿通道覆盖：结合 7～9° 倾角检查地面运行区，而不是只看货架上部信号。</figcaption>
+        </figure><p>长通道按长度布置：≤40 m 时两侧错位；40～80 m 时两侧对向；＞80 m 时两侧对向并在中间增加全向 AP。若高位货架场地仍采用顶装，原文建议在地面 <strong>0.3 m</strong> 位置增加定向 AP 补足覆盖。</p>
+
+        <h2 id="s5">阶段二 · 测量信号强度并分区判定</h2>
+        <p><strong>有 AMR 时：</strong>让 AMR 以 <strong>0.8 m/s</strong> 在运行区域运行 1 圈，记录主要区和边缘区的起止时间，取该时段 WPA 日志，检索 <code>current rssi ::</code>，再按区域与阈值比较。</p><p><strong>无 AMR 时：</strong>用无线测试终端连接机器人将使用的同一无线网络，终端高度保持与 AMR 一致，在运行区域慢速走 1～2 圈；主要区和边缘区分别记录。手机或电脑只能作初筛，不能替代 AMR 最终结论。</p><table><thead><tr><th>区域</th><th>合格标准</th><th>不合格后的复核方向</th></tr></thead><tbody><tr><td>主要活动区域</td><td>＞-55 dBm</td><td>核对 AP 点位、功率、货架/载货遮挡和天线方向</td></tr><tr><td>边缘活动区域</td><td>＞-65 dBm</td><td>重点检查覆盖边界与补盲点位</td></tr></tbody></table><div class="callout warn"><span class="callout-title">终端读数不能直接当车端读数</span><p>受天线种类和车体内安装位置影响，AMR 信号可能比手机或电脑低约 <strong>5 dB</strong>。因此替代终端即使显示合格，也不能据此跳过 AMR 实测；比较时必须保持测试高度一致。</p></div>
+
+        <h2 id="s6">阶段二 · 用 Ping 验证延迟、丢包与抖动</h2>
+        <p>先测有线基线，再测无线。电脑直连交换机测试到调度服务器的有线链路；无线测试时连接 AMR 使用的同一无线网络，以约 <strong>0.8 m/s</strong> 覆盖运行区域，主要区和边缘区分开统计。</p><pre>ping -l 1500 -n 2000 服务器地址</pre><p>其中 <code>-l 1500</code> 用 1500 字节报文模拟业务交互，<code>-n 2000</code> 发送 2000 个报文。服务器地址以现场实际为准；每次数量建议＞1000，测试 3～5 次取平均。通过调整数量，确保运动测试期间覆盖所有目标区域。</p><p><strong>AMR 侧脚本步骤：</strong>SSH 登录后用 <code>rz</code> 上传 <code>pingtest.sh</code>，执行 <code>sh pingtest.sh</code>，依次输入服务器地址、包大小、数量、保存目录和文件名，确认 <code>y</code> 后开始；测试结束取出日志分析。</p><table><thead><tr><th>脚本输入项</th><th>默认/建议值</th><th>结果判读</th></tr></thead><tbody><tr><td>数据包大小</td><td>默认 1500 字节</td><td>与业务模拟口径一致</td></tr><tr><td>Ping 包数量</td><td>默认 2000；建议＞1000</td><td>数量应覆盖完整运动路线</td></tr><tr><td>保存目录</td><td><code>/mnt/misc</code></td><td>以现场可写目录为准</td></tr><tr><td>输出文件</td><td><code>ping.log</code></td><td>核对 packet loss 与 round-trip 统计</td></tr><tr><td>开始确认</td><td><code>y</code></td><td>确认配置后再启动运动测试</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v26/04-pingtest-config.png" target="_blank" rel="noopener"><img src="../../assets/img/v26/04-pingtest-config.png" alt="pingtest 脚本参数输入与开始确认"></a>
+          <figcaption><b>图 4</b> 车端脚本的输入顺序和默认值；目标地址已脱敏，现场应输入实际调度服务器地址。</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="../../assets/img/v26/05-ping-result.png" target="_blank" rel="noopener"><img src="../../assets/img/v26/05-ping-result.png" alt="Ping 日志中的丢包延迟与绝对抖动统计"></a>
+          <figcaption><b>图 5</b> 从统计中读取发送、接收、丢包、最小/平均/最大延迟，并以最大值减最小值得到绝对抖动。此图仅示范字段位置，图中的少量报文不满足验收数量要求，正式测试仍须＞1000 包并取 3～5 次平均。</figcaption>
+        </figure><table><thead><tr><th>链路</th><th>延迟</th><th>丢包</th><th>抖动</th></tr></thead><tbody><tr><td>有线</td><td>平均往返＜10 ms</td><td>连续＜2 个；总丢包率＜1‰</td><td>＜10 ms</td></tr><tr><td>无线主要区</td><td>＜100 ms</td><td rowspan="2">连续＜2 个；总丢包率＜1%</td><td rowspan="2">＜100 ms</td></tr><tr><td>无线边缘区</td><td>＜200 ms</td></tr></tbody></table>
+
+        <h2 id="s7">阶段二 · 用 iperf 验证 TCP/UDP 速率</h2>
+        <ol><li>准备电脑 A、B。A 先通过网线接交换机并启动服务端，B 连接 AMR 使用的无线网络作为客户端；服务端启动成功后应看到 <strong>5201</strong> 端口监听。</li><li>先做 TCP 50 MB 传输，再做 UDP 10 Mbps、300 s 测试。UDP 结果除速率外，还要读取 <code>Jitter</code> 和 <code>Lost/Total Datagrams</code>。</li><li>随后把 A 也改为无线，分别验证 A、B 在同一 AP 和不同 AP 下的情况；每种组合测试 3～5 次取平均。</li></ol><pre>iperf3.exe -s
+        iperf3.exe -c 电脑A地址 -n 50M -i 1
+        iperf3.exe -c 电脑A地址 -u -b 10M -t 300</pre><p>命令中的地址仅为参数占位，以现场实际为准。AMR 侧先执行 <code>cat /proc/version</code> 核对内核并选择匹配工具，SSH 登录后用 <code>rz</code> 上传，再执行 <code>chmod +x iperf</code>；随后把客户端命令中的 <code>iperf3.exe</code> 换成 <code>./iperf</code>，服务器地址填写电脑实际地址。</p><table><thead><tr><th>测试项</th><th>参数</th><th>合格/分析依据</th></tr></thead><tbody><tr><td>TCP</td><td><code>-n 50M -i 1</code></td><td>传输 50 MB，每秒输出；单台平均速率要求 2 Mbps，峰值最低 10 Mbps</td></tr><tr><td>UDP</td><td><code>-u -b 10M -t 300</code></td><td>以 10 Mbps 传 300 s，读取速率、Jitter 与丢包</td></tr><tr><td>服务端</td><td><code>-s</code></td><td>必须处于 5201 监听状态后再启动客户端</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v26/06-iperf-result.png" target="_blank" rel="noopener"><img src="../../assets/img/v26/06-iperf-result.png" alt="iperf TCP 分段速率和最终平均速率统计"></a>
+          <figcaption><b>图 6</b> TCP 结果的分段速率与 sender/receiver 汇总。含地址的命令及连接行已裁除；图中数值是操作示例，验收仍须按目标区域和 3～5 次平均结果判定。</figcaption>
+        </figure>
+
+        <h2 id="s8">阶段二 · 扫描信道、干扰与 DFS 配置</h2>
+        <p><strong>终端初筛：</strong>连接现场无线并打开干扰分析，在 AMR 区域慢速走 1～2 圈，查看 5.2G、5.5G、5.8G 的信道使用。频谱图最下方每格为 20 MHz，信号跨 2 格表示 40 MHz；每条曲线代表一个 AP，最高点为其信号强度。两条同频曲线强度差在 <strong>5 dB</strong> 内，判定存在同频干扰并优化信道。</p><p><strong>AMR 实测：</strong>AMR 以 0.8 m/s 运行，SSH 登录后不定时执行 <code>wpa_cli scan</code> 触发全信道扫描。结束后取 WPA 日志，用文本工具依次检索：</p><pre>Scan included frequencies
+        Sorted scan results</pre><p>前者核对实际扫描范围，后者核对扫描结果。若多个 BSSID 落在同一频点且强度差≤5 dB，按同频干扰处理；公开记录只保留频点和强度，不复制 BSSID。</p><table><thead><tr><th>项目</th><th>信道/配置</th><th>判断依据</th></tr></thead><tbody><tr><td>优先 5 GHz 非 DFS 信道</td><td>36、40、44、48、149、153、157、161、165</td><td>相邻 AP 不重叠，优先 20 MHz</td></tr><tr><td>DFS 信道</td><td>52、56、60、64、100、104、108、112、116、120、124、128、132、136、140</td><td>需避让雷达；国内建议不启用，海外按当地和现场实际</td></tr><tr><td>版本能力</td><td>主控＞4.2 可配置 DFS；＞4.3 支持国家码自适应</td><td>更早版本需确认定制能力，不可直接照搬</td></tr><tr><td>测试次数</td><td>3～5 次</td><td>路线覆盖主要区与边缘区</td></tr></tbody></table><div class="callout warn"><span class="callout-title">先改 AP 侧，再复测</span><p>国内场景发现扫描范围包含 DFS 信道时，应在 AP 侧关闭后重新测试；海外确有需求时，再依据当地规定、国家码和设备能力配置。不要仅修改车端扫描列表而把 AP 侧问题留到验收后。</p></div>
+
+        <h2 id="s9">阶段二 · 对齐日志与 Ping 判定漫游</h2>
+        <ol><li>终端初筛时，连接现场无线并启动漫游测试，在 AMR 运行区域慢速走 1～2 圈，记录切换时长和切换期间丢包。</li><li>AMR 实测沿用 <code>pingtest.sh</code>：1500 字节、默认 2000 包、保存 <code>ping.log</code>，确认 <code>y</code> 后让 AMR 以 0.8 m/s 运行，并调整包数覆盖全部区域。</li><li>取同一测试时段的 WPA 日志，检索 <code>wlan0: state</code>，以两次连接完成状态界定一次完整漫游，计算切换时长。</li><li>把漫游时间点与 <code>ping.log</code> 的时间点逐一对齐，统计切换窗口内连续丢包；多次测试取平均后再判定。</li></ol><table><thead><tr><th>指标</th><th>合格标准</th><th>证据</th></tr></thead><tbody><tr><td>漫游切换时长</td><td>＜500 ms（PSK 场景）</td><td>WPA 状态变化时间</td></tr><tr><td>漫游切换连续丢包</td><td>＜2 个</td><td>漫游时间点与 Ping 日志对齐结果</td></tr></tbody></table><p>只测终端漫游或只看 WPA 状态都不足以完成验收：前者不能代表车端，后者无法证明业务报文是否连续。</p>
+
+        <h2 id="s10">阶段三 · 模拟业务负载并完成综合验收</h2>
+        <ol><li>把设备移到同一个 AP 覆盖区域，挑选 <strong>3～4 台</strong>设备，按网络质量与速率章节的相同方法复测延迟、丢包、抖动和上下行速率。</li><li>测试应模拟真实业务汇聚交互，AMR 处于载货或背负货架状态；条件允许时使用批量升级功能，记录是否存在升级失败。</li><li>将负载结果与空载/单项结果对照。负载下主要区延迟仍应＜100 ms，连续丢包＜2 个、总丢包率＜1%、抖动＜100 ms，峰值速率按 10 Mbps 基线核对。</li><li>汇总有线、无线和负载结果；任一项不达标，回到对应点位、配置或干扰项整改后重测，不以其他项目合格抵消。</li></ol><table><thead><tr><th>验收对象</th><th>最终核对项</th></tr></thead><tbody><tr><td>无线</td><td>主要区＞-55 dBm、边缘区＞-65 dBm；分区延迟、丢包、抖动、单台平均/峰值速率、漫游全部达标</td></tr><tr><td>有线</td><td>延迟＜10 ms；连续丢包＜2 个；总丢包率＜1‰；抖动＜10 ms；下行千兆连接终端、上行万兆</td></tr><tr><td>总带宽估算</td><td>N 台 AMR 时，原文公式为带宽≥5×10+(N-5)×2；默认同时 5 台下载地图，实际并发策略变化时应重新核算</td></tr><tr><td>负载</td><td>3～4 台同 AP、真实载货状态，必要时批量升级，业务与网络指标同时无异常</td></tr></tbody></table>
+
+        <h2 id="s11">收尾与注意事项</h2>
+        <ul><li>测试记录按<strong>区域、路线、时间、对象、次数</strong>归档；保留 AP 点位与信道表、Ping 原始日志、iperf 汇总、WPA 检索片段和负载结果，公开材料不得包含现场地址、BSSID、真实网络名称或设备标识。</li><li>有 AMR 时始终以 AMR 实测为准；手机/电脑结果只作参考，尤其要考虑车端信号可能低约 5 dB。</li><li>相邻 AP 固定不重叠信道并使用 20 MHz；不要为追求峰值随意扩宽频宽，也不要开启会踢下 AMR 的 AC 优化功能。</li><li>AP 覆盖半径只是估算起点，必须按货架、背负物材质和实际高度复测；高位货架顶装存在地面弱覆盖时，按方案补定向 AP。</li><li>正式 Ping 每次建议＞1000 包并做 3～5 次，测速也要按组合重复 3～5 次；示例截图中的少量报文或单次速率不能作为验收样本。</li><li>漫游结论必须同时有状态日志和 Ping 时间点，负载测试必须还原真实载货和同 AP 汇聚场景。</li><li>所有地址、SSID、认证信息和设备命令占位均须替换为现场受控值；本篇不保存任何真实连接秘密。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>有线/无线地址规划已避开机器人内部通信网段，同一网络掩码统一为 /23 或 /24，终端固定地址无冲突</li>
+          <li>管理、AP 注册、业务和运维 VLAN 已隔离，STP、边缘端口、环路检测及堆叠/聚合按方案配置</li>
+          <li>无线优先 5 GHz、20 MHz，相邻 AP 固定不重叠信道，SSID、密码与认证能力已核对</li>
+          <li>AC 旁路/本地转发、ARP 快速应答和 MAC 更新已配置，会干预主动漫游的优化项均已关闭</li>
+          <li>AP 高度、方向、覆盖、接入数及 PoE 网线＜80 m 已按货架和通道实测复核</li>
+          <li>AMR 实测主要区信号＞-55 dBm、边缘区＞-65 dBm，测试高度、路线和起止时间已记录</li>
+          <li>有线 Ping 延迟＜10 ms、总丢包率＜1‰、连续丢包＜2 个、抖动＜10 ms</li>
+          <li>无线 Ping 每次＞1000 包并测试 3～5 次，主要区/边缘区延迟、总丢包率与抖动分别达标</li>
+          <li>iperf 服务端正常监听 5201，TCP/UDP 及同 AP、不同 AP 组合完成，平均 2 Mbps、峰值最低 10 Mbps</li>
+          <li>全信道扫描无未处理的同频强信号（差值≤5 dB），DFS 与国家码策略符合现场要求</li>
+          <li>漫游切换＜500 ms、连续丢包＜2 个，WPA 状态与 ping.log 时间点已对齐</li>
+          <li>3～4 台设备在真实载货和同 AP 汇聚场景下复测通过，原始日志、配置表与问题闭环记录已归档</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v20.html"><span class="pager-label">上一篇</span><span class="pager-title">ClientView 低代码页面配置与接口绑定</span></a>
+        <a class="next" href="v05.html"><span class="pager-label">下一篇</span><span class="pager-title">L-SLAM 地图编辑要点</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">阶段一 · 明确测试路线与验收基线</a>
+        <a href="#s2">阶段一 · 规划有线拓扑、地址与 VLAN</a>
+        <a href="#s3">阶段一 · 配置无线参数与 AC 行为</a>
+        <a href="#s4">阶段一 · 按货架与通道部署 AP</a>
+        <a href="#s5">阶段二 · 测量信号强度并分区判定</a>
+        <a href="#s6">阶段二 · 用 Ping 验证延迟、丢包与抖动</a>
+        <a href="#s7">阶段二 · 用 iperf 验证 TCP/UDP 速率</a>
+        <a href="#s8">阶段二 · 扫描信道、干扰与 DFS 配置</a>
+        <a href="#s9">阶段二 · 对齐日志与 Ping 判定漫游</a>
+        <a href="#s10">阶段三 · 模拟业务负载并完成综合验收</a>
+        <a href="#s11">收尾与注意事项</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

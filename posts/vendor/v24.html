@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>机器人充电异常排查 — 排障方法 — 现场笔记</title>
+<meta name="description" content="充电异常可能出在任务分配、平台下发、机器人执行、充电桩通信或机械接触任一环节。本篇按真实任务链组织排查：先核对关键日志字段，再分别处理不自动充电、无法打断、充满不离开、离线、无电压或无电流、伸缩异常与地址冲突，并给出对应取值和判断依据。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">文档目录</p>
+      <nav>
+        <span class="side-group">实施部署</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <a href="v27.html">现场地面勘测与整改要点</a>
+        <span class="side-group">通信与接口</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <a href="v26.html">移动机器人无线网络测试与部署</a>
+        <span class="side-group">地图与定位</span>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <a href="v22.html">L-SLAM 定位异常的分层排查</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <span class="side-group">排障方法</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        <a href="v23.html">机器人任务空闲但不执行排查</a>
+        <a href="v24.html" class="active">机器人充电异常排查</a>
+        <a href="v25.html">机器人异常重启排查与日志采集</a>
+      </nav>
+      <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
+      <h1>机器人充电异常排查</h1>
+      <p class="lede">充电异常可能出在任务分配、平台下发、机器人执行、充电桩通信或机械接触任一环节。本篇按真实任务链组织排查：先核对关键日志字段，再分别处理不自动充电、无法打断、充满不离开、离线、无电压或无电流、伸缩异常与地址冲突，并给出对应取值和判断依据。</p>
+      <div class="doc-meta">
+        <span>整理自 机器人技术 Wiki 离线文档（9 页）</span>
+        <span class="chip">排障方法</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>排障方法目录</summary>
+        <nav>
+          <a href="v10.html">叉车机器人常见告警排查</a>
+          <a href="v13.html">现场问题反馈与排查规范</a>
+          <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+          <a href="v23.html">机器人任务空闲但不执行排查</a>
+          <a href="v24.html" class="active">机器人充电异常排查</a>
+          <a href="v25.html">机器人异常重启排查与日志采集</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">阶段一 · 先按充电任务链确定排查边界</h2>
+        <p>不要一开始就拆充电桩。先确认机器人确实满足充电条件，再沿<strong>分配库 → RCS → 机器人 → 充电桩</strong>逐段核对，找到任务链第一次中断的位置。</p><ol><li>分配库输出充电任务时，搜索 <code>#pair_info#</code>，确认 <code>pair_type 2</code>。</li><li>RCS 应生成以 <code>_CHG</code> 结尾的充电任务，随后先下发 <code>action_type 0</code> 的移动任务。</li><li>机器人到充电点后，RCS 再下发 <code>action_type 1</code> 的充电任务；机器人日志对应 <code>task_type 3</code>。</li><li>背充或地充继续检查物理接触与电压、电流；侧充继续检查 UDP 9590 通信和伸缩机构状态。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v24/01-charge-flow.png" target="_blank" rel="noopener"><img src="../../assets/img/v24/01-charge-flow.png" alt="从分配库输出到充电桩输出电压电流的完整充电流程"></a>
+          <figcaption><b>图 1</b> 充电任务链及各环节关键字段；排查时按顺序找到首个缺失或异常的环节。</figcaption>
+        </figure><div class="callout warn"><span class="callout-title">不要跳段判断</span><p>监控端显示“充电中”不代表充电桩已有输出；平台已生成充电任务也不代表机器人或充电桩已经收到。每一步都要用下一环节的日志佐证。</p></div>
+
+        <h2 id="s2">阶段一 · 收集日志并定位任务断点</h2>
+        <p>保留异常发生前后同一时间窗的证据，至少收集 <strong>RCS log_bak、AGV RCD 日志和监控客户端录像</strong>。日志可用 MapStudioPro 下载、解析，文本用 Notepad++ 检索，平台算法日志可用 uncompress_log_tool 处理。</p><table><thead><tr><th>环节</th><th>检索字段 / 正常取值</th><th>判断依据</th></tr></thead><tbody><tr><td>分配库</td><td><code>#pair_info#</code>、<code>pair_type 2</code></td><td>已输出充电任务；<code>pair_type 0</code> 表示无任务</td></tr><tr><td>RCS 生成</td><td><code>MakeChargeTaskOnMrta</code>、<code>_CHG</code></td><td>已生成充电任务；若报错，先处理点位或任务生成问题</td></tr><tr><td>RCS 下发</td><td><code>action_type 0 / 1</code></td><td>0 是移动任务，1 是充电任务，顺序不能颠倒</td></tr><tr><td>AGV 接收</td><td><code>task_type 3</code></td><td>机器人已接收并生成充电任务</td></tr><tr><td>取消链路</td><td><code>send task to sched</code></td><td>核对平台是否仍在发充电任务，或已生成、下发取消任务</td></tr></tbody></table><p>若分配库没有输出，先查任务分配条件；分配库正常而 RCS 未生成，转查 RCS；RCS 已下发而 AGV 未接收，再查通信；AGV 已接收而充电桩无响应，才进入桩侧日志、网络与硬件排查。</p>
+
+        <h2 id="s3">阶段二 · 读懂充电桩输出与电池日志</h2>
+        <p>先区分<strong>分段式</strong>与<strong>一体式</strong>充电桩，再按对应字段核对“申请—输出—电池状态”，避免把申请电流当成实际输出。</p><table><thead><tr><th>字段</th><th>取值 / 含义</th><th>判断依据</th></tr></thead><tbody><tr><td><code>cmd_type</code></td><td>1 开始充电；2 取消充电</td><td>确认桩收到的是开始还是取消指令</td></tr><tr><td>分段式 <code>current</code></td><td>申请电流比例，800 表示 80%</td><td>例如 30 A 的桩申请值为 24 A</td></tr><tr><td>一体式 <code>current</code></td><td>申请电流比例，1000 表示 100%</td><td>与 <code>sta_out_cur</code> 分开判断</td></tr><tr><td><code>bms_soc</code></td><td>当前电池电量</td><td>与充电开始、充满时间对齐</td></tr><tr><td><code>bms_full</code></td><td>0 未充满；1 充满</td><td>刚充电即变 1 时需继续查电池异常</td></tr><tr><td><code>sta_out_cur</code></td><td>充电桩输出电流，日志单位为 mA</td><td>确认是否真正输出，而非只有申请值</td></tr><tr><td><code>sta_status</code></td><td>0 空闲；1 充电中；2 异常</td><td>结合输出电流和 <code>cmd_type</code> 判断</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v24/02-segmented-rudp.png" target="_blank" rel="noopener"><img src="../../assets/img/v24/02-segmented-rudp.png" alt="分段式充电桩收到 RUDP 充电指令的日志"></a>
+          <figcaption><b>图 2</b> 分段式充电桩收到 <code>RUDP get form agv current 800, cmd_type 1</code>：开始充电且申请比例为 80%。</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="../../assets/img/v24/03-integrated-status.png" target="_blank" rel="noopener"><img src="../../assets/img/v24/03-integrated-status.png" alt="一体式充电桩的电池申请和输出状态日志"></a>
+          <figcaption><b>图 3</b> 一体式日志同时包含 <code>current</code>、<code>bms_soc</code>、<code>bms_full</code>、<code>cmd_type</code> 与 <code>sta_out_cur</code>，应在同一时间窗联合判断。</figcaption>
+        </figure>
+
+        <h2 id="s4">阶段二 · 用 flex / flex_stat 判断伸缩机构状态</h2>
+        <p>侧充问题必须查看充电桩日志中的 <code>flex</code> 或 <code>flex_stat</code>。先把状态值与动作阶段对齐，再决定查网络、位置还是传感器。</p><table><thead><tr><th>枚举值</th><th>含义</th><th>枚举值</th><th>含义</th></tr></thead><tbody><tr><td>0</td><td>状态位置</td><td>7</td><td>外发超时</td></tr><tr><td>1</td><td>外发完成</td><td>8</td><td>内收超时</td></tr><tr><td>2</td><td>内收完成</td><td>9</td><td>上线传感器都检测到</td></tr><tr><td>3</td><td>强制停止</td><td>13</td><td>伸缩臂达到伸出限位（一体式）</td></tr><tr><td>4</td><td>运行中</td><td>14</td><td>伸缩臂达到伸出限位（分段式）</td></tr><tr><td>5</td><td>脱落外放位置</td><td>6</td><td>脱落内收位置</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v24/04-flex-status.png" target="_blank" rel="noopener"><img src="../../assets/img/v24/04-flex-status.png" alt="flex_stat 从运行到到位再变为异常状态的日志"></a>
+          <figcaption><b>图 4</b> <code>flex_stat</code> 从 4（运行中）到 1（外发完成），随后出现 5、13 等异常值；应保留这一段连续日志，而不是只截取最后一行。</figcaption>
+        </figure><p><strong>判断要点：</strong>状态 1 只说明伸出到位，还需继续看 <code>sta_out_cur</code>；状态 13、14 与限位有关，状态 5 需结合接近传感器和刷块接触情况分析。</p>
+
+        <h2 id="s5">阶段三 · 低电量不自动充电</h2>
+        <p>现象示例为电量已到 15%，低电量阈值配置为 30%，仍未自动充电。按任务生成顺序排查：</p><ol><li>在分配库日志搜索 <code>#pair_info#</code>，确认是否输出 <code>pair_type 2</code>；若没有，先查低电量任务分配条件。</li><li>分配库正常时，在 RCS 日志搜索 <code>MakeChargeTaskOnMrta</code>。若提示找不到充电等待点，转查充电区点位与相邻高速区、暂住点的拓扑关系。</li><li>在地图中核对连接充电区的拓扑点与充电区是否<strong>水平对齐</strong>。原文案例中两者 y 坐标仅相差 1 mm，已足以造成点位不齐平。</li></ol><p><strong>处理与验证：</strong>将连接充电区的拓扑点和充电区调整为水平对齐，再触发低电量充电，依次复核分配库输出、RCS 生成和机器人接收任务。</p>
+
+        <h2 id="s6">阶段三 · 充电无法打断与充满后不离开</h2>
+        <p><strong>充电无法打断：</strong></p><ol><li>在分配库日志搜索 <code>chg_keep_t</code>，确认最短充电时间；原文示例为 3 s。</li><li>在 RCS 日志对比新任务下发时间与充电开始时间。只有充电时长已超过 <code>chg_keep_t</code>，才具备被打断的时间条件。</li><li>确认 RCS 下发新任务时是否同时下发取消充电指令，再到 AGV 日志核对主控是否收到。</li><li>若主控已收到取消指令却未生成取消任务、状态仍持续充电，应保留该段日志转嵌入式分析。</li></ol><p><strong>充满后不离开：</strong></p><ol><li>在 AGV 日志搜索 <code>bms_full</code>，确认其由 0 变 1，且 SOC 到 100。</li><li>搜索 <code>send task to sched</code>，确认平台充满后仍发充电任务还是已发取消指令。</li><li>查看分配库 <code>#pair_info#</code>：正常应从 <code>pair_type 2</code> 变为 <code>pair_type 0</code>。</li><li>分配库已变 0 而 RCS 未生成取消任务，转 RCS 处理；RCS 已生成而机器人仍未退出，平台与机器人需同时抓包。</li></ol><div class="callout warn"><span class="callout-title">时间条件先于取消链路</span><p>未超过最短充电时间时，不打断属于配置约束；已超过该时间才继续查取消指令，避免误改平台或机器人程序。</p></div>
+
+        <h2 id="s7">阶段三 · 背充有电压无电流与充电桩离线</h2>
+        <p><strong>背充式潜伏机器人有电压、无电流：</strong></p><ol><li>检查充电桩与机器人是否接触到位；手动微调桩或机器人使其完全接触，若充电恢复，重新调整充电点位并复测。</li><li>无线充电桩还要查是否有其他机器人异常结束充电。上次退出时若未禁能 RUDP，旧连接可能未断开，导致下一台机器人无法与桩通信；保留前后两台机器人的任务与桩日志，转嵌入式处理退出禁能逻辑。</li></ol><p><strong>无线充电桩显示离线：</strong></p><ol><li>先确认充电桩正常通电。</li><li>在服务器侧 <code>ping</code> 充电桩无线地址，并登录充电桩反向 <code>ping</code> 服务器，双向验证与 RCS 服务的通信。</li><li>检查 充电配置工具 中 RCS 地址及端口配置，并在 Web 地图确认充电桩类型确实配置为无线充电桩。</li></ol><p>地址示例如涉及私有网段，只用于说明配置位置，<strong>实际地址与端口均以现场配置为准</strong>。</p>
+
+        <h2 id="s8">阶段四 · 伸缩机构不伸出：网络、映射与端口</h2>
+        <p>监控显示充电桩在线、机器人也已对齐，但伸缩机构无动作时：</p><ol><li>手动按压伸缩按钮。仍不能伸出，按硬件故障处理；能伸出则继续查指令和网络。</li><li>查充电桩是否收到机器人充电指令；未收到时，分别检查机器人与充电桩网络。</li><li><strong>非 5G 且有地址映射：</strong>充电桩须一对一映射，映射后的地址不得与机器人相同，并在映射设备上转发充电桩 UDP 9590。无映射时双方互 <code>ping</code>，不通或丢包联系现场网络人员。</li><li><strong>5G 网络：</strong>登录充电桩侧 5G Web，在“应用设置 → 转发设置 → DNAT”核对下表；随后分别登录双方 5G Web，用网络检测输入对方 5G 地址验证双向通信。</li></ol><table><thead><tr><th>DNAT 参数</th><th>原文取值</th><th>核对点</th></tr></thead><tbody><tr><td>协议</td><td>all 或 udp</td><td>必须覆盖 UDP 通信</td></tr><tr><td>初始地址</td><td>modem</td><td>与 5G 转发入口一致</td></tr><tr><td>映射地址</td><td>充电桩实际地址</td><td>示例私有地址仅作说明，以现场实际为准</td></tr><tr><td>初始端口 / 映射端口</td><td>9590 / 9590</td><td>两端端口均须配置</td></tr></tbody></table><p>再检查机器人 <code>castor_conf.xml</code>：没有 <code>net_card_name</code> 表示当前主控不支持 5G 自动充电，应联系主控侧处理；有该字段时，确认 <code>energy_conf</code> 与 <code>plat_conf</code> 中的 <code>net_card_name</code> 均已改为 <code>eth0</code>。</p><p>若双向 <code>ping</code> 正常、AGV 已收到平台充电任务而桩仍未收到指令，应在同一充电任务期间对机器人和充电桩<strong>同时抓包</strong>。</p>
+
+        <h2 id="s9">阶段四 · 已接触但无电压或有电压无电流</h2>
+        <p><strong>伸缩机构已接触、无电压：</strong>先验证手动充电；手动也不正常，按硬件回路排查。手动正常则查机器人继电器是否吸合，并在桩日志看 <code>flex</code>：1 为伸出到位；若为 14，说明分段式伸缩臂到极限位置，可将充电桩向机器人方向适当移动后再验证。</p><p><strong>伸缩机构已接触、有电压但电流为 0：</strong></p><ol><li>先测手动充电；手动异常时，优先按硬件或电池问题处理。</li><li>分段式充电桩检查 <code>castor_conf.xml</code> 中 <code>energy_conf</code> 下的 <code>proto_type</code>，确认协议与实际充电桩匹配；一体式无需检查该项。</li><li>一体式查看 <code>flex</code> / <code>flex_stat</code>，常见异常为 5 或 13。若刷块已接触而接近传感器仍有距离、未触发，可拆外壳后将接近传感器适当向外调整。</li><li>配置和机械接触均正常时，按原文建议将充电桩主控升级到最新版本后再复测。</li></ol><table><thead><tr><th>充电桩 / 电池协议</th><th>电压</th><th><code>proto_type</code></th></tr></thead><tbody><tr><td>485 协议</td><td>48 V</td><td>0</td></tr><tr><td>CAN 协议</td><td>24 V</td><td>1</td></tr></tbody></table><div class="callout danger"><span class="callout-title">先判型再改协议</span><p><code>proto_type</code> 只用于分段式充电桩。不要在一体式上照搬该配置，也不要在手动充电仍异常时仅靠改协议掩盖硬件问题。</p></div>
+
+        <h2 id="s10">阶段四 · 反复伸缩、通信异常与地址冲突</h2>
+        <p><strong>伸缩机构反复伸缩：</strong>先核对机器人铭牌电池容量、充电配置工具 充电桩类型和桩铭牌输出电流，再检查电池与网络。</p><table><thead><tr><th>机器人电池容量</th><th>充电配置工具 充电桩类型</th><th>对应桩铭牌输出电流</th></tr></thead><tbody><tr><td>60、66、70 Ah</td><td>60 Ah</td><td>60 A</td></tr><tr><td>小于 60 Ah</td><td>30 Ah</td><td>按实际桩铭牌核对</td></tr></tbody></table><p>若机器人一充电电池就上报充满，在 AGV 日志查看 <code>bms_full</code> 是否刚充电便由 0 变 1，是则继续按电池问题分析。若 AGV 频繁告警充电桩通信异常，先双向 <code>ping</code>；有丢包说明链路不稳定，应联系网络人员。</p><p><strong>确认地址冲突有两种方法：</strong></p><ol><li>SSH 登录机器人执行 <code>arp -a</code>，记录其学习到的充电桩地址对应 MAC；再 SSH 登录充电桩执行 <code>ifconfig</code>，核对 <code>wlan0</code> 实际 MAC。两者不一致即存在地址冲突。</li><li>让机器人处于充电任务，在机器人与充电桩同时抓包并筛选 ARP；报文出现 <code>duplicate</code> 可作为地址冲突依据。</li></ol><p>不要在未核对实际 MAC 前直接修改地址；冲突结论应能由 ARP 学习结果或抓包记录复现。</p>
+
+        <h2 id="s11">收尾与注意事项</h2>
+        <ul><li>按“分配库 → RCS → AGV → 充电桩 → 机械与电气输出”保存每一环结论，避免只凭监控状态更换硬件。</li><li>提交进一步分析时，附同一时间窗的 RCS log_bak、AGV RCD、充电桩日志、监控录像，以及必要的照片和双侧抓包。</li><li>伸缩机构问题要保留连续 <code>flex</code> / <code>flex_stat</code>，并同时给出 <code>cmd_type</code>、<code>sta_status</code>、<code>sta_out_cur</code>，单看一个状态值不足以定因。</li><li>调整充电点位、桩体距离或接近传感器后，必须重新验证到位、输出电压和输出电流；手动充电异常时优先处理硬件回路。</li><li>网络调整需核对实际地址、端口和映射关系；文中地址仅作配置说明，均以现场实际为准。</li><li>问题仍未解决时，整理已排除环节、关键日志原文和复现条件，再提交客户问题单，避免重复采集。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>已按 pair_type 2、_CHG、action_type 0/1、task_type 3 逐段确认任务链断点</li>
+          <li>已保存同一时间窗的 RCS log_bak、AGV RCD、充电桩日志和监控录像</li>
+          <li>已区分申请电流 current 与实际输出 sta_out_cur，并核对 cmd_type、sta_status</li>
+          <li>低电量不充电已检查 MakeChargeTaskOnMrta 及充电区拓扑点水平对齐</li>
+          <li>充电打断已先核对 chg_keep_t，再核对 RCS 取消下发与 AGV 接收执行情况</li>
+          <li>充满不离开已核对 bms_full、SOC、pair_type 2→0 和取消任务生成位置</li>
+          <li>充电桩离线已检查供电、双向 ping、RCS 地址端口及无线桩类型配置</li>
+          <li>5G / 映射场景已核对 UDP 9590、一对一映射及两处 net_card_name=eth0</li>
+          <li>分段式 proto_type 与 485/48V 或 CAN/24V 实际协议匹配，flex 异常已留存</li>
+          <li>反复伸缩已核对电池容量与桩类型，并用 arp -a、ifconfig 或 ARP duplicate 排除地址冲突</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v23.html"><span class="pager-label">上一篇</span><span class="pager-title">机器人任务空闲但不执行排查</span></a>
+        <a class="next" href="v25.html"><span class="pager-label">下一篇</span><span class="pager-title">机器人异常重启排查与日志采集</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">阶段一 · 先按充电任务链确定排查边界</a>
+        <a href="#s2">阶段一 · 收集日志并定位任务断点</a>
+        <a href="#s3">阶段二 · 读懂充电桩输出与电池日志</a>
+        <a href="#s4">阶段二 · 用 flex / flex_stat 判断伸缩机构状态</a>
+        <a href="#s5">阶段三 · 低电量不自动充电</a>
+        <a href="#s6">阶段三 · 充电无法打断与充满后不离开</a>
+        <a href="#s7">阶段三 · 背充有电压无电流与充电桩离线</a>
+        <a href="#s8">阶段四 · 伸缩机构不伸出：网络、映射与端口</a>
+        <a href="#s9">阶段四 · 已接触但无电压或有电压无电流</a>
+        <a href="#s10">阶段四 · 反复伸缩、通信异常与地址冲突</a>
+        <a href="#s11">收尾与注意事项</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

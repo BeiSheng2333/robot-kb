@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>机器人异常重启排查与日志采集 — 排障方法 — 现场笔记</title>
+<meta name="description" content="异常重启要先排除人工断电、定时重启和参数修改后的主动重启，再按日志证据区分掉电与软重启。本篇给出从校时、下载 AGV 与全部内核日志、提取 Coredump 和电池告警，到核对 reset_type、SYSTEM BOOT、看门狗及 panic 的路径，避免被后续人工操作误导。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">文档目录</p>
+      <nav>
+        <span class="side-group">实施部署</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <a href="v27.html">现场地面勘测与整改要点</a>
+        <span class="side-group">通信与接口</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <a href="v26.html">移动机器人无线网络测试与部署</a>
+        <span class="side-group">地图与定位</span>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <a href="v22.html">L-SLAM 定位异常的分层排查</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <span class="side-group">排障方法</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        <a href="v23.html">机器人任务空闲但不执行排查</a>
+        <a href="v24.html">机器人充电异常排查</a>
+        <a href="v25.html" class="active">机器人异常重启排查与日志采集</a>
+      </nav>
+      <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
+      <h1>机器人异常重启排查与日志采集</h1>
+      <p class="lede">异常重启要先排除人工断电、定时重启和参数修改后的主动重启，再按日志证据区分掉电与软重启。本篇给出从校时、下载 AGV 与全部内核日志、提取 Coredump 和电池告警，到核对 reset_type、SYSTEM BOOT、看门狗及 panic 的路径，避免被后续人工操作误导。</p>
+      <div class="doc-meta">
+        <span>整理自 机器人技术 Wiki 离线文档（11 页）</span>
+        <span class="chip">排障方法</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>排障方法目录</summary>
+        <nav>
+          <a href="v10.html">叉车机器人常见告警排查</a>
+          <a href="v13.html">现场问题反馈与排查规范</a>
+          <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+          <a href="v23.html">机器人任务空闲但不执行排查</a>
+          <a href="v24.html">机器人充电异常排查</a>
+          <a href="v25.html" class="active">机器人异常重启排查与日志采集</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">阶段一 · 先确认是否属于异常重启</h2>
+        <p>异常重启是<strong>非计划中、不符合预期</strong>的机器人重启。开始分析前，先向现场核对操作与配置记录，排除以下预期内事件：</p><ul><li>人为按电源键断电、上电；</li><li>软件设定的定时重启；</li><li>使用 MapStudioPro 修改参数后，按提示主动重启；</li><li>其他已确认的任务、平台或手动命令关机。</li></ul><p>随后记录平台提示、人员描述和现场操作时间，形成初始时间窗。后续分析要能把事件归为<strong>主动重启、供电导致的掉电重启、应用崩溃或内核崩溃</strong>中的某一类，并给出对应日志证据。</p><div class="callout warn"><span class="callout-title">先问清人工介入</span><p>软件崩溃后，现场可能为恢复运行再按键断电。此时重启后的日志可能显示掉电，但掉电只是后发生的恢复动作，不能据此漏掉之前的应用或内核异常。</p></div>
+
+        <h2 id="s2">阶段一 · 校时并下载异常前后 AGV 日志</h2>
+        <p>先通过 PuTTY 以有线或无线方式 SSH 登录机器人，执行 <code>date</code>，记录系统时间与实际时间的偏差。后续所有“相近时间”判断都应考虑这个偏差。</p><pre>date</pre><p>AGV 日志命名规则为 <code>AGV_创建时间_xxx</code>。下载时<strong>异常前、异常后的日志都要保留</strong>，不能只取当前文件；如需平台侧佐证，同时保存对应时间窗的 RCS log_bak 和监控客户端录像。</p><table><thead><tr><th>软件版本</th><th>进入目录</th><th>采集要求</th></tr></thead><tbody><tr><td>V4.x 之前的老版本</td><td><code>cd /mnt</code></td><td>按创建时间选异常前后日志</td></tr><tr><td>V4.x 新版本</td><td><code>cd /mnt/agv_log</code></td><td>保留重启前最后一份和重启后第一份</td></tr></tbody></table><p><strong>判断依据：</strong>正常 AGV 日志通常约 10 MB；中间出现不足 10 MB 的文件，提示这里可能发生重启，可用于缩小时间窗，但文件大小本身不是最终定因。</p>
+
+        <h2 id="s3">阶段一 · 全部内核日志与 Coredump 一并采集</h2>
+        <p>内核日志用于确认 <code>SYSTEM BOOT</code>、系统调用、看门狗和 panic。不同硬件主控目录不同，但都必须执行 <code>sz kmsgcat-log*</code>，其中 <code>*</code> 表示所有匹配文件，<strong>内核日志必须全下</strong>。</p><table><thead><tr><th>主控硬件</th><th>内核日志目录</th><th>下载命令</th></tr></thead><tbody><tr><td>二代硬件版本</td><td><code>cd /tmp/kernel_log</code></td><td><code>sz kmsgcat-log*</code></td></tr><tr><td>四代硬件版本</td><td><code>cd /other_log/kernel_log</code></td><td><code>sz kmsgcat-log*</code></td></tr></tbody></table><p>再执行 <code>ls -al /mnt/coredump</code>。若存在 core 文件，核对文件生成时间是否与重启时间相近；相近则截图记录并下载文件，供应用崩溃分析。</p><pre>ls -al /mnt/coredump</pre>
+        <figure class="shot">
+          <a href="../../assets/img/v25/01-coredump.png" target="_blank" rel="noopener"><img src="../../assets/img/v25/01-coredump.png" alt="查看 coredump 目录中的 core 文件大小和生成时间"></a>
+          <figcaption><b>图 1</b> 在 <code>/mnt/coredump</code> 中同时核对 core 文件名、大小与生成时间；时间接近异常窗口时，文件也要随日志一并保存。</figcaption>
+        </figure>
+
+        <h2 id="s4">阶段一 · 按主控版本采集电池日志</h2>
+        <p>掉电重启不能只看 AGV 的 <code>reset_type</code>，还需电池日志确认按键、温度和充放电告警。</p><p><strong>主控 3.x：记录终端会话。</strong></p><ol><li>在 PuTTY 中进入“Session → Logging → Session logging”，选择 <strong>All session output</strong>，自定义 Log file name，通过 Browse 选择保存路径并 Save。</li><li>回到 Session，填写机器人地址，Port 设为 <strong>22</strong>，以 SSH 连接；地址以现场实际为准，不写入公开记录。</li><li>分别执行状态信息和历史告警命令，结束后拷贝完整会话日志。</li></ol><pre>castor_cli -T 0 -T 1 -W 1 -Z 1000 -R 103 -T0
+        castor_cli -T 0 -T 1 -W 2 -Z 1000 -R23 </pre><p><strong>主控 V4.x：把电池告警写入 AGV 日志。</strong>SSH 登录后依次执行：</p><pre>castor_engy_show_battery_info history_warn
+        castor_refresh_record</pre><p>刷新完成后下载<strong>最新</strong> AGV 日志，在 ENG 相关内容中查历史告警。判断依据是告警时间是否能与重启窗口对应，而不是只确认命令有输出。</p>
+
+        <h2 id="s5">阶段二 · 确认重启窗口并排查主动重启</h2>
+        <p>用平台记录、人员描述、AGV 文件创建时间和异常短文件共同确定重启前、重启后的两份日志。先在<strong>重启前</strong> AGV 日志搜索 <code>castor closed by x</code>；有结果说明触发了主动断电机制，再按 x 值核对原因：</p><table><thead><tr><th>x</th><th>字段</th><th>重启 / 关机原因</th></tr></thead><tbody><tr><td>0</td><td>BATTERY_CLOSE_FROM_RCS</td><td>RCS 控制关机</td></tr><tr><td>1</td><td>BATTERY_CLOSE_FROM_LOW</td><td>低电量控制关机</td></tr><tr><td>2</td><td>BATTERY_CLOSE_FROM_LOST</td><td>失联控制关机</td></tr><tr><td>3</td><td>BATTERY_CLOSE_FROM_UNIX</td><td>手动命令控制关机</td></tr><tr><td>4</td><td>BATTERY_CLOSE_FROM_TPM_TEMP_HIGH</td><td>三元电池持续温度过高关机</td></tr><tr><td>5</td><td>BATTERY_CLOSE_FROM_OVER_SPEED</td><td>手动命令控制关机（原文字段说明）</td></tr><tr><td>6</td><td>BATTERY_CLOSE_FROM_TASK</td><td>由任务控制关机</td></tr><tr><td>7</td><td>BATTERY_CLOSE_FROM_CBS</td><td>换电站控制关机</td></tr></tbody></table><p>再在重启前日志搜索 <code>SYSTEM WILL REBOOT</code>。若有结果，并且内核日志也确认是 reboot 系统调用重启，可判定为主动软件重启，再继续核对参数修改、定时配置等触发来源。x 的具体机制和主动重启配置如需深入，应连同原文日志交由对应基线维护人员确认。</p>
+
+        <h2 id="s6">阶段二 · 用 reset_type 初分掉电与软重启</h2>
+        <p>若重启前没有主动重启记录，解压并打开<strong>重启后</strong>的 AGV 日志，搜索 <code>reset_type</code>：</p><table><thead><tr><th>reset_type</th><th>初步判断</th><th>下一步</th></tr></thead><tbody><tr><td><code>SOFT_RESET</code></td><td>非掉电重启（软件重启）</td><td>查看内核日志</td></tr><tr><td><code>POWER_ON_RESET</code></td><td>掉电重启</td><td>查看电池日志；必要时联系售后继续定位</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v25/02-soft-reset.png" target="_blank" rel="noopener"><img src="../../assets/img/v25/02-soft-reset.png" alt="AGV 日志 reset_type 显示 SOFT_RESET"></a>
+          <figcaption><b>图 2</b> <code>SOFT_RESET</code> 指向非掉电软重启，下一步应对齐同一次 <code>SYSTEM BOOT</code> 查内核原因。</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="../../assets/img/v25/03-power-reset.png" target="_blank" rel="noopener"><img src="../../assets/img/v25/03-power-reset.png" alt="AGV 日志 reset_type 显示 POWER_ON_RESET"></a>
+          <figcaption><b>图 3</b> <code>POWER_ON_RESET</code> 指向掉电重启，但仍需用电池或内核证据确认是否为初始原因。</figcaption>
+        </figure><p>继续搜索 <code>last_close</code>，查看最近几次电池日志内容及记录时间。若短路、按键断电等记录与重启时间相近，可作为原因参考。</p><div class="callout danger"><span class="callout-title">reset_type 只是初步分类</span><p>看门狗倒计时或内核异常之后若又发生人工断电，重启后仍可能显示 <code>POWER_ON_RESET</code>。必须结合 <code>last_close</code>、内核启动点和现场操作交叉验证。</p></div>
+
+        <h2 id="s7">阶段三 · 掉电重启：电压、按键与 BMS 告警</h2>
+        <p><strong>R318 主控：</strong>打开 <code>kmsgcat-log</code>，搜索大写 <code>SYSTEM BOOT</code>，按 AGV 日志时间找到本次启动，再向上搜索 <code>poweroff detected</code>。存在该打印可证明当时出现电压过低。</p><p><strong>主控 V2.9 及以上：</strong>检查电池日志在异常时间是否有按键触发记录，并向现场核实是否有人操作。无人按键却有按键掉电记录时，需考虑按键松弛或供电线路接触不良。其他 BMS 告警按下表核对：</p><table><thead><tr><th>告警字</th><th>日志记录</th><th>告警原因</th></tr></thead><tbody><tr><td>BMS 告警字 1</td><td><code>warn: 0x40, 0, 0x80, 0x40</code></td><td>外部按键开关断开</td></tr><tr><td>BMS 告警字 1</td><td><code>warn: 0, 0, 0x80, 0x40</code></td><td>异常告警恢复</td></tr><tr><td>BMS 告警字 1</td><td><code>warn: 0x20, 0, 0x80, 0x40</code></td><td>温度过高 2 级</td></tr><tr><td>BMS 告警字 2</td><td><code>warn: 0, 0x20, 0x80, 0x40</code></td><td>温度过低 2 级</td></tr><tr><td>BMS 告警字 2</td><td><code>warn: 0, 0x80, 0x00, 0x00</code></td><td>放电电流过大 2 级（短路）</td></tr><tr><td>BMS 告警字 3</td><td><code>warn: 0, 0, 0x20, 0x40</code></td><td>单体电压压差过大 2 级</td></tr><tr><td>BMS 告警字 4</td><td><code>warn: 0, 0, 0x80, 0x41</code></td><td>主机程序命令下电</td></tr><tr><td>BMS 告警字 4</td><td><code>warn: 0x40, 0, 0x80, 0x41</code></td><td>主机程序命令上电</td></tr></tbody></table><p>供电原因可由电池日志或 R318 内核日志确认；后续由售后结合电池、硬件供电链路继续定位，必要时按现场流程临时更换电池做对比验证。</p>
+
+        <h2 id="s8">阶段三 · 软重启：区分系统调用与 shell 命令</h2>
+        <p>打开 <code>kmsg-log</code>，搜索大写 <code>SYSTEM BOOT</code>。文件可能有多个启动点，必须按 AGV 日志的重启时间选择对应项，并查看该启动记录上方一行：</p><ul><li>出现 <code>reboot by syscall</code>，继续查看 reboot 左侧的 <code>reason</code>。</li><li>出现 <code>reboot by shell</code>，说明是在 shell 中执行 reboot 导致重启，应核对当时的人员操作。</li></ul><table><thead><tr><th>reason</th><th>含义</th><th>处理判断</th></tr></thead><tbody><tr><td>1</td><td>应用代码调用 reboot 接口</td><td>正常运行中发生属于异常；结合主动重启日志与具体应用逻辑分析</td></tr><tr><td>0</td><td>内核调用 restart 接口</td><td>继续查内核上下文</td></tr><tr><td>2</td><td>CPU 温度超过设置阈值</td><td>默认阈值 75 ℃；及时反馈 BSP 与硬件侧</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v25/04-reboot-syscall.png" target="_blank" rel="noopener"><img src="../../assets/img/v25/04-reboot-syscall.png" alt="SYSTEM BOOT 上方出现 reason 1 reboot by syscall"></a>
+          <figcaption><b>图 4</b> 启动点上方为 <code>reason: 1 reboot by syscall</code>，表示应用代码调用 reboot 接口；必须与本次启动时间对齐后再下结论。</figcaption>
+        </figure><div class="callout warn"><span class="callout-title">温度重启要及时升级处理</span><p><code>reason 2</code> 对应的默认阈值为 75 ℃。温度过高可能带来其他不可预测异常，不要仅重启恢复后继续运行而不反馈。</p></div>
+
+        <h2 id="s9">阶段三 · 看门狗与应用崩溃重启</h2>
+        <p>在同一个 <code>SYSTEM BOOT</code> 启动点向上查看数行，若出现 <code>watchdog pre-timeout: xxx</code>，说明看门狗触发了重启。</p><ol><li>检查 <code>/mnt/coredump</code> 是否存在与重启时间相近的 core 文件。</li><li>在内核日志继续搜索 <code>coredump</code>，确认崩溃前是否生成文件。</li><li>有 core 文件时，下载内核日志和 core 文件，转嵌入式应用侧分析具体线程；没有 core 文件时，保留看门狗上下文，转 BSP 侧继续排查。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v25/05-watchdog.png" target="_blank" rel="noopener"><img src="../../assets/img/v25/05-watchdog.png" alt="SYSTEM BOOT 上方出现 watchdog pre-timeout"></a>
+          <figcaption><b>图 5</b> <code>watchdog pre-timeout</code> 紧邻后续 <code>SYSTEM BOOT</code>，是看门狗重启证据；随后必须再查 core，而不是直接把原因归为硬件。</figcaption>
+        </figure><p><strong>判断依据：</strong>“看门狗触发”描述了重启机制，core 文件及前面的应用异常才用于继续定位是哪一线程或模块触发。</p>
+
+        <h2 id="s10">阶段三 · 内核 panic、Oops、OOM 与时间线交叉验证</h2>
+        <p>在对应 <code>SYSTEM BOOT</code> 后向下查看数行：若有 <code>panic_info_start</code>，继续核对下一行 <code>panic_time</code> 是否与实际重启窗口对应；能对应上，才可认定内核 panic 导致本次重启。</p>
+        <figure class="shot">
+          <a href="../../assets/img/v25/06-panic.png" target="_blank" rel="noopener"><img src="../../assets/img/v25/06-panic.png" alt="内核日志出现 panic_info_start 和 panic_time"></a>
+          <figcaption><b>图 6</b> <code>panic_info_start</code> 是 panic 标志，仍要用 <code>panic_time</code> 与本次重启窗口对齐。</figcaption>
+        </figure><p>若启动点向上有 <code>oops</code>、<code>OOM</code>（out of memory）、<code>panic</code> 等异常打印，也要保留完整上下文：OOM 转嵌入式研发分析内存与被杀进程，Oops 和 panic 由技术支持协调 BSP 排查。</p><p>内核日志先后顺序为 <code>kmsgcat.log</code>、<code>kmsgcat.log.1</code>、<code>kmsgcat.log.2</code>……，按此顺序拼接事件。最终时间线至少应对齐：<strong>首个异常打印 → 看门狗或崩溃记录 → 电池按键 / 掉电记录 → SYSTEM BOOT → 重启后首条 AGV 日志</strong>。若人工断电发生在软件异常之后，应分别记录“初始故障”和“恢复动作”。</p>
+
+        <h2 id="s11">收尾与注意事项</h2>
+        <ul><li>采集前先执行 <code>date</code> 并记录系统时间偏差；AGV 日志要覆盖异常前后，内核日志必须全部下载。</li><li>保留原始目录结构、文件名、大小和生成时间，不要只复制搜索命中的单行；core 文件和终端会话日志也应原样保存。</li><li>主动重启同时看重启前的 <code>castor closed by x</code>、<code>SYSTEM WILL REBOOT</code> 与内核系统调用证据。</li><li><code>reset_type</code> 和 <code>last_close</code> 都用于初判，必须和内核启动点、电池告警及现场操作交叉验证。</li><li>所有 <code>SYSTEM BOOT</code> 都要先匹配时间，再查看其上方或下方对应行，避免把历史重启的记录套到本次事件。</li><li>供电问题转售后，应用崩溃附 core 转嵌入式应用侧，无 core 的看门狗及内核问题转 BSP；没有明确指向时，整理完整时间线后请技术支持协调分析。</li><li>公开或跨团队传递材料前，去除现场地址、设备标识、用户路径和人员信息，只保留通用命令、字段与判断过程。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>已排除人工按键、定时重启和参数修改后主动重启等预期事件</li>
+          <li>已执行 date 记录时间偏差，并下载异常前后 AGV 日志与全部内核日志</li>
+          <li>已按软件版本进入 /mnt 或 /mnt/agv_log，按硬件版本进入对应 kernel_log 目录</li>
+          <li>已执行 ls -al /mnt/coredump，时间相近的 core 文件已截图并原样下载</li>
+          <li>已按主控 3.x 或 V4.x 对应流程采集电池日志，V4.x 已刷新后下载最新 ENG 内容</li>
+          <li>已搜索 castor closed by x 与 SYSTEM WILL REBOOT，并按 x 值和内核证据核对主动重启</li>
+          <li>已用 reset_type 初分 SOFT_RESET / POWER_ON_RESET，并结合 last_close 继续验证</li>
+          <li>掉电分支已检查 poweroff detected、按键记录及 BMS 告警，并向现场核实人工操作</li>
+          <li>软重启已核对 reboot by syscall / shell、reason、watchdog、coredump、panic_time 等同一启动点证据</li>
+          <li>已拼接异常、看门狗或崩溃、电池事件、SYSTEM BOOT 与首条 AGV 日志的完整时间线并留存原始证据</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v24.html"><span class="pager-label">上一篇</span><span class="pager-title">机器人充电异常排查</span></a>
+
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">阶段一 · 先确认是否属于异常重启</a>
+        <a href="#s2">阶段一 · 校时并下载异常前后 AGV 日志</a>
+        <a href="#s3">阶段一 · 全部内核日志与 Coredump 一并采集</a>
+        <a href="#s4">阶段一 · 按主控版本采集电池日志</a>
+        <a href="#s5">阶段二 · 确认重启窗口并排查主动重启</a>
+        <a href="#s6">阶段二 · 用 reset_type 初分掉电与软重启</a>
+        <a href="#s7">阶段三 · 掉电重启：电压、按键与 BMS 告警</a>
+        <a href="#s8">阶段三 · 软重启：区分系统调用与 shell 命令</a>
+        <a href="#s9">阶段三 · 看门狗与应用崩溃重启</a>
+        <a href="#s10">阶段三 · 内核 panic、Oops、OOM 与时间线交叉验证</a>
+        <a href="#s11">收尾与注意事项</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

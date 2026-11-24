@@ -32,10 +32,12 @@
         <a href="v07.html">调度系统安装、升级与配套软件部署</a>
         <a href="v11.html" class="active">潜伏机器人平台搭建与任务配置</a>
         <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <a href="v27.html">现场地面勘测与整改要点</a>
         <span class="side-group">通信与接口</span>
         <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
         <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
         <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <a href="v26.html">移动机器人无线网络测试与部署</a>
         <span class="side-group">地图与定位</span>
         <a href="v05.html">L-SLAM 地图编辑要点</a>
         <a href="v06.html">机器人点位方向与货架方向配置</a>
@@ -43,6 +45,7 @@
         <a href="v15.html">L-SLAM 建图流程与路径规划</a>
         <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
         <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <a href="v22.html">L-SLAM 定位异常的分层排查</a>
         <span class="side-group">配置与工具</span>
         <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
         <a href="v12.html">监控客户端登录与现场管控操作要点</a>
@@ -53,6 +56,9 @@
         <a href="v10.html">叉车机器人常见告警排查</a>
         <a href="v13.html">现场问题反馈与排查规范</a>
         <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        <a href="v23.html">机器人任务空闲但不执行排查</a>
+        <a href="v24.html">机器人充电异常排查</a>
+        <a href="v25.html">机器人异常重启排查与日志采集</a>
       </nav>
       <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
     </aside>
@@ -74,6 +80,7 @@
           <a href="v07.html">调度系统安装、升级与配套软件部署</a>
           <a href="v11.html" class="active">潜伏机器人平台搭建与任务配置</a>
           <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+          <a href="v27.html">现场地面勘测与整改要点</a>
         </nav>
       </details>
 
@@ -119,7 +126,7 @@
         <p>按「仓位 → 货架结构 → 载具类型 → 货架」的顺序配：</p><ol><li>「存储对象 → 仓位类型管理」，按实际仓位尺寸添加仓位类型。</li><li>「搬运对象 → 货架结构管理」添加货架参数：<ul><li><strong>长 / 宽</strong>：若长宽相等，线属性里的货架方向设置会失效；需要用线属性控制方向时，长宽要差 1 mm 以上；</li><li><strong>是否盲举</strong>：货架未贴货码选「是」；</li><li><strong>可旋转 AGV 类型</strong>、<strong>短边进 AGV 类型</strong>：按允许进入 / 旋转的车型勾选。</li></ul></li><li>点「下一步」选择对应仓位类型。</li><li>「搬运对象 → 载具类型管理」添加载具类型。</li><li>「搬运对象 → 货架管理」添加货架，<strong>货架编号必须与实物货码一致</strong>。</li><li>「存储对象 → 仓位管理」核对所有仓位是否已生成。</li></ol><p>区分两个概念：搬运对象是<strong>可移动载具</strong>（潜伏货架、叉车托盘、CTU 料箱）；存储对象是<strong>固定存储架</strong>（高位货架，多用于叉车 / CTU）。</p>
 
         <h2 id="s8">阶段二 · 机器人配置（有实车 / 无实车）</h2>
-        <p><strong>有实车：</strong>用调试线或 WiFi 连接机器人。调试线方式下电脑 IP 需与机器人固定 IP <code>192.168.1.64</code> 同网段（<strong>示例地址，以现场实际为准</strong>）。运行 RoboX 添加机器人（账号 admin，密码见交付文档），登录后按「快速配置」逐项配置：</p><table><thead><tr><th>配置项</th><th>要求</th></tr></thead><tbody><tr><td>工作模式</td><td>正常模式</td></tr><tr><td>WiFi 参数</td><td>频段、安全模式与现场网络一致，SSID 与密钥按实际填</td></tr><tr><td>平台参数</td><td>RCS 服务 IP + <strong>设备注册端口</strong>（默认 8988，需与 rcs-web 服务配置一致）</td></tr><tr><td>二维码参数</td><td>间距 = 现场实际贴码距离，且与建图时的地码间距一致</td></tr><tr><td>地码类型</td><td>按实际打印的地码类型选择</td></tr></tbody></table><p>把机器人推到地码上，进入 RoboX「状态信息 → 定位导航信息 → 二维码信息」，<strong>二维码码值显示为实际码值</strong>即代表识别成功，这是上线的前提。</p><p><strong>无实车：</strong>打开模拟器目录下的 <code>config.xml</code>，配置 <code>step_0</code>（每格宽）、<code>step_1</code>（每格高）、<code>code_type</code>（地码类型）、服务器 <code>ip</code> / <code>port</code>，以及 <code>robot_num</code>、<code>robot_id</code>、<code>pos_x</code> / <code>pos_y</code>；再运行 <code>simulate_agv</code>，客户端即显示在线，可用于第三方接口联调。</p>
+        <p><strong>有实车：</strong>用调试线或 WiFi 连接机器人。调试线方式下电脑 IP 需与机器人固定 IP <code>192.168.1.64</code> 同网段（<strong>示例地址，以现场实际为准</strong>）。运行 车端调试工具 添加机器人（账号 admin，密码见交付文档），登录后按「快速配置」逐项配置：</p><table><thead><tr><th>配置项</th><th>要求</th></tr></thead><tbody><tr><td>工作模式</td><td>正常模式</td></tr><tr><td>WiFi 参数</td><td>频段、安全模式与现场网络一致，SSID 与密钥按实际填</td></tr><tr><td>平台参数</td><td>RCS 服务 IP + <strong>设备注册端口</strong>（默认 8988，需与 rcs-web 服务配置一致）</td></tr><tr><td>二维码参数</td><td>间距 = 现场实际贴码距离，且与建图时的地码间距一致</td></tr><tr><td>地码类型</td><td>按实际打印的地码类型选择</td></tr></tbody></table><p>把机器人推到地码上，进入 车端调试工具「状态信息 → 定位导航信息 → 二维码信息」，<strong>二维码码值显示为实际码值</strong>即代表识别成功，这是上线的前提。</p><p><strong>无实车：</strong>打开模拟器目录下的 <code>config.xml</code>，配置 <code>step_0</code>（每格宽）、<code>step_1</code>（每格高）、<code>code_type</code>（地码类型）、服务器 <code>ip</code> / <code>port</code>，以及 <code>robot_num</code>、<code>robot_id</code>、<code>pos_x</code> / <code>pos_y</code>；再运行 <code>simulate_agv</code>，客户端即显示在线，可用于第三方接口联调。</p>
 
         <h2 id="s9">阶段二 · 客户端登录与上线</h2>
         <ol><li>在 rcs-web 首页下载 <code>MonitorClient_Setup.exe</code>，默认方式安装。</li><li>运行监控客户端，输入用户名、密码（与 rcs-web 相同）、IP 地址与端口（与访问 rcs-web 一致，<strong>客户端默认端口 38182</strong>）。</li><li>有实车时把车推到地码上并确认已识别；无实车时启动模拟器。</li><li>进入「监控」页，机器人显示<strong>在线</strong>即上线成功。</li><li>验证运动：右侧列表双击一台机器人，再在地图上单击目标点作为终点，点「移动」下发移动任务，观察是否按路径行驶。</li></ol><p>若一直离线，按「网络通 → 设备注册端口一致 → 地码已识别」三步倒查。</p>

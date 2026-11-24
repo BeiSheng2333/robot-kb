@@ -1,0 +1,84 @@
+{
+  "id": "v23",
+  "title": "机器人任务空闲但不执行排查",
+  "category": "排障方法",
+  "lede": "RCS_WEB 显示任务正在执行，机器人却举着货架并提示“任务空闲”时，故障可能在任务触发、规划输入输出或机器人执行侧。本篇按子任务状态、规划库 In/Out、RCS 与分配链、机器人日志的顺序分流，并给出 A/D/E 字段、完成标志、位置精度及典型报错的判断和处置步骤。",
+  "source": "机器人技术 Wiki 离线文档（10 页）",
+  "keywords": [
+    "任务空闲",
+    "RCS_WEB",
+    "子任务单管理",
+    "CMS",
+    "规划库",
+    "trp_log",
+    "uncompress_log_tool",
+    "In/Out",
+    "任务状态 A",
+    "错误类型 D",
+    "阻塞类型 E",
+    "fli",
+    "pos_offset",
+    "ERR_POS",
+    "行走精度"
+  ],
+  "sections": [
+    {
+      "h": "阶段一 · 确认现象并按三条链路分流",
+      "html": "<p>典型现象是：RCS_WEB 显示机器人正在执行任务，但机器人实际举着货架，液晶屏显示<strong>“任务空闲”</strong>。先记录发生时间、子任务、停车坐标和客户端现象，再按三条链路排查，避免一开始就重发任务。</p><table><thead><tr><th>归因方向</th><th>首要证据</th><th>下一步</th></tr></thead><tbody><tr><td>CMS 未下发任务</td><td>子任务状态、继续任务接口调用及返回</td><td>查接口日志与上层触发</td></tr><tr><td>规划库未规划路径或规划后报错</td><td>规划库 In 输入、Out 输出、D/E 字段</td><td>判断目标点、状态及错误代码</td></tr><tr><td>机器人收到任务但报错</td><td>机器人是否收到平台任务及当时状态</td><td>查机器人日志与执行侧异常</td></tr></tbody></table><p><strong>判断依据：</strong>监控上“已有规划路径”只说明存在路径显示，不能证明规划库无报错，也不能证明机器人已收到可执行任务。</p>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v23/01-diagnosis-flow.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v23/01-diagnosis-flow.png\" alt=\"任务空闲按规划库、机器人和 RCS 分流的排查流程\"></a>\n  <figcaption><b>图 1</b> 总体分流：先看规划库 Out，再按是否下发任务、是否报错和 In 中是否有任务，分别进入机器人、规划库、RCS 或分配库排查。</figcaption>\n</figure>"
+    },
+    {
+      "h": "阶段一 · 先查 RCS_WEB 子任务状态",
+      "html": "<p>登录 RCS_WEB，进入<strong>“运营管理” &gt; “任务管理” &gt; “子任务单管理”</strong>，按对应子任务查看状态，再依下表处理。</p><table><thead><tr><th>子任务状态</th><th>含义</th><th>具体操作与判断</th></tr></thead><tbody><tr><td>已创建</td><td>任务已创建但未触发</td><td>查接口日志：仓储继续任务接口为 <code>return pod</code>，搬运为 <code>continue</code>；调用失败按返回错误排查，未调用则由第三方上层系统处理</td></tr><tr><td>发送异常</td><td>通常由网络异常等导致</td><td>进入“运营管理” &gt; “异常处理” &gt; “发送信息处理(RCS)”，选中任务并点击“重新处理”</td></tr><tr><td>正在执行</td><td>若已有机器人编号，分配机器人环节无异常</td><td>继续查规划库日志，不要停留在分配结果下结论</td></tr></tbody></table><ol><li>“已创建”时先确认上一个任务完成后是否真正发起继续任务接口，不能只看子任务已生成。</li><li>“发送异常”重新处理后，应回到子任务状态确认是否恢复；仍异常则继续查网络与发送记录。</li><li>“正在执行”且有机器人编号时，以同一时间段规划库 In/Out 作为下一判断依据。</li></ol>"
+    },
+    {
+      "h": "阶段二 · 解压规划库日志并读懂字段",
+      "html": "<p>进入 RCS 日志目录的 <code>trp_log</code> 文件夹，将 <code>uncompress_log_tool.exe</code> 放入该目录并双击解压，打开对应时间段的 <strong>Out 日志</strong>。重点读 In 输入和 Out 输出，不要只搜索“error”。</p><table><thead><tr><th>字段</th><th>含义</th><th>本次排查用途</th></tr></thead><tbody><tr><td>In 中目标点</td><td>RCS 塞入的目标位置</td><td>与下一个目标点或机器人当前点比较</td></tr><tr><td>A</td><td>机器人任务状态</td><td>判断空闲、执行中或异常</td></tr><tr><td>B</td><td>是否背货架</td><td><code>0</code> 不背，<code>1</code> 背</td></tr><tr><td>C</td><td>货架类型</td><td>0 普通；1 不能旋转；2、3 不能从短边进入且不能旋转；4 正方形（无效）；5 盲举</td></tr><tr><td>Out 中 D / E</td><td>错误类型 / 阻塞类型</td><td>区分规划报错与具体阻塞来源</td></tr><tr><td>Out 中目标点、角度</td><td>规划库输出</td><td>与机器人当前坐标和角度比较</td></tr></tbody></table>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v23/02-planner-fields.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v23/02-planner-fields.png\" alt=\"规划库日志 In 与 Out 的字段位置说明\"></a>\n  <figcaption><b>图 2</b> In/Out 字段对照：先读当前坐标、目标点和 A，再读 Out 的目标点、D、E 以及空间占据信息。</figcaption>\n</figure>"
+    },
+    {
+      "h": "阶段二 · 用目标点和任务状态 A 决定去向",
+      "html": "<p>在 In 输入中同时比较“RCS 塞入的目标点”和机器人状态 A。两者必须组合判断，单看 A=4“任务空闲”无法说明是谁未下发。</p><table><thead><tr><th>In 中的组合</th><th>判断</th><th>下一步</th></tr></thead><tbody><tr><td>目标点 = 下一个目标点，且 A = 4 或 2</td><td>输入无问题</td><td>继续查看 Out 输出信息</td></tr><tr><td>目标点 = 下一个目标点，且 A = 3</td><td>机器人任务异常</td><td>转查机器人日志</td></tr><tr><td>目标点 = 当前点</td><td>RCS 未给出下一个有效目标，或前序完成链未推进</td><td>查 RCS 是否挑车及 subtask 是否报完成</td></tr></tbody></table><p><strong>A 的完整取值：</strong></p><table><thead><tr><th>A</th><th>状态</th><th>A</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>任务完成</td><td>2</td><td>任务执行中</td></tr><tr><td>3</td><td>任务异常</td><td>4</td><td>任务空闲</td></tr><tr><td>5</td><td>任务停止</td><td>6</td><td>任务调整中</td></tr><tr><td>7</td><td>任务错误</td><td>8</td><td>弧线行走中</td></tr><tr><td>13</td><td>前方存在障碍</td><td>—</td><td>—</td></tr></tbody></table><p>若目标点是下一个目标点但 A=3，就不要继续按“RCS 未塞目标点”处理；若目标点仍是当前点，则进入下一节检查选车与完成回报。</p>"
+    },
+    {
+      "h": "阶段二 · 目标点仍为当前点时查 RCS 完成链",
+      "html": "<ol><li>打开对应时段 RCS 日志，搜索子任务编号，确认 RCS 是否真正挑到机器人。</li><li>搜索 <code>start by robot index:</code>。出现该记录说明已选中机器人；若没有，应按“未选中机器人”方向继续排查分配原因。</li><li>正常选中后，继续核对对应 <code>subtask</code> 是否报完成。若前序 subtask 未完成，后续任务不会正常下发，应继续追哪个模块未报完成。</li><li>若已报完成且目标仍不下发，保留同一时段 RCS、规划库输入和子任务状态，进入平台侧联合排查。</li></ol><div class=\"callout warn\"><span class=\"callout-title\">不要重复重发来掩盖完成链问题</span><p>前序 subtask 未报完成时，重复创建或重发后续任务不能证明根因已消除。先把机器人、规划库、分配库和 RCS 四方完成状态对齐。</p></div>"
+    },
+    {
+      "h": "阶段三 · 用 Out 的 D/E 与输出目标判断规划异常",
+      "html": "<p>查看 Out 输出：D、E 有错误代码时，先按规划库报错处理；无错误代码时，再比较输出目标点及角度与机器人当前状态。</p><ul><li>无错误代码，且输出目标点和角度都与当前状态相同：保留日志并联系专业技术支持。</li><li>无错误代码，但输出目标点或角度不同于机器人当前坐标或角度：转查机器人日志。</li></ul><table><thead><tr><th>D 错误类型</th><th>含义</th><th>D 错误类型</th><th>含义</th></tr></thead><tbody><tr><td>-1001</td><td>接口调用顺序出错</td><td>-1002</td><td>无有效路径</td></tr><tr><td>-1003</td><td>目标点错误</td><td>-1005</td><td>死锁无法解除</td></tr><tr><td>-1006</td><td>人工封锁导致无有效路径</td><td>-1010</td><td>机器人被异常拖出地图</td></tr><tr><td>-1020</td><td>机器人位置不在拓扑元素中</td><td>-1021</td><td>拓扑地图节点分支过多</td></tr><tr><td>-1022</td><td>内部参数设置错误</td><td>-1024</td><td>存在障碍；相关字段指示车辆时按车挡处理，否则结合 E 判断</td></tr><tr><td>-1025</td><td>机器人目标角度不可达</td><td>-1026</td><td>机器人不在路径上</td></tr><tr><td>-1027</td><td>机器人正在旋转中</td><td>-2002</td><td>跨格障碍物导致无有效路径</td></tr><tr><td>-2003</td><td>大量机器人未注销被拖出地图，算法库不再输出</td><td>-3001</td><td>交叉路口进出点之间存在拓扑点</td></tr><tr><td>-3002</td><td>车辆将目标点设为封锁区域内的点</td><td>-3003</td><td>注册有机器人</td></tr></tbody></table><table><thead><tr><th>E</th><th>阻塞类型</th><th>E</th><th>阻塞类型</th></tr></thead><tbody><tr><td>0</td><td>无阻塞</td><td>1</td><td>被货架挡</td></tr><tr><td>3</td><td>被交管区挡</td><td>4</td><td>被回头路中的车挡</td></tr><tr><td>5</td><td>被远处的车挡（方向冲突）</td><td>7</td><td>旋转被挡</td></tr><tr><td>8</td><td>直行被挡</td><td>—</td><td>—</td></tr></tbody></table><p>原文货架挡道案例还出现<strong>规划库一级告警 -1122、二级告警 -2040</strong>，并指向封锁区或货架挡道；这组规划告警应与上述 D/E 字段结合现场日志解读，不要相互替代。</p>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v23/03-planner-alarm.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v23/03-planner-alarm.png\" alt=\"规划日志中的一级二级告警与货架坐标\"></a>\n  <figcaption><b>图 3</b> 货架挡道案例：一级告警 -1122、二级告警 -2040 与对应位置同时出现，下一步核对该位置是否仍有地图货架占位。</figcaption>\n</figure>"
+    },
+    {
+      "h": "阶段三 · 到机器人日志确认是否收到任务",
+      "html": "<ol><li>在机器人日志中按<strong>问题产生时间和坐标</strong>搜索，确认当时是否收到平台任务，并核对任务内容与当前状态。</li><li>若未收到任务，检查机器人的<strong>工作模式、设备类型是否添加错误</strong>，同时由 RCS 侧协助排查并获取设备、平台抓包。</li><li>若已经收到任务，说明平台到机器人的下发链路已有证据，应转执行侧继续分析报错，而不是重复检查继续任务接口。</li></ol><p><strong>判断依据：</strong>In 已给出下一目标但 A=3，或 Out 无错误且输出目标不同于当前状态时，机器人日志是下一跳；未收到与收到后报错必须分开处理。</p><div class=\"callout danger\"><span class=\"callout-title\">保留原始时间点</span><p>跨平台日志必须按同一发生时间和停车坐标对齐。只看当前补发的任务，会覆盖原异常时的输入输出关系，导致误判。</p></div>"
+    },
+    {
+      "h": "阶段四 · 核对四方完成状态与 fli 精度判据",
+      "html": "<p>3.0 版本之后，RCS_WEB 报任务完成需同时满足四个条件：</p><ol><li>机器人报任务完成，且 <code>task_id</code> 及对应 <code>sub_id</code> 与平台一致；</li><li>规划库报任务完成；</li><li>分配库报任务完成；</li><li>RCS 子任务报完成。</li></ol><p>依次用规划库、分配库和 RCS 日志核对完成回报。原文 CTU 案例中，机器人虽已报取货完成，但当前位置与目标点 y 方向仍差 <strong>71 mm</strong>；规划库显示 <code>pos_offset:65</code> 且 <code>fli</code> 一直为 0，说明规划库尚未报完成。原因是读码识别仓位时前后调整，使取货后的偏差超过原行走精度。</p><table><thead><tr><th>配置位置</th><th>原案例取值</th><th>调整后</th><th>判断依据</th></tr></thead><tbody><tr><td>规划库配置 · 偏移距离</td><td>65 mm</td><td>100 mm</td><td>与 RCS 能力集行走精度调整保持一致</td></tr><tr><td>机器人配置 · 行走最大偏移量</td><td>65 mm</td><td>100 mm</td><td>避免只改一侧导致完成判据仍不一致</td></tr></tbody></table><p>调整后重新执行同类取货任务，确认 <code>fli</code> 能变为 1，四方完成状态依次推进。<strong>65→100 mm 是该案例处理值，不是所有现场的通用阈值。</strong></p>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v23/04-finish-flag.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v23/04-finish-flag.png\" alt=\"规划库 Out 日志中的 fli 完成标志\"></a>\n  <figcaption><b>图 4</b> Out 中的 <code>fli</code> 位置，图例高亮值为 1。排查时应结合 <code>pos_offset</code>：若机器人报完成但 fli 持续为 0，仍需查规划库完成条件。</figcaption>\n</figure>"
+    },
+    {
+      "h": "阶段四 · 处理货架占位导致的规划报错",
+      "html": "<p>若规划日志出现一级告警 -1122、二级告警 -2040，且对应坐标仍存在货架，应核对现场与地图是否一致。原文案例中货架长宽均为 <strong>1000 mm</strong>，此前任务把货架搬到该位置，之后现场已移走，但刷地图模式仍保留占位，导致规划认为道路被挡。</p><table><thead><tr><th>主控版本</th><th>处理步骤</th><th>复核</th></tr></thead><tbody><tr><td>2.5 之前</td><td>保存并远程配置 RCS</td><td>确认旧货架占位不再参与规划</td></tr><tr><td>2.5 及之后</td><td>登录 RCS_WEB，将该货架与位置解绑，再远程配置 RCS</td><td>确认解绑的是现场已移走货架对应的位置</td></tr></tbody></table><ol><li>先核实现场货架已移走及地图占位坐标，不要为恢复通行直接删除真实货架。</li><li>按主控版本选择上述处理，完成后查看同时段规划 Out，确认原告警消失且能输出有效目标。</li><li>机器人恢复执行后，再复查子任务状态和现场路径，排除仍有其他封锁或障碍。</li></ol>"
+    },
+    {
+      "h": "阶段四 · 复核特殊任务、暂住点与路径准入",
+      "html": "<p><strong>特殊搬运任务：</strong><code>return_pod</code> 和 <code>trance_pod</code> 任务下发必须带货架编号，否则无法正常执行；MOVE_POD 搬运任务则应确认 RCS 已下发目标点，缺失时转 RCS 侧处理。</p><p><strong>任务被切走后的暂住点：</strong>若规划库 In 中当前点与目标点一致，RCS 日志又显示任务已切给其他机器人，但原机器人未收到暂住点任务，应继续查分配库。搜索 <code>#robot_info#</code> 与 <code>ERR_POS</code>，并按下表判断：</p><table><thead><tr><th>检查项</th><th>原文判据</th><th>处理</th></tr></thead><tbody><tr><td>机器人当前坐标与拓扑点偏差</td><td>大于 <code>err 150</code> 会报 <code>ERR_POS</code>；该值位于 RCS 能力集分配库的二维码机器人精度配置</td><td>按现场坐标与拓扑点实际偏差调整，单位及适用值以现场配置为准</td></tr><tr><td>地图线准入车型</td><td>该案例未配置路径准入车型，造成路径不连通</td><td>修改地图线准入车型后重新验证暂住点分配</td></tr></tbody></table><div class=\"callout warn\"><span class=\"callout-title\">ERR_POS 不等于固定单一根因</span><p>先确认偏差是否超过 err 150，再检查该案例涉及的路径准入。不能看到 ERR_POS 就直接改车型，也不能把 err 150 套用到其他机器人配置。</p></div>"
+    },
+    {
+      "h": "收尾与注意事项",
+      "html": "<ol><li><strong>按同一时段归档：</strong>保留 RCS <code>log_bak</code>、机器人 AGV 日志和监控客户端录像，记录脱敏后的时间、子任务与坐标对应关系。</li><li><strong>按顺序闭环：</strong>子任务状态 → 规划库 In → Out 的 D/E 与目标 → RCS/分配链 → 机器人日志，不跨层猜测。</li><li><strong>完成后看四个结果：</strong>规划库目标点恢复为下一点、原错误代码消失、<code>fli</code> 与四方完成状态正常推进、机器人实际离开空闲状态执行。</li><li><strong>参数改动留痕：</strong>65→100 mm 仅限原文精度案例；err 150、货架尺寸 1000 mm 和告警值都应与当前现场证据一起复核。</li><li><strong>工具使用：</strong>可用 MapStudioPro 下载解析 AGV 日志，<code>uncompress_log_tool</code> 解压平台算法日志，文本查看工具只用于读取，不在原日志上直接改值。</li></ol><p>问题仍未解决时，提交脱敏后的完整日志、监控录像和已验证结论，避免只提供“任务空闲”截图或单条错误码。</p>"
+    }
+  ],
+  "checks": [
+    "已记录异常时间、子任务、停车坐标及 RCS_WEB 与机器人屏幕的实际状态",
+    "已在子任务单管理中确认已创建、发送异常或正在执行，并按状态分流",
+    "已创建状态已核对 return pod 或 continue 的调用及返回结果",
+    "发送异常已检查网络并在发送信息处理中重新处理，随后复查状态",
+    "已用 uncompress_log_tool 解压对应时段 trp_log，核对 In 目标点和 A 的组合",
+    "已检查 Out 的 D/E、输出目标点及角度，并按当前状态比较结果决定下一跳",
+    "目标点等于当前点时，已查 RCS 是否挑车以及前序 subtask 是否报完成",
+    "机器人日志已确认是否收到平台任务，并核对工作模式和设备类型",
+    "机器人、规划库、分配库、RCS 四方完成状态及 task_id/sub_id 已对齐",
+    "精度案例已同时核对 pos_offset 与 fli，未把 65→100 mm 当作通用阈值",
+    "货架占位已按主控版本处理，return_pod/trance_pod 已确认携带货架编号",
+    "ERR_POS 已核对坐标偏差与 err 150，并复查暂住点、地图线准入车型及最终执行状态"
+  ]
+}

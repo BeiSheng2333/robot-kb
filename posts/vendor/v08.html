@@ -32,10 +32,12 @@
         <a href="v07.html">调度系统安装、升级与配套软件部署</a>
         <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
         <a href="v21.html">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <a href="v27.html">现场地面勘测与整改要点</a>
         <span class="side-group">通信与接口</span>
         <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
         <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
         <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <a href="v26.html">移动机器人无线网络测试与部署</a>
         <span class="side-group">地图与定位</span>
         <a href="v05.html">L-SLAM 地图编辑要点</a>
         <a href="v06.html">机器人点位方向与货架方向配置</a>
@@ -43,6 +45,7 @@
         <a href="v15.html">L-SLAM 建图流程与路径规划</a>
         <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
         <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <a href="v22.html">L-SLAM 定位异常的分层排查</a>
         <span class="side-group">配置与工具</span>
         <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
         <a href="v12.html">监控客户端登录与现场管控操作要点</a>
@@ -53,6 +56,9 @@
         <a href="v10.html">叉车机器人常见告警排查</a>
         <a href="v13.html">现场问题反馈与排查规范</a>
         <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+        <a href="v23.html">机器人任务空闲但不执行排查</a>
+        <a href="v24.html">机器人充电异常排查</a>
+        <a href="v25.html">机器人异常重启排查与日志采集</a>
       </nav>
       <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
     </aside>
@@ -75,6 +81,7 @@
           <a href="v15.html">L-SLAM 建图流程与路径规划</a>
           <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
           <a href="v17.html">叉车激光标定与多车一致性调整</a>
+          <a href="v22.html">L-SLAM 定位异常的分层排查</a>
         </nav>
       </details>
 
@@ -91,7 +98,7 @@
         <p>配置无线网络需要先用调试线把笔记本和机器人直连，两者必须在同一网段。机器人有线 IP 为 <code>192.168.1.64</code>（示例，以现场交付值为准）。</p><ol><li>笔记本有线网卡设为固定 IP：前三段固定 <code>192.168.1</code>，末位在 0–253 之间，<strong>建议取 100–253</strong>，避开机器人内部组件占用的地址。</li><li>子网掩码填常规值（<code>255.255.255.0</code>），网关可留空。</li><li>调试口位于<strong>车体左侧</strong>，用调试线连接调试口与笔记本有线网口。</li><li>连接成功后即可进入无线配置。</li></ol><div class="callout warn"><span class="callout-title">末位选 100 以内易冲突</span><p>0–99 段可能被车内激光、相机等组件占用，配完 ping 不通机器人时，先换末位再查线。</p></div>
 
         <h2 id="s3">配置无线网络</h2>
-        <p>用车上调试工具（RoboX）连接机器人：点左上角「+」，「添加方式」选<strong>按 IP</strong>，依次填机器人有线 IP <code>192.168.1.64</code>、用户名 <code>admin</code>、初始密码（见交付资料），确认。</p><p>然后在「参数配置 &gt; 网络配置 &gt; wifi 参数」中填写：</p><table><thead><tr><th>参数</th><th>取值 / 说明</th></tr></thead><tbody><tr><td>无线 SSID</td><td>现场无线网络名称</td></tr><tr><td>密钥</td><td>现场无线密码</td></tr><tr><td>安全模式</td><td>无密码网络必须选 <code>None-Encrypted</code></td></tr><tr><td>DHCP</td><td>开启后自动分配 IP；关闭则手动配固定 IP</td></tr></tbody></table><p>填完点<strong>应用</strong>，等约一分钟，点右上角<strong>刷新</strong>，「设备 IP 地址」出现分配到的 IP 即配置成功。没有 IP 说明 SSID/密钥不对或不在覆盖范围。</p>
+        <p>用车端调试工具连接机器人：点左上角「+」，「添加方式」选<strong>按 IP</strong>，依次填机器人有线 IP <code>192.168.1.64</code>、用户名 <code>admin</code>、初始密码（见交付资料），确认。</p><p>然后在「参数配置 &gt; 网络配置 &gt; wifi 参数」中填写：</p><table><thead><tr><th>参数</th><th>取值 / 说明</th></tr></thead><tbody><tr><td>无线 SSID</td><td>现场无线网络名称</td></tr><tr><td>密钥</td><td>现场无线密码</td></tr><tr><td>安全模式</td><td>无密码网络必须选 <code>None-Encrypted</code></td></tr><tr><td>DHCP</td><td>开启后自动分配 IP；关闭则手动配固定 IP</td></tr></tbody></table><p>填完点<strong>应用</strong>，等约一分钟，点右上角<strong>刷新</strong>，「设备 IP 地址」出现分配到的 IP 即配置成功。没有 IP 说明 SSID/密钥不对或不在覆盖范围。</p>
 
         <h2 id="s4">反光条定位条件（决定能不能建图）</h2>
         <p>叉车导航激光位置较高、轮廓信息薄弱，除 3D 叉车外主要靠反光条定位。定位的硬门槛是：</p><p><strong>以导航激光为原点，20 m 范围内，至少在三个象限内同时扫到 5 根以上反光条</strong>，否则定位不可信、上车即报「定位数据不可信」。</p>

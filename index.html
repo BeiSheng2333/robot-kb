@@ -39,13 +39,13 @@
               <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
             </svg>
             <input id="searchInput" type="search" placeholder="搜索文档：超时、定位漂移、ttyUSB、验收…" aria-label="搜索知识库文档">
-            <p class="search-hint" id="searchHint">共 26 篇文档 · 输入关键词即可过滤</p>
+            <p class="search-hint" id="searchHint">共 32 篇文档 · 输入关键词即可过滤</p>
           </div>
         </div>
 
         <aside class="hero-side">
           <dl>
-            <dt>收录</dt><dd>26 篇文档</dd>
+            <dt>收录</dt><dd>32 篇文档</dd>
             <dt>方向</dt><dd>实施 / 通信 / 地图 / 配置 / 硬件 / 排障</dd>
             <dt>适用</dt><dd>CentOS 7.8 · RCS 3.x/4.x · 潜伏叉车</dd>
             <dt>维护</dt><dd>一线实施工程师，持续更新</dd>
@@ -64,19 +64,19 @@
 
       <div class="cat-grid" id="catGrid">
         <button class="cat-card" type="button" data-cat="实施部署">
-          <div class="cat-top"><span class="cat-num">01</span><span class="cat-count">6 篇</span></div>
+          <div class="cat-top"><span class="cat-num">01</span><span class="cat-count">7 篇</span></div>
           <h3>实施部署</h3>
           <p>现场勘察、环境搭建、平台部署、业务配置与交付验收的完整流程。</p>
         </button>
 
         <button class="cat-card" type="button" data-cat="通信与接口">
-          <div class="cat-top"><span class="cat-num">02</span><span class="cat-count">4 篇</span></div>
+          <div class="cat-top"><span class="cat-num">02</span><span class="cat-count">5 篇</span></div>
           <h3>通信与接口</h3>
           <p>DDS 与 QoS 丢包超时，以及调度系统 REST / HTTP API、低代码对接。</p>
         </button>
 
         <button class="cat-card" type="button" data-cat="地图与定位">
-          <div class="cat-top"><span class="cat-num">03</span><span class="cat-count">7 篇</span></div>
+          <div class="cat-top"><span class="cat-num">03</span><span class="cat-count">8 篇</span></div>
           <h3>地图与定位</h3>
           <p>SLAM 建图、地图编辑核查、激光标定、方向配置与定位漂移排查。</p>
         </button>
@@ -94,7 +94,7 @@
         </button>
 
         <button class="cat-card" type="button" data-cat="排障方法">
-          <div class="cat-top"><span class="cat-num">06</span><span class="cat-count">4 篇</span></div>
+          <div class="cat-top"><span class="cat-num">06</span><span class="cat-count">7 篇</span></div>
           <h3>排障方法</h3>
           <p>从现象到根因的分层定位、告警排查、日志采集与反馈规范。</p>
         </button>
@@ -118,10 +118,94 @@
         <button class="chip-btn" type="button" data-cat="配置与工具">配置与工具</button>
         <button class="chip-btn" type="button" data-cat="硬件与外设">硬件与外设</button>
         <button class="chip-btn" type="button" data-cat="排障方法">排障方法</button>
-        <span class="filter-meta" id="filterMeta">显示 26 / 26</span>
+        <span class="filter-meta" id="filterMeta">显示 32 / 32</span>
       </div>
 
       <div class="notes" id="notesList">
+        <a class="note-row" href="posts/vendor/v27.html" data-cat="实施部署"
+           data-text="现场地面勘测与整改要点 实施部署 地面勘测 地面整改 平整度 地面起伏 路面坡度 水准仪 激光水平仪 靠尺塞尺 莫氏硬度 摩擦系数 地面固化 环氧修补 STU Q1P CTU">
+          <div class="note-side">
+            <span class="note-cat">实施部署</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>现场地面勘测与整改要点</h3>
+            <p>面向 STU、Q1P、CTU 等移动机器人运行路径，本篇按初次全场测量、精细复测、打磨固化、裂缝与凹处修补、硬度摩擦检测到最终复测的顺序，整理地面勘测整改流程。每一步均给出测点间距、工具读数、施工配比和合格判据，并单列原文阈值差异，便于现场先统一验收口径再闭环施工。</p>
+            <div class="note-tags"><span>地面勘测</span><span>地面整改</span><span>平整度</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v26.html" data-cat="通信与接口"
+           data-text="移动机器人无线网络测试与部署 通信与接口 移动机器人 AMR Wi-Fi 无线网络部署 信号强度 Ping 测试 iperf 信道规划 DFS 漫游测试 AP 安装 VLAN 网络验收 负载测试 WPA 日志">
+          <div class="note-side">
+            <span class="note-cat">通信与接口</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>移动机器人无线网络测试与部署</h3>
+            <p>面向移动机器人上线前的无线规划、施工配置与网络验收，本篇把三篇通用 Wiki 合并为一条可执行流程：先完成地址、VLAN、AC/AP 与安装部署，再依次验证信号、延迟丢包、速率、信道、漫游和负载，并给出可直接对照的阈值、命令、日志关键字及判定方法。</p>
+            <div class="note-tags"><span>移动机器人</span><span>AMR</span><span>Wi-Fi</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v25.html" data-cat="排障方法"
+           data-text="机器人异常重启排查与日志采集 排障方法 异常重启 AGV日志 内核日志 kmsgcat-log Coredump castor closed by SYSTEM WILL REBOOT reset_type SOFT_RESET POWER_ON_RESET last_close poweroff detected reboot by syscall watchdog panic_info_start">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>机器人异常重启排查与日志采集</h3>
+            <p>异常重启要先排除人工断电、定时重启和参数修改后的主动重启，再按日志证据区分掉电与软重启。本篇给出从校时、下载 AGV 与全部内核日志、提取 Coredump 和电池告警，到核对 reset_type、SYSTEM BOOT、看门狗及 panic 的路径，避免被后续人工操作误导。</p>
+            <div class="note-tags"><span>异常重启</span><span>AGV日志</span><span>内核日志</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v24.html" data-cat="排障方法"
+           data-text="机器人充电异常排查 排障方法 充电异常 pair_type _CHG action_type task_type RUDP bms_full sta_status flex_stat UDP 9590 proto_type arp -a 充电桩离线 伸缩机构">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>机器人充电异常排查</h3>
+            <p>充电异常可能出在任务分配、平台下发、机器人执行、充电桩通信或机械接触任一环节。本篇按真实任务链组织排查：先核对关键日志字段，再分别处理不自动充电、无法打断、充满不离开、离线、无电压或无电流、伸缩异常与地址冲突，并给出对应取值和判断依据。</p>
+            <div class="note-tags"><span>充电异常</span><span>pair_type</span><span>_CHG</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v23.html" data-cat="排障方法"
+           data-text="机器人任务空闲但不执行排查 排障方法 任务空闲 RCS_WEB 子任务单管理 CMS 规划库 trp_log uncompress_log_tool In/Out 任务状态 A 错误类型 D 阻塞类型 E fli pos_offset ERR_POS 行走精度">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>机器人任务空闲但不执行排查</h3>
+            <p>RCS_WEB 显示任务正在执行，机器人却举着货架并提示“任务空闲”时，故障可能在任务触发、规划输入输出或机器人执行侧。本篇按子任务状态、规划库 In/Out、RCS 与分配链、机器人日志的顺序分流，并给出 A/D/E 字段、完成标志、位置精度及典型报错的判断和处置步骤。</p>
+            <div class="note-tags"><span>任务空闲</span><span>RCS_WEB</span><span>子任务单管理</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/vendor/v22.html" data-cat="地图与定位"
+           data-text="L-SLAM 定位异常的分层排查 地图与定位 L-SLAM 定位异常 激光日志 SLAM_LOG SLM 日志 castor_hw_show usage 激光无效区 轮廓稳定区 地图尺度 反光条 里程计融合 置信度 地图核查">
+          <div class="note-side">
+            <span class="note-cat">地图与定位</span>
+            <span class="note-date">2026-11-24</span>
+          </div>
+          <div class="note-main">
+            <h3>L-SLAM 定位异常的分层排查</h3>
+            <p>机器人出现走偏、定位跳变、固定点走过或无法上线时，不能只凭一次现象直接改地图。本篇按现场排查顺序整理日志留存、导航激光识别、SLM 回放、导航参数与特征区检查，再用轮廓匹配区分环境干扰、局部或全局尺度问题及反光条误匹配，给出可复核的处理和验收依据。</p>
+            <div class="note-tags"><span>L-SLAM</span><span>定位异常</span><span>激光日志</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
         <a class="note-row" href="posts/vendor/v21.html" data-cat="实施部署"
            data-text="AGV 加密文件修改与导入刷写流程（软标定制） 实施部署 加密文件 sec.bin 软标 软件标识符 castor_export_sec_bin castor_get_sec_info imx6_encrypto AGV-V1 Tftpd32 TFTP SecureCRT 升级口 RCU HKVS U-Boot setenv Intel">
           <div class="note-side">

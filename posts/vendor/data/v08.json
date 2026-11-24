@@ -31,7 +31,7 @@
     },
     {
       "h": "配置无线网络",
-      "html": "<p>用车上调试工具（RoboX）连接机器人：点左上角「+」，「添加方式」选<strong>按 IP</strong>，依次填机器人有线 IP <code>192.168.1.64</code>、用户名 <code>admin</code>、初始密码（见交付资料），确认。</p><p>然后在「参数配置 &gt; 网络配置 &gt; wifi 参数」中填写：</p><table><thead><tr><th>参数</th><th>取值 / 说明</th></tr></thead><tbody><tr><td>无线 SSID</td><td>现场无线网络名称</td></tr><tr><td>密钥</td><td>现场无线密码</td></tr><tr><td>安全模式</td><td>无密码网络必须选 <code>None-Encrypted</code></td></tr><tr><td>DHCP</td><td>开启后自动分配 IP；关闭则手动配固定 IP</td></tr></tbody></table><p>填完点<strong>应用</strong>，等约一分钟，点右上角<strong>刷新</strong>，「设备 IP 地址」出现分配到的 IP 即配置成功。没有 IP 说明 SSID/密钥不对或不在覆盖范围。</p>"
+      "html": "<p>用车端调试工具连接机器人：点左上角「+」，「添加方式」选<strong>按 IP</strong>，依次填机器人有线 IP <code>192.168.1.64</code>、用户名 <code>admin</code>、初始密码（见交付资料），确认。</p><p>然后在「参数配置 &gt; 网络配置 &gt; wifi 参数」中填写：</p><table><thead><tr><th>参数</th><th>取值 / 说明</th></tr></thead><tbody><tr><td>无线 SSID</td><td>现场无线网络名称</td></tr><tr><td>密钥</td><td>现场无线密码</td></tr><tr><td>安全模式</td><td>无密码网络必须选 <code>None-Encrypted</code></td></tr><tr><td>DHCP</td><td>开启后自动分配 IP；关闭则手动配固定 IP</td></tr></tbody></table><p>填完点<strong>应用</strong>，等约一分钟，点右上角<strong>刷新</strong>，「设备 IP 地址」出现分配到的 IP 即配置成功。没有 IP 说明 SSID/密钥不对或不在覆盖范围。</p>"
     },
     {
       "h": "反光条定位条件（决定能不能建图）",
