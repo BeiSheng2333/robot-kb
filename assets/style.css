@@ -844,6 +844,36 @@ a { color: inherit; }
   margin: 32px 0;
 }
 
+.prose figure.shot {
+  margin: 0 0 26px;
+}
+
+.prose figure.shot a {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f7f9fb;
+}
+
+.prose figure.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.prose figure.shot figcaption {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--faint);
+}
+
+.prose figure.shot figcaption b {
+  color: var(--text);
+  font-weight: 600;
+}
+
 /* ---------- Callouts ---------- */
 
 .callout {

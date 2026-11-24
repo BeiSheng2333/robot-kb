@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AGV 加密文件修改与导入刷写流程（软标定制） — 实施部署 — 现场笔记</title>
-<meta name="description" content="现场定制/改制时需修改小车软件标识符（软标）并刷入对应加密文件 sec.bin：从导出、用加密工具改软标，到通过 TFTP + 串口 U-Boot 刷写的完整流程与核对要点。">
+<meta name="description" content="现场定制、改制时需要修改小车软件标识符（软标）并刷入对应的加密文件 sec.bin。本篇按操作手册的完整步骤整理：从导出与校验、用加密工具改软标、准备 TFTP 与串口，到 U-Boot 刷写与重启验证，并标出每一步的判断依据和易错点。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
       <h1>AGV 加密文件修改与导入刷写流程（软标定制）</h1>
-      <p class="lede">现场定制/改制时需修改小车软件标识符（软标）并刷入对应加密文件 sec.bin：从导出、用加密工具改软标，到通过 TFTP + 串口 U-Boot 刷写的完整流程与核对要点。</p>
+      <p class="lede">现场定制、改制时需要修改小车软件标识符（软标）并刷入对应的加密文件 sec.bin。本篇按操作手册的完整步骤整理：从导出与校验、用加密工具改软标、准备 TFTP 与串口，到 U-Boot 刷写与重启验证，并标出每一步的判断依据和易错点。</p>
       <div class="doc-meta">
-        <span>整理自 内部操作手册 V1.0，2025-12</span>
+        <span>整理自 内部操作手册 V1.0（13 页）</span>
         <span class="chip">实施部署</span>
       </div>
 
@@ -83,42 +83,70 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与前置准备</h2>
-        <p>适用于现场因定制、改制需要修改小车软件标识符（软标）并刷写对应加密文件的场景。整个操作分「导出并修改加密文件」和「导入刷写」两步；如需在修改前先升级属性文件，请先完成。</p><ul><li>提前准备一根 Type-C 线和一根网线，以及加密工具、TFTP 工具（Tftpd32）、串口终端（SecureCRT）。</li><li><strong>加密文件不能混用</strong>：不同软标对应的 sec.bin 不可交叉使用。</li><li><strong>修改前、修改后都要备份 sec.bin</strong>，便于回滚，这一步非常重要。</li><li>示例软标为 LE3G601 → LE3G808，各现场以产品经理 / 项目经理提供的软标为准。</li></ul>
+        <h2 id="s1">适用范围与前置准备</h2>
+        <p>当现场存在<strong>定制、改制</strong>需求时，需要把小车当前的加密文件（<code>sec.bin</code>）中的<strong>软件标识符（软标）</strong>改成目标值，再把改好的文件刷回小车。整个过程分两个阶段：</p><ol><li><strong>修改加密文件</strong>：导出 sec.bin → 用加密工具改软标 → 得到新的 sec.bin；</li><li><strong>导入加密文件</strong>：通过 TFTP + 串口 U-Boot，把新的 sec.bin 刷入小车并重启验证。</li></ol><p>如现场还需先升级属性文件，请在修改加密文件之前完成。</p><p><strong>物料准备：</strong>一根 Type-C 线、一根网线，以及加密工具、Tftpd32、SecureCRT（串口终端）。</p><div class="callout danger"><span class="callout-title">两条红线</span><p>① <strong>加密文件不能混用</strong>：不同软标对应的 sec.bin 不可交叉刷写；②<strong>修改前、修改后的 sec.bin 都必须备份</strong>，这是回滚的唯一依据。</p></div>
 
-        <h2 id="s2">导出并校验当前加密文件</h2>
-        <p>先从小车导出当前加密文件，并确认当前软标是否正确，作为改前基线。</p><ul><li>登录小车后执行 <code>castor_export_sec_bin</code>，加密文件 <code>sec.bin</code> 会出现在 <code>mnt</code> 目录下。</li><li>进入 <code>mnt</code> 目录，执行 <code>sz sec.bin</code> 把文件下载到电脑。</li><li>执行 <code>castor_get_sec_info</code> 查看当前软标（示例为 LE3G601），确认与预期一致后再继续。</li></ul>
+        <h2 id="s2">阶段一 · 导出并校验加密文件</h2>
+        <p>先从小车导出当前加密文件，并确认当前软标是否符合预期，作为改前基线。</p><ol><li>登录小车，执行 <code>castor_export_sec_bin</code>，加密文件 <code>sec.bin</code> 会在 <code>mnt</code> 目录下生成。</li><li>进入 <code>mnt</code> 目录，执行 <code>sz sec.bin</code>，把文件下载到本地电脑（Windows 下会弹出保存位置）。</li><li>执行 <code>castor_get_sec_info</code>，查看当前软标是否为预期值（手册示例为 <code>LE3G601</code>，<strong>各现场以实际为准</strong>）。确认无误后再继续。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v21/01-export.png" target="_blank" rel="noopener"><img src="../../assets/img/v21/01-export.png" alt="导出加密文件并在 mnt 目录用 sz 下载"></a>
+          <figcaption><b>图 1</b> 执行 <code>castor_export_sec_bin</code> 后进入 <code>mnt</code>，用 <code>sz sec.bin</code> 下载到本地。点击图片可查看原图。</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="../../assets/img/v21/02-secinfo.png" target="_blank" rel="noopener"><img src="../../assets/img/v21/02-secinfo.png" alt="执行 castor_get_sec_info 查看当前软标"></a>
+          <figcaption><b>图 2</b> <code>castor_get_sec_info</code> 的输出：核对软标字段，确认与现场要求一致。</figcaption>
+        </figure>
 
-        <h2 id="s3">用加密工具修改软件标识符</h2>
-        <p>用专用加密工具修改 sec.bin 中的软件标识符；除软标外，其他任何项都不要动。</p><ul><li>在桌面新建文件夹 <code>tftp</code>，把下载好的 <code>sec.bin</code> 放入其中。</li><li>双击运行 <code>imx6_encrypto.exe</code>，选择 <strong>AGV-V1</strong> 后点确定。</li><li>点右下角「保存路径」，选择 sec.bin 所在位置（如 <code>Desktop/tftp</code>）。</li><li>登录：账号 <code>admin</code>，密码 <code>admin1234</code>。</li><li>按界面提示从第一步依次操作，<strong>只修改「软件标识符」</strong>为目标软标（示例 LE3G808），其余内容保持不变。</li><li>保存后 <code>tftp</code> 文件夹中的 sec.bin 即为修改完成版本；修改前后务必备份。</li></ul>
+        <h2 id="s3">阶段一 · 用加密工具修改软件标识符</h2>
+        <p>用专用加密工具改 sec.bin 中的软件标识符。<strong>除软标外，其他任何项都不要动。</strong></p><ol><li>在桌面新建文件夹 <code>tftp</code>，把下载好的 <code>sec.bin</code> 放进去。</li><li>双击运行 <code>imx6_encrypto.exe</code>，在弹出的机型选择中选 <strong>AGV-V1</strong>，点确定。</li><li>点右下角<strong>保存路径</strong>，选择 sec.bin 所在位置，例如 <code>Desktop/tftp</code>。</li><li>点<strong>登入</strong>：账号 <code>admin</code>，密码 <code>admin1234</code>。</li><li>按界面从上到下的顺序依次操作，<strong>只把「软件标识符」改为目标软标</strong>（手册示例 <code>LE3G808</code>；以产品经理、项目经理提供的软标为准）。</li><li>保存后，<code>tftp</code> 文件夹里的 sec.bin 即为修改完成版本。此时<strong>再备份一次</strong>（改前、改后各留一份）。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v21/03-tool-edit.png" target="_blank" rel="noopener"><img src="../../assets/img/v21/03-tool-edit.png" alt="加密工具界面，仅修改软件标识符"></a>
+          <figcaption><b>图 3</b> 加密工具界面（敏感字段已做遮盖处理）：只改「软件标识符」一栏，其余参数保持原值。</figcaption>
+        </figure>
+        <div class="callout warn"><span class="callout-title">易错点</span><p>保存路径必须指向存放 sec.bin 的目录，选错目录会导致改完的文件写不到原处；登入失败多见于账号密码输错或工具未以管理员权限运行。</p></div>
 
-        <h2 id="s4">准备 TFTP 推送环境</h2>
-        <p>用 Tftpd32 作为 TFTP 服务器，把修改后的 sec.bin 推送给小车的 U-Boot。</p><ul><li>在桌面新建文件夹 <code>tftpd</code>，把 <code>tftp</code> 里修改好的 <code>sec.bin</code> 复制进去。</li><li>把 <code>Tftpd32.exe</code> 也放进 <code>tftpd</code> 文件夹。</li><li>双击运行 Tftpd32，点 <strong>Browse</strong> 选择 sec.bin 存放位置（如 <code>Desktop/tftpd</code>）。</li><li>点第二行下拉箭头，选择电脑本地 IP（示例 192.168.1.200），以本机实际 IP 为准。</li><li>Tftpd32 打开后<strong>保持运行不要关闭</strong>，直到单台车软标改完再关。</li></ul>
+        <h2 id="s4">阶段二 · 准备 TFTP 推送目录</h2>
+        <p>用 Tftpd32 作为 TFTP 服务器，把改好的 sec.bin 推送给小车的 U-Boot。</p><ol><li>在桌面新建文件夹 <code>tftpd</code>，把 <code>tftp</code> 里修改完成的 <code>sec.bin</code> 复制进去。</li><li>把 <code>Tftpd32.exe</code> 也放进 <code>tftpd</code> 文件夹，<strong>与 sec.bin 同目录</strong>。</li><li>确认小车与电脑用网线直连或处于同一网段，电脑网卡 IP 与后续 <code>serverip</code> 保持一致。</li></ol>
 
-        <h2 id="s5">连接串口并判断升级口</h2>
-        <p>通过串口进入小车 U-Boot 进行刷写，需要先区分 RCU 口与升级口。</p><ul><li>打开「设备管理器」，查看电脑当前哪些 COM 口可用（示例为 COM5、COM6 导通）。</li><li>用 SecureCRT 分别连接 COM5、COM6：协议选 <strong>Serial</strong>，波特率 <strong>115200</strong>，流控全部不选；连接成功会显示绿色箭头。</li><li>判断升级口：持续打印 <strong>RCU</strong> 的是 RCU 口，另一口即为升级口（一般编号较小的是升级口）。</li><li>若两个口都不打印，保持连接后关机再开机。</li><li><strong>关机后不要立即开机</strong>：按下关机键后需稍等片刻再按开机，过快上电可能烧板子。</li></ul>
+        <h2 id="s5">阶段二 · 启动并配置 Tftpd32</h2>
+        <ol><li>双击运行 <code>Tftpd32.exe</code>。</li><li>点 <strong>Browse</strong>，选择 sec.bin 的存放目录，例如 <code>Desktop/tftpd</code>。</li><li>点第二行的下拉箭头，选择<strong>本机网卡 IP</strong>（手册示例 <code>192.168.1.200</code>，请以自己电脑实际 IP 为准）。</li><li>程序打开后<strong>保持运行，不要关闭</strong>，直到单台车的软标改完再关。</li></ol><div class="callout warn"><span class="callout-title">常见失败</span><p>下拉框选错网卡（比如选了无线网卡或虚拟网卡）是 TFTP 拉取失败最常见的原因；此时 U-Boot 端会停在 <code>TFTP...</code> 直到超时。</p></div>
 
-        <h2 id="s6">进入 U-Boot 并刷写加密文件</h2>
-        <p>在升级口对应的终端中进入 U-Boot，配置 TFTP 地址并拉取 sec.bin 完成刷写。</p><ul><li>在 SecureCRT 中选择升级口（示例 COM5）并保持连接。</li><li>按下关机键再开机；开机后<strong>持续、快速地按 Ctrl+U</strong>，直到出现 <strong>HKVS</strong> 提示符。</li><li>依次输入以下指令（电脑本地 IP 不要输错，以本机实际为准）：</li></ul><pre>setenv serverip 192.168.1.120
-        setenv ipaddr 192.168.1.64</pre><ul><li>输入 <code>go</code> 等待加密完成，成功会提示 <strong>Success</strong>。</li><li>提示成功后输入 <code>reset</code> 重启小车。</li></ul>
+        <h2 id="s6">阶段二 · 确认串口并用 SecureCRT 连接</h2>
+        <ol><li>打开 Windows「设备管理器」，展开端口，确认哪几个 COM 口是通的（手册示例为 COM5、COM6）。</li><li>打开 SecureCRT，分别对这两个 COM 口建立串口连接，参数统一为：</li></ol><table><thead><tr><th>参数</th><th>取值</th></tr></thead><tbody><tr><td>协议 Protocol</td><td>Serial</td></tr><tr><td>波特率 Baud rate</td><td>115200</td></tr><tr><td>数据位 / 校验 / 停止位</td><td>8 / None / 1（默认）</td></tr><tr><td>流控 Flow control</td><td>全部不勾选（RTS/CTS、XON/XOFF 均关闭）</td></tr></tbody></table><p>连接成功后，SecureCRT 左下角会显示<strong>绿色箭头</strong>，表示串口已打开。</p>
 
-        <h2 id="s7">验证与收尾</h2>
-        <p>重启后验证软标是否修改成功，并完成工具收尾，再开始下一台车。</p><ul><li>重启过程中会持续打印启动日志，等待小车启动完成。</li><li>上线运行观察，确认定制功能（如转向灯、降低举升盘高度等，各现场不一致）是否实现。</li><li>若长时间未重启，手动按关机键再开机重启；重启完成后执行 <code>castor_get_sec_info</code> 查看软标。</li><li>软标已变为目标值（示例 LE3G808）即代表修改成功。</li><li>本台车所有步骤完成后，关闭 <code>Tftpd32.exe</code> 与 <code>imx6_encrypto.exe</code>，再开始下一台车。</li></ul>
+        <h2 id="s7">阶段二 · 判断哪个是升级口</h2>
+        <p>两个串口里只有一个能进 U-Boot，需要先区分 <strong>RCU 口</strong>和<strong>升级口</strong>。</p><ol><li>观察两个终端的输出：<strong>持续打印 RCU 相关日志的那个口是 RCU 口</strong>，不能用于刷写；另一个即为升级口。</li><li>一般规律：<strong>编号较小的 COM 口是升级口</strong>（手册示例中 COM6 打印 RCU，因此 COM5 为升级口）。</li><li>如果两个口都不打印任何内容：保持连接，把小车关机再开机（<strong>按下关机键后不要立刻开机，过快上电可能烧板</strong>）。</li><li>若首次连接就已判断出升级口，可直接关机再开机进入下一步。</li></ol>
 
-        <h2 id="s8">注意事项</h2>
-        <ul><li>加密文件不能混用，修改前后务必保留 sec.bin 备份。</li><li>用加密工具时只改软件标识符，其他参数不要动。</li><li>关机后勿立即开机，避免烧板子。</li><li><code>setenv</code> 的 serverip / ipaddr 要与 Tftpd32 选择的本地 IP 对应，输错会导致拉取失败。</li><li>Ctrl+U 要在开机后尽早、连续按下，错过 HKVS 窗口需重新开关机再试。</li><li>Tftpd32 与加密工具在单台车改完前保持打开，改完一台关一台，避免多台车混淆。</li></ul>
+        <h2 id="s8">阶段二 · 进入 U-Boot 并刷写</h2>
+        <ol><li>在 SecureCRT 中<strong>只保留升级口</strong>的连接（手册示例为 COM5）并保持打开。</li><li>按下关机键，稍等后再按开机键；<strong>开机后立即、连续地按 <code>Ctrl+U</code></strong>，直到屏幕出现 <code>HKVS</code> 提示符。错过窗口就重新开关机再试。</li><li>在 <code>HKVS</code> 下依次输入两条地址指令（<strong>serverip 必须是电脑本地 IP，ipaddr 是小车侧地址</strong>，不要写反）：</li></ol><pre>setenv serverip 192.168.1.120
+        setenv ipaddr 192.168.1.64</pre><ol start="4"><li>输入 <code>go</code> 回车，等待 TFTP 拉取并写入加密文件；成功会打印 <code>Success</code>。</li><li>确认 <code>Success</code> 后输入 <code>reset</code> 重启小车。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v21/04-uboot.png" target="_blank" rel="noopener"><img src="../../assets/img/v21/04-uboot.png" alt="U-Boot 下输入 setenv 指令与 go"></a>
+          <figcaption><b>图 4</b> U-Boot 阶段的指令顺序：两条 <code>setenv</code> 配置地址，<code>go</code> 执行刷写，成功后 <code>reset</code>。图中 IP 为手册示例，请替换为现场实际地址。</figcaption>
+        </figure>
+
+        <h2 id="s9">阶段二 · 重启后验证</h2>
+        <ol><li><code>reset</code> 后终端会持续打印启动日志，等待小车完成启动。</li><li>上线运行，观察定制功能是否生效（手册示例为转向灯、降低举升盘高度，<strong>各现场不一致</strong>）。</li><li>若长时间没有重启，手动按关机键再开机；重启完成后再次执行 <code>castor_get_sec_info</code>。</li><li>软标显示为目标值（示例 <code>LE3G808</code>）即代表修改成功；仍为旧值则回到阶段一检查 sec.bin 是否改对、是否刷入了正确目录下的文件。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v21/05-verify.png" target="_blank" rel="noopener"><img src="../../assets/img/v21/05-verify.png" alt="重启后执行 castor_get_sec_info 验证软标"></a>
+          <figcaption><b>图 5</b> 重启完成后执行 <code>castor_get_sec_info</code>，核对软标是否已变更为目标值。</figcaption>
+        </figure>
+
+        <h2 id="s10">收尾与注意事项</h2>
+        <ul><li>本台车所有步骤完成后，关闭 <code>Tftpd32.exe</code> 与 <code>imx6_encrypto.exe</code>，再开始下一台车，避免多台车串用。</li><li><strong>加密文件不能混用</strong>；改前、改后的 sec.bin 都要备份留存。</li><li>用加密工具时<strong>只改软件标识符</strong>，其他参数一律不动。</li><li>关机后不要立即开机，过快上电可能烧板。</li><li><code>setenv</code> 的 serverip 与 Tftpd32 所选网卡 IP 必须一致，写错会导致拉取失败。</li><li><code>Ctrl+U</code> 要在开机后尽早连续按下，<code>HKVS</code> 窗口很短，错过需重新开关机。</li><li>软标以产品经理 / 项目经理提供的值为准，本篇出现的软标、IP 均为手册示例。</li></ul>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>已用 castor_get_sec_info 确认当前软标，并明确目标软标</li>
-          <li>修改前 sec.bin 已备份，修改后 sec.bin 单独存放且未与其他软标混用</li>
-          <li>imx6_encrypto 只修改了软件标识符，其他项未动</li>
-          <li>tftpd 文件夹内同时包含修改后的 sec.bin 与 Tftpd32.exe</li>
-          <li>Tftpd32 已选择正确的本地 IP 并保持运行</li>
-          <li>串口以 Serial / 115200 / 无流控 连接，升级口判断正确（非 RCU 打印口）</li>
-          <li>setenv serverip / ipaddr 输入正确，go 返回 Success，reset 后正常启动</li>
+          <li>已用 castor_get_sec_info 确认改前软标，并明确目标软标来源</li>
+          <li>改前 sec.bin 与改后 sec.bin 均已备份，未与其他软标混放</li>
+          <li>imx6_encrypto 中只修改了「软件标识符」，其余参数未动</li>
+          <li>tftpd 目录内同时包含改后的 sec.bin 与 Tftpd32.exe</li>
+          <li>Tftpd32 已 Browse 到正确目录，并选中本机实际网卡 IP，全程未关闭</li>
+          <li>串口参数为 Serial / 115200 / 无流控，且确认哪个口是升级口（非 RCU 打印口）</li>
+          <li>setenv serverip 与 ipaddr 填写正确，go 返回 Success，reset 后正常启动</li>
           <li>重启后 castor_get_sec_info 显示目标软标，定制功能上线验证通过</li>
+          <li>单台车完成后已关闭 Tftpd32 与加密工具，再进入下一台</li>
         </ul>
       </div>
 
@@ -131,14 +159,16 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与前置准备</a>
-        <a href="#s2">导出并校验当前加密文件</a>
-        <a href="#s3">用加密工具修改软件标识符</a>
-        <a href="#s4">准备 TFTP 推送环境</a>
-        <a href="#s5">连接串口并判断升级口</a>
-        <a href="#s6">进入 U-Boot 并刷写加密文件</a>
-        <a href="#s7">验证与收尾</a>
-        <a href="#s8">注意事项</a>
+        <a href="#s1">适用范围与前置准备</a>
+        <a href="#s2">阶段一 · 导出并校验加密文件</a>
+        <a href="#s3">阶段一 · 用加密工具修改软件标识符</a>
+        <a href="#s4">阶段二 · 准备 TFTP 推送目录</a>
+        <a href="#s5">阶段二 · 启动并配置 Tftpd32</a>
+        <a href="#s6">阶段二 · 确认串口并用 SecureCRT 连接</a>
+        <a href="#s7">阶段二 · 判断哪个是升级口</a>
+        <a href="#s8">阶段二 · 进入 U-Boot 并刷写</a>
+        <a href="#s9">阶段二 · 重启后验证</a>
+        <a href="#s10">收尾与注意事项</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>
