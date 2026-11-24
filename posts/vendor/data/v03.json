@@ -2,52 +2,86 @@
   "id": "v03",
   "title": "主控配置文件 castor_conf 配置项速查",
   "category": "配置与工具",
-  "lede": "梳理机器人主控配置文件的分组结构、常用配置项取值与改动后的验证方法，便于现场核对参数。",
-  "source": "内部配置说明，2020",
+  "lede": "castor_conf 是主控侧的总配置：传感器、运行模式、平台对接、定位融合、举升、能源、精度、维护、低功耗、SLAM、图像库全在一份文件里。这份速查按模块拆开，把每个子项的值域与含义列全，重点是那些“填错就整机异常”的枚举值。",
+  "source": "内部操作手册 V2.2（9 页）",
   "keywords": [
     "castor_conf",
     "sensor_conf",
-    "underpan",
-    "work_mode",
+    "run_conf",
+    "plat_conf",
     "navi_conf",
+    "fusion_type",
+    "loc_ctrl",
+    "lift_conf",
     "energy_conf",
-    "SSH",
-    "举升参数"
+    "slam_conf",
+    "work_mode",
+    "underpan",
+    "reg_ip",
+    "配置项"
   ],
   "sections": [
     {
-      "h": "适用场景与前置条件",
-      "html": "<p>需要核对或调整机器人主控行为时，现场通常直接编辑主控上的 <code>castor_conf.xml</code>。该文件按功能拆成传感器、运行、平台、定位、举升、能源、维护等多个分组，每个分组只负责一类行为；改错一项就可能影响行走、避障或充电，因此动手前应先备份原文件并确认主控版本。</p><ul><li>确认配置文件版本与主控固件匹配，避免用旧模板覆盖新字段。</li><li>只改与本次问题相关的键，其余保持原值。</li><li>修改完成后按现场规范重启主控或使配置生效，再观察机器人能否正常注册上线。</li></ul><div class=\"callout warn\"><span class=\"callout-title\">先备份再修改</span><p>配置文件被写坏后，机器人可能无法上线，且远程登录也会受影响。建议先用文件传输命令把原文件取回本地留档。</p></div>"
+      "h": "这份文件怎么用",
+      "html": "<p>castor_conf 按“模块 + 子项”组织，模块名本身就是前缀，例如传感器相关全部在 <code>sensor_conf</code> 下、定位相关在 <code>navi_conf</code> 下。查配置时先定位模块，再按子项名找值，不要凭字段名猜含义——很多字段名（如 <code>cfg_idx</code>、<code>sdk_use_flag</code>）字面意思与实际作用相差很远。</p><div class=\"callout ok\"><span class=\"callout-title\">使用建议</span><p>改动前先整份备份；一次只改一个模块，改完立即验证对应功能。多模块同时改会让故障现象互相掩盖，是现场最难排查的情形。</p></div><p>下文按模块顺序整理，共 15 个模块；值域写成 <code>1：开启 / 0：关闭</code> 的，一律是布尔开关，不接受其他取值。</p>"
     },
     {
-      "h": "传感器与底盘分组（sensor_conf / underpan）",
-      "html": "<p>这一组决定机器人“看不看得见、停不停得住”。开关类配置只接受 0 和 1，填写其他值通常不生效。</p><table><thead><tr><th>配置项</th><th>取值</th><th>作用</th></tr></thead><tbody><tr><td>rectangle_pod</td><td>1 / 0</td><td>是否强制按长方形货架处理</td></tr><tr><td>side_avd、longside_avd</td><td>1 / 0</td><td>分别控制侧边避障与长距离避障</td></tr><tr><td>nilrot_avd</td><td>1 / 0</td><td>空车旋转时是否启用侧边避障</td></tr><tr><td>weight_sensor</td><td>1 / 0</td><td>是否启用称重；配合超重阈值、偏载阈值判断载货异常</td></tr><tr><td>baro_sensor</td><td>阈值</td><td>气动碰撞条的触发阈值</td></tr><tr><td>b_ce_button、b_laser_led_status</td><td>开关 / 状态值</td><td>CE button 是否启用、射灯状态</td></tr><tr><td>sensor_lib</td><td>开关</td><td>是否调用感知库</td></tr><tr><td>far_away_code_radius、near_code_radius</td><td>识别半径</td><td>举升前后识别二维码的搜索半径</td></tr><tr><td>disable_obs_sens</td><td>开关</td><td>临时关闭避障传感器，仅用于排查</td></tr><tr><td>m_camera_exposure_x</td><td>数值</td><td>读码头曝光值，x 为 1、2、3 等序号</td></tr><tr><td>underpan</td><td>0～3</td><td>底盘模式：0 非底盘；1 低级（行走电机、急停、碰撞条）；2 中级（底盘加激光）；3 高级（仅行走）</td></tr><tr><td>ssh_ctrl_switch</td><td>1 / 0</td><td>SSH 远程登录开关</td></tr></tbody></table>"
+      "h": "sensor_conf：传感器与避障",
+      "html": "<table><thead><tr><th>子项</th><th>值 / 范围</th><th>含义</th></tr></thead><tbody><tr><td>cfg_idx</td><td>—</td><td>配置索引</td></tr><tr><td>rectangle_pod</td><td>1 开启 / 0 关闭</td><td>是否强制默认长方形货架</td></tr><tr><td>side_avd</td><td>1 / 0</td><td>是否开启侧边避障</td></tr><tr><td>longside_avd</td><td>1 / 0</td><td>是否开启长距离避障</td></tr><tr><td>nilrot_avd</td><td>1 / 0</td><td>空车旋转是否开启侧边避障</td></tr><tr><td>weight_sensor</td><td>1 / 0</td><td>是否启用称重</td></tr><tr><td>weight_sensor_threshold</td><td>—</td><td>超重阈值</td></tr><tr><td>weight_unbalance_threshold</td><td>—</td><td>偏载阈值</td></tr><tr><td>baro_sensor</td><td>—</td><td>气动碰撞条触发阈值</td></tr><tr><td>b_ce_button</td><td>1 / 0</td><td>是否开启 CE button</td></tr><tr><td>b_laser_led_status</td><td>—</td><td>射灯的状态</td></tr><tr><td>sensor_lib</td><td>—</td><td>是否调用感知库</td></tr><tr><td>far_away_code_radius</td><td>—</td><td>举升前二维码识别半径</td></tr><tr><td>near_code_radius</td><td>—</td><td>举升后二维码识别半径</td></tr><tr><td>disable_obs_sens</td><td>—</td><td>关闭避障传感器</td></tr><tr><td>m_camera_exposure_x</td><td>x = 1、2、3…</td><td>读码头曝光值，按相机编号分别配置</td></tr></tbody></table><div class=\"callout warn\"><span class=\"callout-title\">注意</span><p><code>disable_obs_sens</code> 关闭避障后不会再有任何避障保护，仅用于产线调试，绝不能在交付状态下保留。</p></div>"
     },
     {
-      "h": "运行参数与平台对接（run_conf / plat_conf / ams_conf / port_conf）",
-      "html": "<p>这里决定机器人以什么身份、什么模式接入平台，以及告警和端口绑定如何走。联调前建议先确认这一组，否则后续日志再全也难定位。</p><ul><li><code>robot_id</code>：机器人编号，必须与平台登记一致。</li><li><code>work_mode</code>：1 正常、2 debug、3 维护、4 测试、5 遥控、6 模拟、7 手操器。调试结束应恢复为正常模式，避免现场长期停在测试模式。</li><li><code>b_record</code>：是否记录日志；<code>delay_ms</code>：旋转和后退任务执行前的延时；<code>rcs_accu</code>：行走精度；<code>audio_vol</code>：音量，取值 0～28。</li><li><code>update_mcu</code>、<code>update_host_mount_board</code>、<code>update_rcu_mount_board</code>：打包升级后用于标记需要检查升级的板卡，以及记录主控侧、RCU 侧升级失败的板卡。</li><li><code>plat_conf</code>：<code>reg_ip</code>、<code>port</code> 指向调度平台；<code>skt_type</code> 0 为 udp、1 为 tcp；<code>sdk_use_flag</code> 置位则启动 SDK；<code>rcs_encypt_flag</code> 与 <code>rcs_password</code> 控制交互加密与认证串；<code>net_card_name</code> 指定联网网卡；<code>plat_type</code> 为与平台交互的协议类型。</li><li><code>ams_conf</code>：告警服务器地址与端口；<code>port_conf</code>：<code>b_enable</code> 是否使能端口绑定，<code>ams_port</code>、<code>rcs_port_x</code> 指定各类连接使用的端口。</li></ul><div class=\"callout ok\"><span class=\"callout-title\">核对顺序</span><p>先确认 <code>robot_id</code> 与 IP、网卡，再核对 <code>reg_ip</code> 与 <code>port</code>，最后看加密与协议类型，能减少“机器人不上线”类问题的来回排查。</p></div>"
+      "h": "run_conf：运行模式与底盘",
+      "html": "<table><thead><tr><th>子项</th><th>值 / 范围</th><th>含义</th></tr></thead><tbody><tr><td>robot_id</td><td>—</td><td>机器人 ID</td></tr><tr><td>work_mode</td><td>1 正常 / 2 debug / 3 维护 / 4 测试 / 5 遥控 / 6 模拟 / 7 手操器</td><td>工作模式</td></tr><tr><td>b_record</td><td>1 / 0</td><td>是否进行日志记录</td></tr><tr><td>update_mcu</td><td>标志位</td><td>打包升级后置位，表示所有板子都要检查是否需升级</td></tr><tr><td>update_host_mount_board</td><td>标志位</td><td>自动检查升级后，挂在主控的板子升级失败的记录在此</td></tr><tr><td>update_rcu_mount_board</td><td>标志位</td><td>挂在 RCU 的板子升级失败的记录在此</td></tr><tr><td>delay_ms</td><td>ms</td><td>旋转与后退任务执行前的延时</td></tr><tr><td>rcs_accu</td><td>—</td><td>行走精度</td></tr><tr><td>audio_vol</td><td>0~28</td><td>声音告警音量</td></tr><tr><td>underpan</td><td>0 非底盘 / 1 低级 / 2 中级 / 3 高级</td><td>底盘模式类型</td></tr><tr><td>ssh_ctrl_switch</td><td>1 / 0</td><td>SSH 开关</td></tr></tbody></table><p>底盘模式的含义：<strong>1 低级</strong>包含行走电机、急停、碰撞条；<strong>2 中级</strong>为底盘 + 激光；<strong>3 高级</strong>仅行走。选错底盘模式会直接导致上装与底盘的动作不同步。</p><p><code>work_mode</code> 七种模式中，2（debug）、4（测试）、5（遥控）、6（模拟）、7（手操器）都属于非生产态，交付前必须确认已回到 1（正常）。</p>"
     },
     {
-      "h": "定位导航与运动参数（navi_conf / slam_conf / mrlib_conf）",
-      "html": "<p>定位相关改动风险最高，建议在停场或低速条件下验证。</p><ul><li><code>down_type</code>、<code>up_type</code>：地码与货码的码类型；对应分辨率由 <code>down_ratio</code>、<code>up_ratio</code> 控制。</li><li><code>dist_x</code>、<code>dist_y</code>：x 轴、y 轴码间距；<code>down_frame_rate</code> 默认 100，<code>up_frame_rate</code> 为货码帧率。</li><li><code>fusion_type</code>：1 仅陀螺仪、2 仅里程计、3 陀螺仪加里程计、4 SLAM、5 SLAM 加二维码、6 SLAM 加里程计。</li><li><code>b_qr_cali</code>：是否做共面相机标定；<code>line_ctrl</code>：是否启用巡线；<code>lane_ctrl</code>：0 不启用、1 单板车道线、2 双板车道线。</li><li><code>camera_lib_ver</code>：0 对应默认算法库版本 V2.1.0，1 对应 V2.0.1。</li><li><code>continue_nor_switch</code> 与 <code>continue_nor_param</code>：连续地码未识别的开关与阈值。</li><li><code>slam_conf</code>：<code>b_slam_sensor</code>、<code>need_rssi</code>（反光条融合）、<code>need_odo</code>（里程计计数）；<code>work_mode</code> 0 单独定位不计数据、1 只采集不定位、2 采集同时定位、3 建图；<code>loc_ctrl</code> 1～8 对应单/双激光、轮廓/反光柱、融合等定位组合；另有 <code>init_x</code>、<code>init_y</code>、<code>init_t</code> 初始位姿，<code>laser_num</code> 激光个数，<code>log_mode</code> 0 一直记录、1 触发记录，<code>map_name</code> 地图名。</li><li><code>mrlib_conf</code>：<code>sw_ctrl</code> 避障模式切换开关，<code>us_dist</code> 超声最大检测范围（示例值 2000），<code>sche_dist</code> 人车混行与业务避障的切换距离。</li></ul>"
+      "h": "plat_conf：与 RCS 平台对接",
+      "html": "<table><thead><tr><th>子项</th><th>值 / 范围</th><th>含义</th></tr></thead><tbody><tr><td>reg_ip</td><td>IP</td><td>连接 RCS 的 IP</td></tr><tr><td>port</td><td>端口</td><td>连接 RCS 的端口</td></tr><tr><td>sdk_use_flag</td><td>1 = 启动</td><td>该位置 1 则启动 SDK</td></tr><tr><td>rcs_encypt_flag</td><td>—</td><td>是否启用 RCS 交互协议加密</td></tr><tr><td>skt_type</td><td>0 udp / 1 tcp</td><td>socket 协议类型</td></tr><tr><td>plat_type</td><td>—</td><td>与平台交互协议</td></tr><tr><td>net_card_name</td><td>—</td><td>连接平台使用的网卡名称</td></tr><tr><td>rcs_password</td><td>字符串</td><td>RCS 交互协议加密认证字符串</td></tr></tbody></table><div class=\"callout danger\"><span class=\"callout-title\">对接三件套</span><p><code>reg_ip</code> / <code>port</code> / <code>skt_type</code> 三者必须与平台侧一致；启用加密时 <code>rcs_encypt_flag</code> 与 <code>rcs_password</code> 要成对配置。只改 IP 不改网卡名，会在多网卡机器上连到错误的网络。</p></div>"
     },
     {
-      "h": "举升、能源、精度与维护分组",
-      "html": "<p>以下四组直接影响机械动作和电池安全，改动时要注意单位：时间类多为 ms，行程多为 cnt 或 mm。</p><ul><li><code>lift_conf</code>：<code>work_diff_ms</code> 两次举升的最小间隔；<code>down_detect_delay_ms</code>、<code>up_detect_delay_ms</code> 为低位、高位传感器触发后延时多久停止；<code>detect_period_ms</code> 为处理线程轮询周期；<code>raise_timeout_ms</code>、<code>fall_timeout_ms</code> 为举升与下放超时；<code>lift_soc</code> 为可举升的最低电量；<code>lift_apply</code> 表示举升前是否申请；<code>dist_range</code>、<code>TOTAL_stroke</code>、<code>actual_total_stroke</code> 描述行程；另有额定安全电流、最大瞬时电流、启动斜坡时间、停止时间、拉线电阻、下放停止提前量、位置输入信号源、液压泵配置等。</li><li><code>energy_conf</code>：<code>shut_soc</code> 关机电量阈值；<code>bat_material</code> 0 铁锂、1 三元、2 钛酸锂；<code>bat_capacity</code> 容量、<code>nomi_vol</code> 额定电压；<code>charger_type</code> 0 对应 30Ah/48V、1 对应 7.5Ah/24V 充电器；<code>maintain_time</code> 为充满后的维护周期（天）；<code>commnicate_type</code> 1 为 485、2 为 uavcan、3 为标准 can；<code>cur_limit</code> 充电安全限流，范围 0～1000。</li><li><code>accuracy_conf</code>：停止距离、停止角度、移动、举升偏差、货架精度五个阈值，以及是否开启货架强制微调。</li><li><code>maintain_conf</code>：里程、电机圈数、举升次数、充电次数、镜头灯开关次数的维护上限，以及主电池、副电池的高低压告警值。</li><li><code>power_conf</code>：<code>sleep_switch</code> 是否允许自主休眠，<code>self_sleep_soc</code> 休眠电量百分比（默认 25%），<code>standby_switch</code> 待机开关，<code>standby_interval</code> 待机空闲时长，<code>sleep_interval</code> 低于阈值后进入休眠的等待时长。</li></ul>"
+      "h": "ams_conf 与 port_conf：告警与端口绑定",
+      "html": "<table><thead><tr><th>模块</th><th>子项</th><th>含义</th></tr></thead><tbody><tr><td>ams_conf</td><td>ip</td><td>告警服务器 IP</td></tr><tr><td>ams_conf</td><td>port</td><td>告警服务器端口</td></tr><tr><td>port_conf</td><td>b_enable</td><td>是否使能端口绑定</td></tr><tr><td>port_conf</td><td>ams_port</td><td>连接告警服务器所用端口</td></tr><tr><td>port_conf</td><td>rcs_port_x</td><td>连接 RCS 所用端口，x = 1、2、3…</td></tr></tbody></table><p>端口绑定用于固定源端口，适合有防火墙白名单的现场；<code>ams_port</code> 与 <code>ams_conf.port</code> 是两个概念，前者是本端使用的端口，后者是告警服务器的端口，写反了会连不上。</p>"
     },
     {
-      "h": "改动流程与风险控制",
-      "html": "<p>配置文件是纯文本，可直接在线编辑，但顺序和校验不能省。推荐按下列步骤执行：</p><ol><li>备份原文件，记录本次要改的键与旧值。</li><li>定位到对应分组，只做最小改动，保留原有缩进与层级。</li><li>检查取值类型：开关类只填 0 或 1，数值类确认单位（ms、mm、cnt、欧姆）。</li><li>写回后重启主控，确认机器人注册上线、无新增告警。</li><li>用一次低速动作或空载任务验证改动效果，再恢复常态运行。</li></ol><div class=\"callout warn\"><span class=\"callout-title\">几处高风险项</span><p>误关 <code>ssh_ctrl_switch</code> 会失去远程登录能力；电池材料、容量、充电器类型填错会影响充电策略；<code>cur_limit</code> 超出 0～1000 可能触发保护；底盘模式选错会导致行走或避障不按预期工作。拿不准时建议核实后再改。</p></div>"
+      "h": "navi_conf：定位融合与车道线",
+      "html": "<table><thead><tr><th>子项</th><th>值 / 范围</th><th>含义</th></tr></thead><tbody><tr><td>down_type</td><td>—</td><td>地码类型</td></tr><tr><td>up_type</td><td>—</td><td>货码类型</td></tr><tr><td>down_ratio / up_ratio</td><td>—</td><td>货码 / 地码二维码分辨率</td></tr><tr><td>dist_x / dist_y</td><td>—</td><td>x / y 轴码间距</td></tr><tr><td>down_frame_rate</td><td>默认 100</td><td>地码帧率</td></tr><tr><td>up_frame_rate</td><td>—</td><td>货码帧率</td></tr><tr><td>fusion_type</td><td>1 仅陀螺仪 / 2 仅里程计 / 3 陀螺仪和里程计 / 4 SLAM / 5 SLAM-二维码 / 6 SLAM-里程计</td><td>融合类型</td></tr><tr><td>b_qr_cali</td><td>—</td><td>是否共面相机标定</td></tr><tr><td>line_ctrl</td><td>—</td><td>是否启用巡线功能</td></tr><tr><td>lane_ctrl</td><td>0 不启用 / 1 单板车道线 / 2 双板车道线</td><td>车道线巡检功能</td></tr><tr><td>camera_lib_ver</td><td>0 V2.1.0（默认）/ 1 V2.0.1</td><td>算法库 DM 模块版本</td></tr><tr><td>continue_nor_switch</td><td>1 / 0</td><td>连续地码未识别开关</td></tr><tr><td>continue_nor_param</td><td>—</td><td>连续地码未识别阈值</td></tr></tbody></table><p><code>fusion_type</code> 是本文件里最容易与现场不匹配的一项：SLAM 项目应在 4/5/6 中选，二维码项目在 1~3 中选。选成与导航方式不符的融合类型，典型表现是“初始定位能过、跑一段就飘”。</p>"
+    },
+    {
+      "h": "mrlib_conf 与 cali_conf：运动库与标定",
+      "html": "<table><thead><tr><th>子项</th><th>说明</th></tr></thead><tbody><tr><td>sw_ctrl</td><td>避障模式切换开关</td></tr><tr><td>MRAMC_SCHE_SWITCH_CTRL</td><td>避障模式切换控制</td></tr><tr><td>us_dist</td><td>超声最大检测范围（2000）</td></tr><tr><td>sche_dist</td><td>人车混行与业务避障的切换距离</td></tr></tbody></table><p>标定信息 <code>cali_conf</code> 包含：<code>wheel_dist_l</code>（左轮距中心轮间距）、<code>wheel_dist_r</code>（右轮）、<code>wheel_r_l</code>（左轮半径）、<code>wheel_r_r</code>（右轮半径）。这四项是差速车里程计精度的根，更换驱动轮或减速机后必须重新标定，否则会表现为“直行跑偏、转角累积误差”。</p>"
+    },
+    {
+      "h": "screen_conf 与 energy_conf：账号与电池",
+      "html": "<table><thead><tr><th>模块</th><th>子项</th><th>值 / 含义</th></tr></thead><tbody><tr><td>screen_conf</td><td>user_name / passwd</td><td>屏幕用户名与密码；交付时应改为现场账号，不使用默认值</td></tr><tr><td>energy_conf</td><td>shut_soc</td><td>电池关机阈值</td></tr><tr><td>energy_conf</td><td>bat_material</td><td>0 铁锂 / 1 三元 / 2 钛酸锂</td></tr><tr><td>energy_conf</td><td>bat_capacity / nomi_vol</td><td>电池容量 / 额定电压</td></tr><tr><td>energy_conf</td><td>charger_type</td><td>0 30Ah/48V / 1 7.5Ah/24V</td></tr><tr><td>energy_conf</td><td>maintain_time</td><td>电池充满维护时间（天）</td></tr><tr><td>energy_conf</td><td>commnicate_type</td><td>1 485 / 2 uavcan / 3 标准 can</td></tr><tr><td>energy_conf</td><td>cur_limit</td><td>充电安全限流（0~1000）</td></tr><tr><td>energy_conf</td><td>proto_type / send_type</td><td>协议类型 / 主控发包类型</td></tr><tr><td>energy_conf</td><td>full_charge_sec</td><td>充满维护时间记录</td></tr></tbody></table><div class=\"callout warn\"><span class=\"callout-title\">电池参数不能臆填</span><p><code>bat_material</code> 填错会让充电曲线与保护阈值全部错位，轻则充不满、重则过充报警。<code>charger_type</code> 与现场充电桩规格必须一致。</p></div>"
+    },
+    {
+      "h": "lift_conf：举升参数",
+      "html": "<table><thead><tr><th>子项</th><th>说明</th></tr></thead><tbody><tr><td>work_diff_ms</td><td>两次举升的最小间隔（ms）</td></tr><tr><td>down_detect_delay_ms</td><td>下放过程中低位传感器检测到后延时多久停止（ms）</td></tr><tr><td>up_detect_delay_ms</td><td>举升过程中高位传感器检测到后延时多久停止（ms）</td></tr><tr><td>detect_period_ms</td><td>举升处理线程轮询周期（ms）</td></tr><tr><td>raise_timeout_ms / fall_timeut_ms</td><td>举升 / 下放超时时间（ms）</td></tr><tr><td>lift_soc</td><td>能够举升的最低电量</td></tr><tr><td>lift_apply</td><td>举升前是否申请</td></tr><tr><td>dist_range</td><td>举升电机运动行程（cnt）</td></tr><tr><td>Rated_Ia / Max_Instant_Ia</td><td>额定安全电流 ×1000 / 允许最大瞬时电流 ×1000</td></tr><tr><td>Slope_Time / UP_Stop_Time</td><td>启动斜坡时间 ×1000 / 停止时间 ×1000</td></tr><tr><td>TOTAL_stroke / actual_total_stroke</td><td>行程总数（mm）/ 实际机构行程（mm）</td></tr><tr><td>stayguy_resistance</td><td>拉线电阻（欧姆），5k = 5000</td></tr><tr><td>down_stop_cnt</td><td>下升停止提前量</td></tr><tr><td>pos_in</td><td>位置输入信号源（模拟/数字）</td></tr><tr><td>ctrl_word</td><td>是否存在配套液压泵</td></tr><tr><td>fall_sync_heiht_thres</td><td>下降高度差同步阈值</td></tr><tr><td>motor_min_pwm</td><td>自研液压小板最小输出占空比</td></tr></tbody></table><p>调举升时优先动 <code>up_detect_delay_ms</code> / <code>down_detect_delay_ms</code> 这类延时项，行程类（<code>dist_range</code>、<code>TOTAL_stroke</code>）属于机械标定值，随意改动会让限位失效。</p>"
+    },
+    {
+      "h": "accuracy_conf 与 maintain_conf：精度与维护阈值",
+      "html": "<table><thead><tr><th>模块</th><th>子项</th><th>含义</th></tr></thead><tbody><tr><td>accuracy_conf</td><td>stop_dist</td><td>停止距离精度（平台配置）</td></tr><tr><td>accuracy_conf</td><td>stop_angle</td><td>停止角度精度</td></tr><tr><td>accuracy_conf</td><td>move_offset</td><td>移动精度</td></tr><tr><td>accuracy_conf</td><td>lift_tol</td><td>举升偏差</td></tr><tr><td>accuracy_conf</td><td>pod_offset</td><td>货架精度</td></tr><tr><td>accuracy_conf</td><td>is_pod_force_adjust</td><td>是否开启货架强制微调</td></tr><tr><td>maintain_conf</td><td>mile_th / motor_th</td><td>维护里程上限 / 电机运转圈数上限</td></tr><tr><td>maintain_conf</td><td>lift_cnt / battery_charge_cnt / light_time</td><td>举升次数 / 充电次数 / 镜头灯开关次数上限</td></tr><tr><td>maintain_conf</td><td>min_main_v / max_main_v</td><td>主电池低压 / 高压告警</td></tr><tr><td>maintain_conf</td><td>min_uplift_v / max_lift_v</td><td>副电池低压 / 高压告警</td></tr></tbody></table><p>维护类阈值决定什么时候提示保养，属于“提醒”而非“限制”，阈值过低会导致车一直报保养提醒，干扰真实告警。</p>"
+    },
+    {
+      "h": "power_conf 与 slam_conf：低功耗与 SLAM",
+      "html": "<table><thead><tr><th>模块</th><th>子项</th><th>值 / 含义</th></tr></thead><tbody><tr><td>power_conf</td><td>sleep_switch</td><td>是否支持自主进入（支持低功耗电源板时默认支持）</td></tr><tr><td>power_conf</td><td>self_sleep_soc</td><td>休眠电量百分比，默认 25%</td></tr><tr><td>power_conf</td><td>standby_switch / standby_interval</td><td>待机开关 / 待机模式空闲时长</td></tr><tr><td>power_conf</td><td>sleep_interval</td><td>电量低于阈值后进入休眠的时长</td></tr><tr><td>slam_conf</td><td>b_slam_sensor</td><td>1 / 0，是否启用 SLAM 传感器</td></tr><tr><td>slam_conf</td><td>need_rssi</td><td>1 / 0，是否使用反光条融合</td></tr><tr><td>slam_conf</td><td>need_odo</td><td>1 / 0，是否使用里程计计数</td></tr><tr><td>slam_conf</td><td>work_mode</td><td>0 单独定位不计数据 / 1 单采集不定位 / 2 采集并定位 / 3 地图构建</td></tr><tr><td>slam_conf</td><td>loc_ctrl</td><td>1 轮廓定位(单激光 1.0) / 2 轮廓反光柱(msf) / 3 轮廓定位(双激光) / 4 轮廓与激光里程计融合(单激光 2.2) / 5 双激光轮廓反光柱 / 6 纯反光柱(单激光) / 7 反光柱与轮廓切换 / 8 反光柱与轮廓融合</td></tr><tr><td>slam_conf</td><td>init_x / init_y / init_t</td><td>初始化位置 x、y 与角度</td></tr><tr><td>slam_conf</td><td>laser_num</td><td>激光个数</td></tr><tr><td>slam_conf</td><td>log_mode</td><td>0 一直记录 / 1 触发记录</td></tr><tr><td>slam_conf</td><td>map_name</td><td>地图名称</td></tr></tbody></table><div class=\"callout warn\"><span class=\"callout-title\">两处 work_mode 别混</span><p><code>run_conf.work_mode</code> 是整机工作模式（1~7），<code>slam_conf.work_mode</code> 是 SLAM 工作模式（0~3）。建图时改的是后者，把整机 <code>work_mode</code> 改成 3（维护）是另一回事。</p></div>"
+    },
+    {
+      "h": "剩余模块速查：外设、图像库与运动",
+      "html": "<table><thead><tr><th>模块</th><th>关键子项</th><th>说明</th></tr></thead><tbody><tr><td>third_actuator_conf</td><td>actuator_comm_sche、mes_ip、mes_port</td><td>底盘模式执行机构对接方案；对接客户平台的 IP 与端口</td></tr><tr><td>img_conf</td><td>calib_board_x_num / y_num、calib_board_x_width / y_width</td><td>标定板方格数量与宽度，标定前必须与实际标定板一致</td></tr><tr><td>img_conf</td><td>light_support</td><td>0 关闭 / 1 开启，是否支持 3519 补光灯</td></tr><tr><td>img_conf</td><td>function_support</td><td>0 车道线巡检 / 1 单目避障 / 2 两者都支持</td></tr><tr><td>img_conf</td><td>left/right_rect_center_x、_y</td><td>前视左/右侧搜索窗口位置</td></tr><tr><td>img_conf</td><td>left_flag / right_flag、left_offset / right_offset</td><td>默认左右是否存在车道线（0/1）及偏移值</td></tr><tr><td>sub_dev_config</td><td>dev_type、dev_name、ip、node_id、is_used、port</td><td>附件设备清单：类型、名称、IP、设备 ID、是否启用、连接端口</td></tr><tr><td>senslib_config</td><td>car_top/bottom/left/right、pod_top/bottom/left/right</td><td>感知库的车辆与货架四边界</td></tr><tr><td>agv_software_capa_conf</td><td>support_ahead_task</td><td>机器人是否支持平台的提前下发任务</td></tr><tr><td>switch_conf</td><td>old_map、new_map、boundary_code</td><td>地图切换的旧/新地图类型与交接区地码值</td></tr><tr><td>motion_conf</td><td>para_nil、para_pod、para_chg、dyn_avd</td><td>空车 / 背货 / 充电速度值，动态避障</td></tr><tr><td>sensor_dist_conf</td><td>front_conf、back_conf、left_conf、right_conf</td><td>前后左右四向、远中近区的避障参数</td></tr><tr><td>motion_conf（速度）</td><td>max_avoid_dece、max_curve_acc、max_curve_dece</td><td>最大遇障减速度、最大弧线加速度/减速度</td></tr></tbody></table><p>收尾提醒：<code>senslib_config</code> 的四边界必须与实车外形一致，边界给小了会剐蹭，给大了会在窄通道里频繁暂停；<code>switch_conf</code> 的 <code>boundary_code</code> 必须与地图上实际的交接区地码值一致，否则跨图任务无法交接。</p>"
     }
   ],
   "checks": [
-    "已备份原始 castor_conf.xml，并记录本次改动的键与旧值。",
-    "开关类配置只填 0 或 1，数值类按 ms、mm、cnt、欧姆等单位填写。",
-    "robot_id、reg_ip、port、net_card_name 与平台侧登记一致。",
-    "work_mode 与当前用途匹配，调试结束后恢复为正常模式。",
-    "电池材料、容量、充电器类型与实际硬件对应，cur_limit 在 0～1000 范围内。",
-    "举升延时与超时按机械响应时间设置，改动后先空载试运行。",
-    "涉及 underpan 与 SSH 开关的改动，确认仍可远程登录且能正常行走。",
-    "修改后重启主控，确认机器人上线、无新增告警并完成一次动作验证。"
+    "改动前已整份备份 castor_conf，且一次只改一个模块",
+    "sensor_conf.disable_obs_sens 在交付状态为未关闭",
+    "run_conf.work_mode 已回到 1（正常模式）",
+    "run_conf.underpan 与实车底盘等级一致（0~3）",
+    "plat_conf 的 reg_ip、port、skt_type 与平台侧一致，net_card_name 指向正确网卡",
+    "启用协议加密时 rcs_encypt_flag 与 rcs_password 成对配置",
+    "navi_conf.fusion_type 与导航方式匹配（SLAM 4/5/6，二维码 1~3）",
+    "cali_conf 四个轮径/轮距参数为最新标定值",
+    "energy_conf.bat_material、charger_type 与实物电池、充电桩一致",
+    "lift_conf 行程类参数未被随意改动，只调整了延时类参数",
+    "slam_conf.loc_ctrl 与激光数量、反光条使用情况匹配",
+    "switch_conf.boundary_code 与地图交接区地码值一致"
   ]
 }

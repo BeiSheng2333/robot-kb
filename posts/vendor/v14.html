@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>机器人端与平台端日志种类及下载方法 — 排障方法 — 现场笔记</title>
-<meta name="description" content="说明机器人端与平台端各类日志的含义、命名时间规则、下载入口，以及临时开启 TRACE 的方法。">
+<meta name="description" content="排障效率取决于日志拿得对不对。本篇按日志说明手册整理：先分清机器人端（agv_log、evt、rcd、lidar、sens、llc_log、wpa 等）与平台端日志的种类与目录，再给出 V3.X / V4.X 两代平台的下载路径、日志时间戳读法与 TRACE 开关用法。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
       <h1>机器人端与平台端日志种类及下载方法</h1>
-      <p class="lede">说明机器人端与平台端各类日志的含义、命名时间规则、下载入口，以及临时开启 TRACE 的方法。</p>
+      <p class="lede">排障效率取决于日志拿得对不对。本篇按日志说明手册整理：先分清机器人端（agv_log、evt、rcd、lidar、sens、llc_log、wpa 等）与平台端日志的种类与目录，再给出 V3.X / V4.X 两代平台的下载路径、日志时间戳读法与 TRACE 开关用法。</p>
       <div class="doc-meta">
-        <span>整理自 内部操作手册 V1.2，2025-05</span>
+        <span>整理自 内部操作手册 V1.2（22 页）</span>
         <span class="chip">排障方法</span>
       </div>
 
@@ -81,37 +81,82 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与前置条件</h2>
-        <p>排查现场问题时，日志是最直接的证据。机器人端日志偏重单机运行过程，平台端日志偏重任务调度与服务交互，两侧需要配合查看。本文按主控与平台 V3.X、V4.X 两代分别整理，两代的目录结构、下载入口和默认账号都不同，操作前先确认版本。</p><ul><li>确认问题发生时间点，必要时用事件日志辅助定位。</li><li>确认可登录机器人或服务器，网络可达对应端口。</li><li>日志体积较大，提前准备本地存储空间。</li></ul>
+        <h2 id="s1">日志体系概览：先分清两端口</h2>
+        <p>现场排障要同时看两端的日志，缺一不可：</p><ul><li><strong>机器人端（主控）</strong>：记录车上的任务执行、感知、定位、网络状态，适合定位「车为什么不动 / 为什么报错」；</li><li><strong>平台端</strong>：记录任务下发、调度、分配、消息接收，适合定位「为什么没派车 / 为什么任务没完成」。</li></ul><p>主控与平台都经历了 V3.X → V4.X 的换代，两个版本的<strong>日志种类、目录结构、下载方式都不同</strong>，拿到日志先确认版本，否则会找错目录。</p><div class="callout warn"><span class="callout-title">先看时间再看内容</span><p>所有日志文件名都带开始时间戳。排障第一步是<strong>用现象发生时间反查对应日志</strong>，而不是把整个日志包丢给后方——后者会让处理周期变长。</p></div>
 
-        <h2 id="s2">机器人日志的种类（V4.X）</h2>
-        <p>V4.X 主控的日志按用途分目录存放，均在 <code>/mnt</code> 下：</p><table><thead><tr><th>日志</th><th>内容</th></tr></thead><tbody><tr><td>tdcl</td><td>上镜头未识别的图像信息</td></tr><tr><td>agv_log</td><td>AGV 任务执行流程日志，主要是主控进程运行日志</td></tr><tr><td>evt</td><td>事件日志，以任务和告警为事件记录关键节点</td></tr><tr><td>rcd</td><td>传感器与算法的输入输出帧率、实时运行信息</td></tr><tr><td>lidar</td><td>轮廓激光与导航激光日志</td></tr><tr><td>sens</td><td>感知库、识别库的输入输出日志</td></tr><tr><td>llc_log</td><td>定位库日志</td></tr><tr><td>wpa</td><td>无线网络信息</td></tr><tr><td>misc</td><td>调试相关日志</td></tr><tr><td>osp_log</td><td>动态绕障算法数据</td></tr><tr><td>maps_list</td><td>从平台下载的地图、货架列表等文件信息</td></tr><tr><td>coredump</td><td>主控崩溃文件</td></tr><tr><td>backup</td><td>上一次升级的镜像</td></tr></tbody></table><p>V3.X 主控种类更少：TDCL、AGV、RCD、WPA 直接放在 <code>/mnt</code>，激光数据放在 <code>/mnt/slam_data</code> 下的 SLM 目录。</p>
+        <h2 id="s2">机器人日志种类（主控 V4.X）</h2>
+        <p>V4.X 主控日志分散在 <code>/mnt</code> 下的多个子目录，按需取用：</p><table><thead><tr><th>日志</th><th>含义</th><th>目录</th></tr></thead><tbody><tr><td>tdcl</td><td>上镜头不识别的图像信息</td><td><code>/mnt/tdcl</code></td></tr><tr><td>agv_log</td><td>AGV 任务执行流程日志（主控 carServer 进程运行日志）</td><td><code>/mnt/agv_log</code></td></tr><tr><td>evt</td><td>事件日志，以任务与告警为事件记录关键节点</td><td><code>/mnt/evt</code></td></tr><tr><td>rcd</td><td>传感器 / 算法输入输出帧率与实时运行信息</td><td><code>/mnt/rcd</code></td></tr><tr><td>lidar</td><td>轮廓激光与导航激光日志</td><td><code>/mnt/lidar</code></td></tr><tr><td>sens</td><td>感知库、识别库的输入输出日志</td><td><code>/mnt/sens</code></td></tr><tr><td>llc_log</td><td>SLAM 定位库日志</td><td><code>/mnt/llc_log</code></td></tr><tr><td>wpa</td><td>WiFi 网络信息（失联问题必取）</td><td><code>/mnt/wpa</code></td></tr><tr><td>misc</td><td>调试相关日志</td><td><code>/mnt/misc</code></td></tr><tr><td>osp_log</td><td>动态绕障算法数据</td><td><code>/mnt/osp_log</code></td></tr><tr><td>maps_list</td><td>平台下发的文件信息（SLAM 地图、货架列表等）</td><td><code>/mnt/maps_list</code></td></tr><tr><td>coredump</td><td>主控崩溃文件</td><td><code>/mnt/coredump</code></td></tr><tr><td>backup</td><td>上一次升级的 app.img</td><td><code>/mnt/backup</code></td></tr></tbody></table><p><strong>主控 V3.X</strong> 只有 5 类，且都在 <code>/mnt</code> 下：TDCL（上镜头图像）、AGV（任务与状态）、RCD（运行时数据）、SLM（激光数据，<code>/mnt/slam_data</code>）、WPA（WiFi）。</p>
 
-        <h2 id="s3">日志命名与时间判断</h2>
-        <p>日志文件名自带时间信息，是判断日志覆盖范围的第一依据。机器人侧文件名形如 <code>AGV_2020_05_04_16_14_32_4384</code>，表示 2020 年 5 月 4 日 16 时 14 分 32 秒开始记录、编号为 4384 的机器人日志。平台侧打包文件形如 <code>log_bak20221207120157</code>，表示日志打包记录截止到 2022 年 12 月 7 日 12 时 01 分 57 秒。</p><div class="callout ok"><span class="callout-title">取日志技巧</span><p>先用事件日志确认故障的准确时间点，再按该时间挑选前后各一段日志，比整包下载更快，也更容易在反馈中说明对应关系。</p></div>
+        <h2 id="s3">日志时间戳怎么读</h2>
+        <p>文件名里的时间戳是<strong>开始记录时间</strong>，不是结束时间，判断时间窗时要注意。</p><ul><li>机器人日志：<code>AGV_2020_05_04_16_14_32_4384</code> 表示 <strong>2020-05-04 16:14:32</strong> 开始记录、编号 <code>4384</code> 的机器人日志（编号为手册示例，现场以实际为准）。</li><li>平台日志：<code>log_bak20221207120157</code> 表示日志<strong>打包截止</strong>到 2022-12-07 12:01:57。</li></ul><p>因此找某个现象时，取「现象时间点之前最近的一个包」最准；如果现象发生时日志正好滚动切分，需要同时取前后两个文件。</p>
 
-        <h2 id="s4">机器人日志的下载</h2>
-        <p><strong>主控 V3.X</strong>：用终端工具连接机器人 IP，端口 22，用户名 root，输入密码登录；如果登录不上，先确认机器人侧 SSH 开关已打开。登录后可用的常用命令包括：<code>cd /devinfo</code> 进入配置目录、<code>cat castor_conf.xml</code> 在线查看、<code>sz castor_conf.xml</code> 下载、<code>rz castor_conf.xml</code> 上传、<code>rm</code> 删除、<code>reboot</code> 重启、<code>castor_refresh_record</code> 刷新日志、<code>ls AGV*</code> 列出日志、<code>sz 文件名</code> 下载文件。</p><p><strong>主控 V4.X</strong>：推荐用日志分析工具的“日志管理”下的“小车日志下载”，输入机器人 IP 与用户名 admin、默认密码登录后，选择问题类别、筛选时间段（可参考事件日志确定时间点），查询并勾选下载。也可继续用终端工具，方法与 V3.X 一致，但默认账号密码与 V3.X 不同。</p><div class="callout warn"><span class="callout-title">账号差异</span><p>V3.X 与 V4.X 的登录账号不同，密码以现场交付资料或出厂设置为准；首次登录后建议按现场安全规范修改，避免沿用默认值。</p></div>
+        <h2 id="s4">机器人日志下载 · 主控 V3.X（终端）</h2>
+        <ol><li>打开 PuTTY，Host Name 填<strong>机器人 IP</strong>，Port 填 <code>22</code>，Connection type 选 SSH，点 Open。</li><li>首次连接会弹出主机密钥确认，选「是 / 接受」继续。</li><li>用户名 <code>root</code>，密码为产品默认口令（见交付文档；输入时不显示字符，属正常）。</li><li>若登录不上，先确认机器人侧 <strong>SSH 开关已打开</strong>。</li></ol><p>常用命令：</p><pre>cd /devinfo               # 进入配置文件目录
+        cat castor_conf.xml       # 在线查看配置
+        sz castor_conf.xml        # 下载配置
+        rz castor_conf.xml        # 上传配置
+        reboot                    # 重启机器人
+        castor_refresh_record     # 刷新日志信息
+        ls AGV*                   # 列出 AGV 日志
+        sz 文件名                  # 下载指定文件</pre>
+        <figure class="shot">
+          <a href="../../assets/img/v14/01-putty-setup.png" target="_blank" rel="noopener"><img src="../../assets/img/v14/01-putty-setup.png" alt="PuTTY 配置窗口，填写机器人 IP 与 22 端口"></a>
+          <figcaption><b>图 1</b> PuTTY 连接配置（IP 已做遮盖处理）：Host Name 填机器人地址、Port 填 22、类型选 SSH，然后点 Open。</figcaption>
+        </figure>
 
-        <h2 id="s5">平台日志的下载</h2>
-        <p><strong>平台 V3.X</strong>：进入运维管理，在“日志分析”界面左侧服务列表中选择机器人中心管理服务或机器人控制调度服务等服务，右侧勾选所需日志文件（支持多选）后点击下载。</p><p><strong>平台 V4.X</strong>：进入运维平台，“日志分析”→“应用日志”→“应用日志查询”，选择所属组件（例如 rtas）后点击查询，下载对应时间段的日志文件。若部署了多台服务器，每台服务器的日志都要下载，否则会缺失部分链路。需要一次取多个组件时，改用“应用日志打包”，点击创建打包任务，填写任务名称、选择日志组件与时间范围后确定，再下载生成的打包文件。</p><div class="callout ok"><span class="callout-title">按组件取日志</span><p>先根据现象判断可能涉及的组件，再按组件分别查询；不要只打包一个组件就提交，容易在交互问题上出现证据缺口。</p></div>
+        <h2 id="s5">首次连接的主机密钥确认</h2>
+        <p>第一次连接某台车时会出现 PuTTY 安全警告，提示「服务器主机密钥未缓存」，需要确认是否信任。现场内网设备直接点「是」接受即可；<strong>若同一台车反复弹出该提示</strong>，说明密钥发生变化（重装系统、换主控），需要确认是否换过板，否则可能是中间人风险。</p>
+        <figure class="shot">
+          <a href="../../assets/img/v14/02-putty-alert.png" target="_blank" rel="noopener"><img src="../../assets/img/v14/02-putty-alert.png" alt="PuTTY 安全警告，确认主机密钥"></a>
+          <figcaption><b>图 2</b> PuTTY 主机密钥确认窗口：首次连接选「是(接受)」即可；同一台车反复出现要排查是否换过主控或系统。</figcaption>
+        </figure>
 
-        <h2 id="s6">TRACE 开关的打开与关闭</h2>
-        <p>常规级别日志不足以定位时，需要临时把服务日志级别调到 TRACE。TRACE 会显著增加日志量，只建议在复现问题时短时开启。</p><p><strong>平台 V3.X</strong>：进入运维管理，“系统维护”→“参数配置”→“服务参数配置”，选中指定服务（如调度服务），在日志打印等级下点击“默认等级”后的编辑按钮，选择“TRACE 及以上”，自定义生效时长后确定。该方式到时间会自动关闭，无需手动恢复。</p><p><strong>平台 V4.X</strong>：进入运维平台，“系统维护”→“服务运维”，选择指定服务后点击“日志等级”，选择“trace 及以上”，设置生效时长后确定。</p><ul><li>生效时长按复现所需时间设置，不建议长期开启。</li><li>开启后要重新复现一次问题，否则日志中没有目标片段。</li><li>下载完日志后确认级别已恢复，避免磁盘被快速写满。</li></ul>
+        <h2 id="s6">机器人日志下载 · 主控 V4.X（IAS）</h2>
+        <p>V4.X 优先用 IAS 工具下载，图形化筛选更省事：</p><ol><li>打开 IAS，进入「日志管理 → 小车日志下载」。</li><li>输入机器人 IP，用户名 <code>admin</code>，密码为产品默认口令（见交付文档），点「登录」。</li><li>选择<strong>问题类别</strong>，筛选<strong>时间段</strong>（或根据 evt 事件确定时间点），点「查询」。</li><li>勾选需要下载的日志，点「下载」；日志列表会显示文件大小，按需勾选避免整包拉取。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v14/03-device-login.png" target="_blank" rel="noopener"><img src="../../assets/img/v14/03-device-login.png" alt="IAS 设备登录窗口，填写机器人 IP 与账号密码"></a>
+          <figcaption><b>图 3</b> IAS 设备登录（IP 已做遮盖处理）：登录后按问题类别 + 时间段筛选，再批量勾选下载。</figcaption>
+        </figure><p>V4.X 主控同样可以用终端工具下载，步骤与 V3.X 相同，<strong>区别是登录账号与默认口令不同，以交付文档为准</strong>。</p>
 
-        <h2 id="s7">常见问题与注意事项</h2>
-        <ul><li>日志时间与现场实际时间对不上：先核对机器人、服务器时钟，再判断日志片段是否覆盖故障时刻。</li><li>下载不到日志：确认账号权限、目标目录是否存在，以及机器人 SSH 是否开启。</li><li>平台日志缺段：多服务器部署时逐台下载，或改用打包任务按组件一次性取全。</li><li>开完 TRACE 忘记恢复：部分版本会按时长自动关闭，仍建议下载后主动确认级别。</li><li>反馈时只给压缩包不给文件名与时间点：应补充说明关键日志的文件名和对应时间，便于快速定位。</li></ul>
+        <h2 id="s7">平台日志下载 · 平台 V3.X</h2>
+        <ol><li>进入运管，打开「日志分析」界面。</li><li>在左侧服务列表中选择需要的服务，例如「机器人中心管理服务（rcms）」「机器人控制调度服务（rcs）」。</li><li>在右侧日志列表中多选需要的文件，点下载。</li></ol><p><strong>判断依据：</strong>先按现象类型选服务——派车、调度类问题取 rcs；消息接收、任务状态类问题取 rcms；第三方对接类问题还要取 wcs / rtas。</p>
+
+        <h2 id="s8">平台日志下载 · 平台 V4.X（OPS 查询）</h2>
+        <ol><li>进入 OPS，「日志分析 → 应用日志 → 应用日志查询」。</li><li>选择<strong>所属组件</strong>（例如 rtas），设置时间范围，点「查询」。</li><li>在结果列表中点「下载」取对应时间段的日志文件。</li></ol><p><strong>多台服务器部署时，每台服务器上的日志都要下载</strong>——只取一台会缺失关键链路。</p>
+        <figure class="shot">
+          <a href="../../assets/img/v14/04-ops-applog.png" target="_blank" rel="noopener"><img src="../../assets/img/v14/04-ops-applog.png" alt="OPS 应用日志查询界面，选择组件与时间范围"></a>
+          <figcaption><b>图 4</b> OPS 应用日志查询（服务器列已做遮盖处理）：按组件 + 时间范围筛选后逐条下载；多服务器环境每台都要下。</figcaption>
+        </figure>
+
+        <h2 id="s9">平台日志下载 · 多日志打包（V4.X）</h2>
+        <ol><li>进入 OPS，「日志分析 → 应用日志 → 应用日志打包」。</li><li>点「＋创建打包任务」。</li><li>输入任务名称（建议写「日期 + 现象 + 工单号」），勾选需要下载的日志组件与时间范围，点「确定」。</li><li>任务生成后，在列表里下载对应打包文件。</li></ol><p><strong>推荐用法：</strong>一次故障涉及多个组件时用打包，避免逐个下载漏项；打包任务名称写清现象，后续归档检索更方便。</p>
+
+        <h2 id="s10">TRACE 开关（V3.X / V4.X）</h2>
+        <p>默认等级的日志不足以定位算法类问题，需要临时开 TRACE。两个版本入口不同：</p><table><thead><tr><th>版本</th><th>路径</th><th>操作</th></tr></thead><tbody><tr><td>平台 V3.X</td><td>运管 →「系统维护」→「参数配置」→「服务参数配置」</td><td>选中服务（如 rcs），在「日志打印等级」点「默认等级」后的编辑按钮 → 选「TRACE 及以上」→ 可设生效时长 → 确定</td></tr><tr><td>平台 V4.X</td><td>OPS →「系统维护」→「服务运维」</td><td>选中服务（如 rcs），点「日志等级」→ 选「trace 及以上」→ 设生效时长 → 确定</td></tr></tbody></table><p><strong>V3.X 无需手动关闭</strong>：TRACE 会在生效时长结束后自动恢复默认等级。V4.X 同样建议设置合理的生效时长，而不是长期开启。</p>
+        <figure class="shot">
+          <a href="../../assets/img/v14/05-service-ops.png" target="_blank" rel="noopener"><img src="../../assets/img/v14/05-service-ops.png" alt="OPS 服务运维界面，选择服务后点击日志等级"></a>
+          <figcaption><b>图 5</b> OPS「服务运维」入口：先选中目标服务（如 rcs），右侧工具栏点「日志等级」进入级别设置。</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="../../assets/img/v14/06-log-level.png" target="_blank" rel="noopener"><img src="../../assets/img/v14/06-log-level.png" alt="日志级别设置窗口，选择 trace 及以上并设置生效时长"></a>
+          <figcaption><b>图 6</b> 日志级别窗口：选「trace 及以上」，生效时长按排查窗口设置（如 20 分钟），到期自动恢复。</figcaption>
+        </figure>
+
+        <h2 id="s11">常见问题的日志清单与收尾</h2>
+        <p>常见问题按下面清单取日志，一次给全，避免反复补料：</p><table><thead><tr><th>问题类型</th><th>主控端</th><th>平台端</th></tr></thead><tbody><tr><td>失联 / 掉线</td><td>agv_log、wpa、内核日志</td><td>对应时段平台日志</td></tr><tr><td>无路径 / 不走</td><td>agv_log、rcd</td><td>rcs_logbak</td></tr><tr><td>走偏 / 定位异常</td><td>agv_log、rcd、llc_log（激光方案另加 lidar）</td><td>rcs_logbak + 拓扑地图</td></tr><tr><td>遇障 / 传感器无效</td><td>agv_log、rcd、sens、lidar、evt</td><td>—</td></tr><tr><td>主控崩溃 / 重启</td><td>agv_log、coredump、内核日志</td><td>—</td></tr><tr><td>任务不分配 / 未完成</td><td>agv_log</td><td>rcs_logbak、rcms、rtas</td></tr></tbody></table><ul><li>下载前先确认机器人 / 平台版本，V3 与 V4 的目录和账号密码均不同。</li><li>TRACE 用完靠生效时长自动恢复，不要长期打开。</li><li>日志文件按「时间 + 现象」重命名归档，便于复盘与交接。</li><li>本篇 IP、账号密码均为手册默认示例，现场以实际配置为准；对外发送日志前按项目要求脱敏。</li></ul>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>已确认主控与平台版本，按对应代的目录和入口取日志。</li>
-          <li>日志时间覆盖故障前后，文件名与时间点已记录。</li>
-          <li>V4.X 机器人日志按 agv_log、evt、rcd、wpa 等类别分别取全。</li>
-          <li>平台多服务器部署时，每台服务器的同一组件日志均已下载。</li>
-          <li>需要更详细日志时已开启 TRACE 并设置合理生效时长，复现后确认恢复。</li>
-          <li>异常重启类问题额外保留 coredump 与相关内核日志。</li>
-          <li>提交前核对日志包内文件时间与问题时间点一致。</li>
+          <li>已确认主控与平台版本（V3.X / V4.X），按对应路径取日志</li>
+          <li>下载前已明确现象时间点，并按时间窗筛选而非整包拉取</li>
+          <li>机器人端日志种类齐全（agv_log、rcd、evt，必要时 wpa / lidar / sens / llc_log）</li>
+          <li>平台端日志按问题类型取到对应组件（rcs / rcms / rtas / wcs）</li>
+          <li>多服务器部署时每台服务器的日志都已下载</li>
+          <li>需要算法级信息时已开 TRACE，并设置了合理的生效时长</li>
+          <li>TRACE 已确认到期自动恢复，未长期开启</li>
+          <li>崩溃类问题已取 coredump 与内核日志</li>
+          <li>日志文件已按时间 + 现象命名归档，对外发送前已脱敏</li>
         </ul>
       </div>
 
@@ -124,13 +169,17 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与前置条件</a>
-        <a href="#s2">机器人日志的种类（V4.X）</a>
-        <a href="#s3">日志命名与时间判断</a>
-        <a href="#s4">机器人日志的下载</a>
-        <a href="#s5">平台日志的下载</a>
-        <a href="#s6">TRACE 开关的打开与关闭</a>
-        <a href="#s7">常见问题与注意事项</a>
+        <a href="#s1">日志体系概览：先分清两端口</a>
+        <a href="#s2">机器人日志种类（主控 V4.X）</a>
+        <a href="#s3">日志时间戳怎么读</a>
+        <a href="#s4">机器人日志下载 · 主控 V3.X（终端）</a>
+        <a href="#s5">首次连接的主机密钥确认</a>
+        <a href="#s6">机器人日志下载 · 主控 V4.X（IAS）</a>
+        <a href="#s7">平台日志下载 · 平台 V3.X</a>
+        <a href="#s8">平台日志下载 · 平台 V4.X（OPS 查询）</a>
+        <a href="#s9">平台日志下载 · 多日志打包（V4.X）</a>
+        <a href="#s10">TRACE 开关（V3.X / V4.X）</a>
+        <a href="#s11">常见问题的日志清单与收尾</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>

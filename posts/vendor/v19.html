@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>终端工具连接机器人与服务端的常用操作 — 配置与工具 — 现场笔记</title>
-<meta name="description" content="介绍用 PuTTY 和 MobaXterm 登录机器人或服务器、上传下载文件、开打印和在线改配置的常用手法。">
+<meta name="description" content="现场最常用的两类终端操作：用 PuTTY 登录机器人主控跑调试命令、开打印留证；用 MobaXterm 登录服务器，通过 SSH 与 SFTP 上传下载、在线改配置。按操作手册 V5.1 补齐界面步骤、命令与易错点。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>配置与工具</span></div>
       <h1>终端工具连接机器人与服务端的常用操作</h1>
-      <p class="lede">介绍用 PuTTY 和 MobaXterm 登录机器人或服务器、上传下载文件、开打印和在线改配置的常用手法。</p>
+      <p class="lede">现场最常用的两类终端操作：用 PuTTY 登录机器人主控跑调试命令、开打印留证；用 MobaXterm 登录服务器，通过 SSH 与 SFTP 上传下载、在线改配置。按操作手册 V5.1 补齐界面步骤、命令与易错点。</p>
       <div class="doc-meta">
-        <span>整理自 内部操作手册 V1.0，2023-04</span>
+        <span>整理自 内部操作手册 V5.1（2023-04，21 页）</span>
         <span class="chip">配置与工具</span>
       </div>
 
@@ -81,37 +81,69 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与前置条件</h2>
-        <p>现场两类连接需求：一类是登录机器人主控查看日志、执行调试命令，另一类是登录服务器查看服务日志、修改配置文件。前者用轻量的终端工具即可，后者更适合带文件浏览器和 SFTP 的工具。两者都只需要目标设备的 IP、账号和密码。</p><ul><li>确认本机与目标设备网络可达，SSH 端口未被封锁。</li><li>确认账号有对应权限，避免只能读取不能写入。</li><li>机器人侧若无法登录，先确认 SSH 开关已打开。</li></ul>
+        <h2 id="s1">工具选型与前置条件</h2>
+        <table><thead><tr><th>工具</th><th>特点</th><th>适用场景</th></tr></thead><tbody><tr><td>PuTTY</td><td>单文件免安装，只有终端</td><td>登录机器人主控跑命令、开打印</td></tr><tr><td>MobaXterm</td><td>便携版免安装，自带 SFTP 侧栏</td><td>登录服务器查日志、上传下载、改配置</td></tr></tbody></table><p>两者都只需要目标设备的 <strong>IP、账号、密码</strong>。</p><ul><li>确认本机与目标设备网络可达，SSH 端口未被防火墙拦截。</li><li>机器人侧若无法连接，先确认 SSH 服务开关已打开。</li><li>账号需具备相应读写权限，否则能登录但改不了文件。</li><li>连接参数（IP、端口、账号）以交付资料为准，不要在群里传播密码。</li></ul>
 
-        <h2 id="s2">用终端工具连接机器人</h2>
-        <p>解压终端工具压缩包后直接运行可执行文件，无需安装。连接步骤：</p><ol><li>打开工具，在主机地址栏输入机器人 IP，点击“open”。</li><li>首次连接会出现主机密钥提示，按现场规范选择“否”继续。</li><li>输入用户名 root，回车后再输入密码，回车完成登录。</li></ol><p>登录后即进入机器人命令行环境，可直接执行查看日志、重启、刷新日志等命令。若提示连接被拒绝，优先检查机器人 SSH 开关和 IP 是否可 ping 通。</p>
+        <h2 id="s2">PuTTY 连接机器人</h2>
+        <ol><li>解压工具包，双击运行可执行文件，无需安装。</li><li>在 <strong>Host Name (or IP address)</strong> 中填写机器人 IP，端口保持 22，Connection type 选 SSH。</li><li>点击 <strong>Open</strong>，首次连接会弹出主机密钥提示（见下一节）。</li><li>在终端出现 <code>login as:</code> 时输入用户名 <code>root</code> 回车，再按交付资料输入密码。输入密码时屏幕不显示字符，属正常现象。</li><li>出现命令提示符即登录成功，可执行日志查看、重启、调试等命令。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v19/01-putty-session.png" target="_blank" rel="noopener"><img src="../../assets/img/v19/01-putty-session.png" alt="PuTTY 配置窗口，主机地址已填写"></a>
+          <figcaption><b>图 1</b> PuTTY 配置窗口：填写主机 IP、端口 22、连接类型 SSH，点击 Open 建立会话（地址已脱敏）。</figcaption>
+        </figure>
 
-        <h2 id="s3">开启打印并保存输出</h2>
-        <p>排查现场动作类问题时，常需要实时观察机器人打印。先执行 <code>castor_cli -T 1</code> 打开打印，复现问题后再执行 <code>castor_cli -T 0</code> 结束打印。为了把打印内容留作证据，可在会话设置中配置日志保存路径，配置完成后点击“Apply”生效。</p><div class="callout ok"><span class="callout-title">建议</span><p>先设好保存路径再开打印，避免中途配置导致前半段输出丢失；保存的文件按时间命名，便于与故障时间点对应。</p></div>
+        <h2 id="s3">首次连接的主机密钥提示</h2>
+        <p>第一次连接某台设备时会弹窗提示“该主机的密钥未缓存在注册表中”，这是 SSH 的正常安全机制，不是故障。</p><ul><li>按现场规范点击 <strong>“否”</strong> 继续连接；点击“是”会缓存该主机密钥，后续不再提示。</li><li>弹窗中显示的指纹用于核对目标设备身份，可向设备负责人确认后再决定是否缓存。</li><li>误点缓存后又需要重新确认时，可在 PuTTY 中清理该主机的已知密钥记录，再重新连接。</li></ul>
+        <figure class="shot">
+          <a href="../../assets/img/v19/03-hostkey.png" target="_blank" rel="noopener"><img src="../../assets/img/v19/03-hostkey.png" alt="PuTTY 首次连接的主机密钥安全提示"></a>
+          <figcaption><b>图 2</b> 首次连接的安全提示：核对指纹后按现场规范选择“否”继续；图标题栏中的地址已裁除。</figcaption>
+        </figure>
+        <div class="callout warn"><span class="callout-title">同一 IP 换了设备</span><p>设备返修或换机后，IP 可能没变但主机密钥已变，此时再连接会报“密钥不匹配”。确认是本人换机后，清理旧的已知密钥记录再连接；无法确认时先联系负责人，不要直接忽略告警。</p></div>
 
-        <h2 id="s4">用 MobaXterm 连接服务器</h2>
-        <p>解压后运行便携版可执行文件即可。连接有两种方式：</p><ul><li><strong>会话方式</strong>：点击 Session，选择 SSH，填写主机地址、用户名和端口后点击 OK。</li><li><strong>命令行方式</strong>：点击 Start local terminal，输入 <code>ssh root@服务器IP</code> 回车；默认远程端口为 22，若服务器端口不是 22，用 <code>-p 端口号</code> 指定，例如 <code>ssh -p 55555 root@服务器IP</code>。</li></ul><p>命令行方式不写 <code>-p</code> 时默认走 22 端口，端口填错会表现为连接超时或拒绝。</p>
+        <h2 id="s4">开打印与保存输出</h2>
+        <p>排查动作类问题时，需要实时观察机器人打印，并把输出留作证据。</p><ol><li><strong>先配置日志保存</strong>：在 PuTTY 的 Session → Logging 中，选择记录全部会话输出，Browse 指定本地保存路径，点击 <strong>Apply</strong> 生效。</li><li>再执行 <code>castor_cli -T 1</code> 打开打印。</li><li>复现问题，观察打印中的动作、路径、状态变化。</li><li>复现结束执行 <code>castor_cli -T 0</code> 关闭打印，避免日志持续膨胀。</li><li>在保存路径下找到日志文件，按时间与故障时刻对应，交给研发分析。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v19/02-log-capture.png" target="_blank" rel="noopener"><img src="../../assets/img/v19/02-log-capture.png" alt="终端中开启打印后的输出"></a>
+          <figcaption><b>图 3</b> 执行开打印命令后，终端持续输出动作与状态信息；此时的动作顺序与时间点是定位问题的关键证据。</figcaption>
+        </figure>
+        <div class="callout ok"><span class="callout-title">先设保存再开打印</span><p>打开打印后再配置保存路径，前半段输出会丢失。日志按“设备编号-日期-故障现象”命名，回传研发时只给日志文件，不要把整段会话截图发到公开群。</p></div>
 
-        <h2 id="s5">上传与下载文件</h2>
-        <p>该工具登录后左侧自带 SFTP 面板，可直接浏览服务器目录。</p><ul><li><strong>下载</strong>：在目录框输入目标目录（例如服务账号的 home 目录）回车，选中文件后点击下载图标，在弹窗中选择本地保存位置。</li><li><strong>上传</strong>：同样进入目标目录，点击上传图标，在弹窗中选择本地文件并打开即可上传到当前目录。</li><li>传输大文件时保持会话不中断，中断后可重新连接续传。</li></ul>
+        <h2 id="s5">MobaXterm 的两种连接方式</h2>
+        <p>解压后运行便携版可执行文件即可，无需安装。</p><ul><li><strong>会话方式</strong>：点击 <strong>Session</strong> → 选择 <strong>SSH</strong> → 填写 Remote host（服务器 IP）、Specify username、端口（默认 22）→ OK。连接成功后左侧自动展开 SFTP 面板。</li><li><strong>命令行方式</strong>：点击 <strong>Start local terminal</strong>，输入 <code>ssh root@服务器IP</code> 回车；端口不是 22 时用 <code>-p</code> 指定，例如 <code>ssh -p 55555 root@服务器IP</code>。</li></ul>
+        <figure class="shot">
+          <a href="../../assets/img/v19/04-moba-session.png" target="_blank" rel="noopener"><img src="../../assets/img/v19/04-moba-session.png" alt="MobaXterm SSH 会话参数配置界面"></a>
+          <figcaption><b>图 4</b> MobaXterm 新建 SSH 会话时需要填写的三项：主机地址、用户名、端口；主机地址栏留空处按现场实际 IP 填写。</figcaption>
+        </figure>
+        <p>命令行方式不写 <code>-p</code> 时默认走 22 端口。端口填错通常表现为连接超时或拒绝，而不是密码错误。</p>
 
-        <h2 id="s6">在线查看与修改配置文件</h2>
-        <p>以服务端配置文件为例，典型流程是进入目录、查看内容、再编辑保存：</p><ol><li>用 <code>cd</code> 切换到组件配置文件所在目录，再用 <code>ls</code> 确认文件名。</li><li>用 <code>cat 文件名</code> 查看当前配置，先确认要改的键在哪个位置。</li><li>用 <code>vim 文件名</code> 进入编辑，按 <code>i</code> 进入编辑模式，修改完成后按 <code>Esc</code> 退出编辑模式，输入 <code>:wq</code> 回车保存并退出。</li><li>若不希望保存，按 <code>Esc</code> 后输入 <code>:q!</code> 强制退出。</li></ol><div class="callout warn"><span class="callout-title">改配置前先备份</span><p>修改前先用下载功能把原文件取回本地；修改后需重启对应服务并验证效果。密码、连接串之类的值写错，可能导致服务启动失败或无法连接数据库，建议改完立即做一次服务状态检查。</p></div>
+        <h2 id="s6">上传与下载文件</h2>
+        <p><strong>方式一：PuTTY 下用 sz/rz</strong></p><ul><li>下载：在目标目录执行 <code>sz 文件名</code>，按提示选择保存位置；PuTTY 默认下载到本机桌面。</li><li>上传：在目标目录执行 <code>rz</code>，在弹出的文件选择窗口中选择本地文件上传到当前目录。</li><li>传输大文件时保持会话不中断，中断后重新连接续传或重传。</li></ul><p><strong>方式二：MobaXterm 的 SFTP 面板</strong></p><ol><li>左侧目录框输入目标目录并回车（如服务账号的 home 目录）。</li><li>下载：选中文件，点击下载图标，选择本地保存位置。</li><li>上传：进入目标目录，点击上传图标，选择本地文件并打开。</li><li>上传后回到终端执行 <code>ls -l</code> 确认文件大小与权限。</li></ol>
+        <div class="callout warn"><span class="callout-title">路径与权限两个坑</span><p>① 下载到“桌面”后容易被清理或误删，重要日志建议直接保存到固定目录并及时归档；② 上传后文件属主/权限可能变化，覆盖服务配置文件前先确认属主，必要时用 <code>chown</code>/<code>chmod</code> 修正。</p></div>
 
-        <h2 id="s7">常见问题与注意事项</h2>
-        <ul><li>首次连接的主机指纹提示只出现一次，误点后可清理本地已知主机记录再重连。</li><li>机器人登录不上：确认 IP 正确、SSH 开关已开、账号密码未变更。</li><li>服务器连接超时：核对端口，检查防火墙与安全组策略。</li><li>上传下载无响应：确认当前目录有读写权限，磁盘空间是否充足。</li><li>编辑时误按导致界面异常：按 <code>Esc</code> 后输入 <code>:q!</code> 退出重来，不要强行关闭终端。</li></ul>
+        <h2 id="s7">在线查看与修改配置文件</h2>
+        <p>以服务端配置文件为例，典型顺序是“定位目录 → 查看 → 备份 → 编辑 → 重启验证”。</p><ol><li>用 <code>cd</code> 切换到配置文件所在目录，用 <code>ls</code> 确认文件名。</li><li>用 <code>cat 文件名</code> 查看当前内容，先确认要改的键的位置与现值。</li><li><strong>先备份</strong>：用下载功能把原文件取回本地，或在设备上复制一份带日期后缀的副本。</li><li>用 <code>vim 文件名</code> 打开，按 <code>i</code> 进入编辑模式；方向键移动，修改目标行。</li><li>修改完成后按 <code>Esc</code> 退出编辑模式，输入 <code>:wq</code> 回车保存并退出。</li><li>不希望保存时按 <code>Esc</code> 后输入 <code>:q!</code> 强制退出。</li><li>重启对应服务，检查服务状态与日志，确认配置生效。</li></ol>
+        <div class="callout danger"><span class="callout-title">改配置的三条底线</span><p>① 改前必须备份，禁止直接在唯一副本上改；② 密码、连接串等值不要写在工单、聊天记录或截图里；③ 改完必须重启并验证，未验证不能离场。</p></div>
+
+        <h2 id="s8">常见问题定位</h2>
+        <table><thead><tr><th>现象</th><th>优先检查</th><th>处理</th></tr></thead><tbody><tr><td>机器人连不上</td><td>IP 是否正确、SSH 开关是否打开、是否可 ping 通</td><td>修正地址；开启 SSH；检查同网段</td></tr><tr><td>连接超时/拒绝（服务器）</td><td>端口是否为非 22、防火墙与安全组</td><td>命令补 <code>-p</code>；申请放通端口</td></tr><tr><td>登录后改不了文件</td><td>账号权限、文件属主</td><td>使用有权限的账号，必要时调整属主</td></tr><tr><td>上传/下载无响应</td><td>当前目录读写权限、磁盘空间</td><td>换有权限目录；清理空间后重传</td></tr><tr><td>主机密钥不匹配</td><td>是否换设备/重装系统</td><td>确认后清理本地已知密钥再连</td></tr><tr><td>vim 界面异常</td><td>是否误按组合键</td><td>按 <code>Esc</code> 后 <code>:q!</code> 退出重来，不要强关终端</td></tr></tbody></table>
+
+        <h2 id="s9">安全与合规操作</h2>
+        <ul><li>账号密码按交付资料使用，不在群聊、工单正文或截图中出现；多人共用账号时按项目要求登记使用人。</li><li>连接外网前确认符合现场网络与信息安全要求，禁止私自把设备映射到公网。</li><li>导出的日志、配置可能含设备地址、账号等敏感信息，对外提供前先脱敏。</li><li>临时打开的调试打印，排查结束立即关闭（<code>castor_cli -T 0</code>），避免影响设备性能与存储。</li><li>修改配置后保留备份与变更记录，便于回滚与追溯。</li></ul>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>已确认目标设备 IP 可 ping 通，SSH 端口未被拦截。</li>
-          <li>机器人侧 SSH 开关已打开，root 账号可正常登录。</li>
-          <li>开打印前已配置输出保存路径，并确认文件成功落盘。</li>
-          <li>服务器连接使用了正确端口，非 22 端口时命令带 -p 参数。</li>
-          <li>修改配置文件前已将原文件下载备份到本地。</li>
-          <li>编辑完成后使用 :wq 保存，或使用 :q! 放弃修改，未产生半截文件。</li>
-          <li>配置修改后重启对应服务，并确认服务状态与日志正常。</li>
+          <li>已确认目标设备 IP 可 ping 通，SSH 端口未被拦截</li>
+          <li>机器人侧 SSH 开关已打开，登录账号具有所需权限</li>
+          <li>首次连接已核对主机指纹并按现场规范选择是否缓存</li>
+          <li>开打印前已配置日志保存路径并确认文件成功落盘</li>
+          <li>打印排查结束后已执行关闭打印命令</li>
+          <li>服务器连接端口正确，非 22 端口时命令带 -p 参数</li>
+          <li>上传/下载完成后已用 ls -l 核对文件大小与权限</li>
+          <li>修改配置文件前已完成备份（本地或设备副本）</li>
+          <li>编辑保存使用 :wq，放弃修改使用 :q!，未产生半截文件</li>
+          <li>配置修改后已重启对应服务并检查状态与日志</li>
+          <li>密码、连接串等敏感信息未出现在截图、聊天记录或工单中</li>
+          <li>导出的日志与配置对外提供前已完成脱敏</li>
         </ul>
       </div>
 
@@ -124,13 +156,15 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与前置条件</a>
-        <a href="#s2">用终端工具连接机器人</a>
-        <a href="#s3">开启打印并保存输出</a>
-        <a href="#s4">用 MobaXterm 连接服务器</a>
-        <a href="#s5">上传与下载文件</a>
-        <a href="#s6">在线查看与修改配置文件</a>
-        <a href="#s7">常见问题与注意事项</a>
+        <a href="#s1">工具选型与前置条件</a>
+        <a href="#s2">PuTTY 连接机器人</a>
+        <a href="#s3">首次连接的主机密钥提示</a>
+        <a href="#s4">开打印与保存输出</a>
+        <a href="#s5">MobaXterm 的两种连接方式</a>
+        <a href="#s6">上传与下载文件</a>
+        <a href="#s7">在线查看与修改配置文件</a>
+        <a href="#s8">常见问题定位</a>
+        <a href="#s9">安全与合规操作</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>调度系统 HTTP API 签名与任务接口 — 通信与接口 — 现场笔记</title>
-<meta name="description" content="面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。">
+<meta name="description" content="面向 WMS/MES 对接方的接口手册：请求头与签名算法、错误码判定、任务组与任务下发/继续/取消/查询全流程，以及调度系统回调上层系统的 SPI 接口。按 RCS V4.1 对外接口文档整理。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>通信与接口</span></div>
       <h1>调度系统 HTTP API 签名与任务接口</h1>
-      <p class="lede">面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。</p>
+      <p class="lede">面向 WMS/MES 对接方的接口手册：请求头与签名算法、错误码判定、任务组与任务下发/继续/取消/查询全流程，以及调度系统回调上层系统的 SPI 接口。按 RCS V4.1 对外接口文档整理。</p>
       <div class="doc-meta">
-        <span>整理自 内部接口文档 V4.1（时间以修订记录为准）</span>
+        <span>整理自 内部接口文档 V4.1（2024-07-26，93 页）</span>
         <span class="chip">通信与接口</span>
       </div>
 
@@ -81,38 +81,71 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与对接准备</h2>
-        <p>适用于业务系统（WMS、MES 等）通过 HTTP + JSON 调用调度系统完成下发、继续、取消与查询，并接收调度系统回调的对接场景。</p><ul><li>服务前缀统一为 /rcs/rtas，接口路径形如 /api/robot/controller/task/submit。</li><li>对接前需取得 appKey 与 appSecret，并确认所用接口版本号。</li><li>调度系统调用上层接口时，连接超时默认 30 秒、数据返回超时默认 60 秒，超时按连接失败处理。</li><li>请求与应答均为 JSON 对象，不使用数组作为顶层结构。</li></ul>
+        <h2 id="s1">对接总览与前置准备</h2>
+        <p>调度系统对外提供 HTTP + JSON 接口，业务系统（WMS、MES、上位调度等）通过它完成任务下发、继续、取消、查询，并通过预先登记的地址接收调度系统的回调。</p><ul><li><strong>服务前缀</strong>统一为 <code>/rcs/rtas</code>，完整路径形如 <code>POST /rcs/rtas/api/robot/controller/task/submit</code>。</li><li>接口按资源分两类：<code>/api/robot/controller/*</code> 为业务系统调用调度系统；<code>/api/robot/reporter/*</code> 为调度系统回调业务系统（SPI）。</li><li>对接前需取得 <code>appKey</code>、<code>appSecret</code>，确认接口版本号，并把回调地址、超时时间与对方书面确认。</li><li>调度系统调用上层接口时，<strong>连接超时默认 30 秒、数据返回超时默认 60 秒</strong>，超时按连接失败处理。</li><li>请求与应答均为 JSON 对象，顶层不使用数组；<code>data</code> 最大 10MB。</li></ul>
+        <div class="callout ok"><span class="callout-title">联调顺序建议</span><p>先只用“查询类接口”把签名跑通，再下发一个最简单的单步任务，最后才接入任务组、区域控制和回调。签名未通就调业务，排查时无法区分是签名、参数还是业务状态的问题。</p></div>
 
-        <h2 id="s2">请求头与报文格式</h2>
-        <ul><li>Authorization：固定格式 nonce="…",method="HMAC-SHA256",timestamp="…"，nonce 建议每次随机。</li><li>X-lr-appkey 为调度系统颁发的应用唯一标识；X-lr-request-id 为本次业务请求的唯一标识。</li><li>X-lr-version 为接口版本，同一接口可能存在多个版本实现；X-lr-trace-id 建议用 UUID，并在响应中原样返回。</li><li>Content-Type 固定为 application/json;charset=UTF-8；X-lr-source 可用于标注指令来源，便于定位故障。</li><li>请求体只允许 JSON 对象或空字符串，UTF-8 编码，业务参数全部放在报文体中。</li></ul>
+        <h2 id="s2">公共请求头与报文约定</h2>
+        <table><thead><tr><th>字段</th><th>说明</th><th>注意</th></tr></thead><tbody><tr><td><code>Authorization</code></td><td>固定格式 <code>nonce="…",method="HMAC-SHA256",timestamp="…"</code></td><td>nonce 建议每次随机，避免重放</td></tr><tr><td><code>X-lr-appkey</code></td><td>调度系统颁发的应用唯一标识</td><td>与 appSecret 成对使用</td></tr><tr><td><code>X-lr-request-id</code></td><td>本次业务请求的唯一标识</td><td>同一业务不要复用，便于去重</td></tr><tr><td><code>X-lr-version</code></td><td>接口版本</td><td>同一接口可能有多个版本实现</td></tr><tr><td><code>X-lr-trace-id</code></td><td>链路追踪号</td><td>建议 UUID，服务端会在响应中原样返回</td></tr><tr><td><code>X-lr-source</code></td><td>指令来源标注</td><td>建议填系统名，便于定位故障</td></tr><tr><td><code>Content-Type</code></td><td><code>application/json;charset=UTF-8</code></td><td>不符合会返回 406</td></tr></tbody></table><p>请求体只允许 JSON 对象或空字符串，UTF-8 编码，业务参数全部放在报文体中，不要塞进 URL 或首部。</p>
 
-        <h2 id="s3">签名与验签</h2>
-        <ul><li>参与签名的内容为：请求行、指定首部字段、空行和请求体；首部按文档给定顺序排列，字段名转为大写。</li><li>参与字段包括 AUTHORIZATION、HOST、X-LR-APPKEY、X-LR-REQUEST-ID、X-LR-SOURCE、X-LR-TRACE-ID、X-LR-VERSION。</li><li>签名 = MD5（加盐哈希（appSecret，签名原串）），加盐算法推荐 HMAC-SHA256，也可用 HMAC-SHA512。</li><li>签名作为查询参数放在最后，参数名为 sign。</li><li>服务端验签时按相同步骤重算并比对；用 timestamp 做重放校验，建议合法时间窗不超过 120 秒。</li></ul><div class="callout warn"><span class="callout-title">签名常见失败原因</span><p>Host 与请求行不一致、首部顺序或大小写变化、空行缺失、请求体被网关改写，都会导致 401，排查时优先抓原始报文比对。</p></div>
+        <h2 id="s3">签名生成与验签</h2>
+        <p>签名是失败率最高的环节。按下面的顺序组装，任何一处不一致都会得到 401。</p><ol><li><strong>组装签名原串</strong>：请求行 + 指定首部字段 + 空行 + 请求体。</li><li>首部字段按文档给定顺序排列，<strong>字段名统一转大写</strong>，值与顺序保持与真实发送一致。</li><li><strong>计算签名</strong>：<code>sign = MD5( 加盐哈希(appSecret, 签名原串) )</code>，加盐算法推荐 <code>HMAC-SHA256</code>，也支持 HMAC-SHA512。</li><li>把签名作为<strong>查询参数放在 URL 最后</strong>，参数名为 <code>sign</code>。</li><li>服务端按同样步骤重算并比对，同时用 <code>timestamp</code> 做重放校验，建议合法时间窗不超过 <strong>120 秒</strong>。</li></ol><table><thead><tr><th>参与签名的首部</th><th>说明</th></tr></thead><tbody><tr><td><code>AUTHORIZATION</code></td><td>含 nonce、method、timestamp</td></tr><tr><td><code>HOST</code></td><td>必须与实际访问域名/端口一致</td></tr><tr><td><code>X-LR-APPKEY</code></td><td>应用标识</td></tr><tr><td><code>X-LR-REQUEST-ID</code></td><td>请求唯一标识</td></tr><tr><td><code>X-LR-SOURCE</code></td><td>来源标注</td></tr><tr><td><code>X-LR-TRACE-ID</code></td><td>链路追踪号</td></tr><tr><td><code>X-LR-VERSION</code></td><td>接口版本</td></tr></tbody></table><pre><code>POST /rcs/rtas/api/robot/controller/task/submit?sign=&lt;sign&gt; HTTP/1.1
+        Host: &lt;host&gt;
+        Authorization: nonce="…",method="HMAC-SHA256",timestamp="…"
+        X-lr-appkey: &lt;appKey&gt;
+        X-lr-request-id: &lt;uuid&gt;
+        X-lr-version: &lt;version&gt;
+        X-lr-trace-id: &lt;uuid&gt;
+        X-lr-source: wms
+        Content-Type: application/json;charset=UTF-8
+        
+        { "taskType": "…" }</code></pre>
+        <div class="callout warn"><span class="callout-title">401 排查顺序</span><p>① Host 与请求行中的地址是否一致；② 首部顺序、大小写、是否少了某个 X-LR 字段；③ 首部与请求体之间的空行是否保留；④ 请求体是否被网关/框架重新序列化（空格、字段顺序变化）；⑤ 客户端时间与服务器时间是否超出 120 秒。抓原始报文逐字节比对，比反复换算法有效。</p></div>
 
-        <h2 id="s4">响应与状态码处理</h2>
-        <ul><li>响应体固定为 code、message、data 三字段，data 最大 10 MB。</li><li>200 只代表 HTTP 层处理成功，业务是否成功仍需看 code；SUCCESS 才算成功。</li><li>401 签名认证失败，多为签名过期或 appKey/appSecret 失效，需重新加签或重新申请。</li><li>403 权限不足，例如尝试取消非本系统创建的任务；406 表示 Content-Type 不符合要求。</li><li>400 属客户端请求错误，重试无意义；500 为服务端异常，可按业务设定次数与间隔重试。</li><li>通用业务码还包括 Err_Internal、Err_DataValidationFailed、Err_RequestDuplicate、Err_InvalidVersion。</li></ul>
+        <h2 id="s4">响应结构与错误码</h2>
+        <p>响应体固定为 <code>code</code>、<code>message</code>、<code>data</code> 三个字段。<strong>HTTP 200 只代表请求被处理，业务是否成功要看 code</strong>，只有 <code>SUCCESS</code> 才算成功。</p><table><thead><tr><th>HTTP 状态</th><th>含义</th><th>处理建议</th></tr></thead><tbody><tr><td>200</td><td>HTTP 层处理成功</td><td>继续判断业务 code</td></tr><tr><td>400</td><td>请求格式/参数错误</td><td>修正后重发，原样重试无意义</td></tr><tr><td>401</td><td>签名认证失败</td><td>重新加签；核对 appKey/appSecret 是否失效</td></tr><tr><td>403</td><td>权限不足</td><td>如取消非本系统创建的任务，需业务侧约定归属</td></tr><tr><td>406</td><td>Content-Type 不符</td><td>改为 application/json;charset=UTF-8</td></tr><tr><td>500</td><td>服务端异常</td><td>可按约定次数与间隔重试</td></tr></tbody></table><p>通用业务码还包括 <code>Err_Internal</code>（内部错误）、<code>Err_DataValidationFailed</code>（参数校验失败）、<code>Err_RequestDuplicate</code>（请求重复）、<code>Err_InvalidVersion</code>（版本不合法），以及载具/站点绑定场景的 <code>Err_TaskFound</code>（被任务占用）、<code>Err_Bound</code>（已绑定其他对象）。</p>
 
-        <h2 id="s5">任务组与任务下发</h2>
-        <ul><li>任务之间存在依赖时，先调任务组接口 /api/robot/controller/task/group 声明策略，再调任务下发接口。</li><li>任务组策略含按组顺序出库、按组分配（工作站任务）、载具整理；顺序出库时 groupSeq 必须由小到大依次下发，不支持倒序补发。</li><li>strategyValue：0 组间与组内都无序、1 都需有序、2 组间有序组内无序、3 组间无序组内有序。</li><li>任务下发参数：taskType（如 TRANSPORT）、targetRoute 数组（seq 从 0 开始）、initPriority 1~120、deadline、robotType/robotCode、interrupt、groupCode、extra。</li><li>targetRoute 的 type 支持 SITE、ZONE、STORAGE、CARRIER、STACK、EQPT、PTL_WALL、CARRIER_TYPE、PILE_COUNT 等；ZONE 可用逗号分隔多个区域，按序查找。</li><li>operation 支持 COLLECT、DELIVERY、ROTATE；指定终点角度或载具时通过 extra.angleInfo、extra.carrierInfo 传入，角度取值 0、90、180、-90、360。</li></ul>
+        <h2 id="s5">任务组策略</h2>
+        <p>多个任务之间存在依赖关系时，先用任务组接口 <code>/api/robot/controller/task/group</code> 声明策略，再逐条下发任务；不声明任务组时，任务之间相互独立。</p><table><thead><tr><th>策略</th><th>行为</th><th>约束</th></tr></thead><tbody><tr><td>按组顺序出库</td><td>同组任务按 groupSeq 依次执行</td><td>groupSeq 必须由小到大依次下发，<strong>不支持倒序补发</strong></td></tr><tr><td>按组分配（工作站任务）</td><td>按组把任务分配到工作站</td><td>需与工作站业务约定好组内顺序</td></tr><tr><td>载具整理</td><td>对载具位置进行整理</td><td>按现场库位规则配置</td></tr></tbody></table><p><code>strategyValue</code> 控制有序性：<code>0</code> 组间与组内都无序，<code>1</code> 组间与组内都有序，<code>2</code> 组间有序、组内无序，<code>3</code> 组间无序、组内有序。组号与顺序一旦用错，会出现“任务下了但不执行”或“跨组串行”的现象。</p>
 
-        <h2 id="s6">继续、取消与查询</h2>
-        <ul><li>多步骤任务每完成一步都要调 /api/robot/controller/task/extend/continue 驱动下一步，第一步也通过该接口启动。</li><li>继续接口的 triggerType 支持 SITE、CARRIER、ROBOT、TASK，triggerCode 与之对应；已设为自动开始的步骤可不调，但重复调用需幂等处理，已完成或跳过的步骤应返回错误。</li><li>取消接口 /api/robot/controller/task/cancel：cancelType 为 CANCEL 或 DROP（人工介入），可同时给机器人下发新任务；待分配任务被取消后会新建待调度任务，并沿用优先级与机器人范围。</li><li>查询接口 /api/robot/controller/task/query 按任务号查询，taskStatus 取 QUEUE、WAIT、EXECUTING、MANUALED、FINISHED、CANCELLED，并返回当前步骤序号与告警对象。</li><li>载具与站点绑定要求二者均未被任务占用，否则返回 Err_TaskFound；已与其他对象绑定返回 Err_Bound。</li></ul>
+        <h2 id="s6">任务下发：参数与路径点</h2>
+        <p>任务下发接口为 <code>POST /api/robot/controller/task/submit</code>。</p><table><thead><tr><th>参数</th><th>说明</th></tr></thead><tbody><tr><td><code>taskType</code></td><td>任务类型，如搬运、载具初始化、载具探测等，取值以项目配置为准</td></tr><tr><td><code>targetRoute</code></td><td>路径点数组，<code>seq</code> 从 0 开始递增</td></tr><tr><td><code>initPriority</code></td><td>初始优先级，范围 <strong>1~120</strong>，数值越大越优先</td></tr><tr><td><code>deadline</code></td><td>任务截止时间，超时按现场策略处理</td></tr><tr><td><code>robotType / robotCode</code></td><td>限定车型或指定车辆，不填则由调度分配</td></tr><tr><td><code>interrupt</code></td><td>是否允许打断当前任务</td></tr><tr><td><code>groupCode</code></td><td>任务组编号，配合任务组策略使用</td></tr><tr><td><code>extra</code></td><td>扩展参数，如 <code>angleInfo</code>、<code>carrierInfo</code></td></tr></tbody></table><p>路径点 <code>type</code> 支持：<code>SITE</code>（站点）、<code>ZONE</code>（区域）、<code>STORAGE</code>（储位）、<code>CARRIER</code>（载具）、<code>STACK</code>、<code>EQPT</code>（设备）、<code>PTL_WALL</code>、<code>CARRIER_TYPE</code>、<code>PILE_COUNT</code> 等。ZONE 可用逗号分隔多个区域，按书写顺序查找可用点。</p><ul><li><code>operation</code> 支持 <code>COLLECT</code>（取）、<code>DELIVERY</code>（放）、<code>ROTATE</code>（旋转）。</li><li>需要指定终点角度时在 <code>extra.angleInfo</code> 中传角度，取值 <code>0</code>、<code>90</code>、<code>180</code>、<code>-90</code>、<code>360</code>。</li><li>需要指定载具时在 <code>extra.carrierInfo</code> 中传载具编码，配合 CARRIER 类型路径点使用。</li></ul>
+        <div class="callout warn"><span class="callout-title">优先级不是越大越安全</span><p>把大量任务都设成高优先级，等于没有优先级。建议按业务类型分层（如紧急补料、常规出库、整理任务各占一段），并保留少量高段位给人工插入。</p></div>
 
-        <h2 id="s7">回调接口与常见问题</h2>
-        <ul><li>任务执行回馈：/api/robot/reporter/task，method 默认取 start、outbin、end，需回传任务号、机器人编号与当前步骤序号。</li><li>交管区域申请与释放：/api/robot/reporter/zone，invoke 为 APPLY 或 RELEASE。</li><li>资源申请（WMS/WCS）、归巢完成、驱离完成均走 SPI 回调。</li><li>机器人告警上报：/api/robot/reporter/robot/warning，仅推送一次，含故障码、位置与首次发生时间。</li><li>任务一直停在 WAIT：检查是否漏调继续接口，或上一步完成事件未被上层正确接收。</li></ul>
+        <h2 id="s7">继续、取消、修改与优先级调整</h2>
+        <ul><li><strong>继续任务</strong>：<code>/api/robot/controller/task/extend/continue</code>。多步骤任务每完成一步都要调一次驱动下一步，<strong>第一步也通过该接口启动</strong>。参数 <code>triggerType</code> 支持 <code>SITE</code>、<code>CARRIER</code>、<code>ROBOT</code>、<code>TASK</code>，<code>triggerCode</code> 与类型对应。已配置为自动开始的步骤可不调，但接口需按幂等设计，重复调用已完成/已跳过的步骤应返回错误而不是再执行一次。</li><li><strong>取消任务</strong>：<code>/api/robot/controller/task/cancel</code>。<code>cancelType=CANCEL</code> 为常规取消，<code>DROP</code> 表示需要人工介入的强制取消。取消时可同时给机器人下发新任务。待分配任务被取消后，系统会新建待调度任务并沿用原优先级与机器人范围。</li><li><strong>修改任务</strong>：可在任务未完成前调整目标路径、优先级等允许变更的字段；已进入执行的步骤不会回退，修改只影响后续。</li><li><strong>优先级调整</strong>：单独提供优先级接口，取值范围与下发时一致（1~120）。调整后由调度重新排序，不会抢占正在执行的动作。</li></ul>
+        <div class="callout warn"><span class="callout-title">取消前先确认任务归属</span><p>取消非本系统创建的任务会返回 403。多系统共用一个调度平台时，任务号要落库保存，避免用错任务号取消别人的任务。</p></div>
+
+        <h2 id="s8">区域暂停、归巢驱离、封锁与载具绑定</h2>
+        <table><thead><tr><th>能力</th><th>作用</th><th>关键参数</th></tr></thead><tbody><tr><td>区域暂停 / 恢复</td><td>暂停或恢复指定交管区域的通行</td><td>区域编码列表；暂停后已进入区域的车按现场策略处理</td></tr><tr><td>归巢</td><td>让机器人返回指定待命点</td><td>机器人编号、目标待命点或区域</td></tr><tr><td>驱离</td><td>把妨碍作业的机器人调离当前点</td><td>机器人编号、目标点</td></tr><tr><td>封锁 / 解除封锁</td><td>临时禁止使用某点位或区域</td><td>点位或区域编码</td></tr><tr><td>载具绑定 / 解绑</td><td>把载具与站点或机器人建立/解除对应关系</td><td>载具编码、站点编码；要求二者均未被任务占用</td></tr><tr><td>设备启用 / 禁用</td><td>控制外设（提升机、输送线等）是否参与调度</td><td>设备编码</td></tr><tr><td>预调度</td><td>在正式下单前预占车辆或路径资源</td><td>车型、起点/终点、有效时长</td></tr></tbody></table><p>绑定类接口有两个典型失败返回：载具或站点已被任务占用返回 <code>Err_TaskFound</code>，已被其他对象绑定返回 <code>Err_Bound</code>；此时应先完成任务或先解绑，不能靠重试解决。</p>
+
+        <h2 id="s9">查询接口与状态机</h2>
+        <p>查询主要用于对账与监控，避免业务系统只靠回调判断进度（回调可能因网络重试而重复）。</p><ul><li><strong>任务查询</strong>：<code>/api/robot/controller/task/query</code>，按任务号查询，返回当前步骤序号、执行机器人、告警对象等。</li><li><strong>机器人查询</strong>：按机器人编号查询在线状态、当前位置、当前任务与电量等。</li><li><strong>载具查询</strong>：按载具编码查询所在位置、绑定关系与占用状态。</li></ul><table><thead><tr><th>taskStatus</th><th>含义</th><th>常见原因</th></tr></thead><tbody><tr><td><code>QUEUE</code></td><td>排队待分配</td><td>无可用车或路径被占用</td></tr><tr><td><code>WAIT</code></td><td>已分配，等待继续</td><td>漏调继续接口，或上一步完成事件未被上层接收</td></tr><tr><td><code>EXECUTING</code></td><td>执行中</td><td>—</td></tr><tr><td><code>MANUALED</code></td><td>人工介入</td><td>被 DROP 取消或现场接管</td></tr><tr><td><code>FINISHED</code></td><td>正常完成</td><td>—</td></tr><tr><td><code>CANCELLED</code></td><td>已取消</td><td>业务主动取消</td></tr></tbody></table>
+        <div class="callout ok"><span class="callout-title">对账口径</span><p>建议以“任务查询结果为准、回调消息为触发”，收到回调后再查一次任务状态，可同时解决回调重复与状态滞后两个问题。</p></div>
+
+        <h2 id="s10">SPI 回调接口</h2>
+        <p>回调由调度系统发起，业务系统需提供可访问的 HTTP 服务并按约定返回成功。回调地址在对接时登记，路径以 <code>/api/robot/reporter/</code> 开头。</p><table><thead><tr><th>回调</th><th>典型路径</th><th>说明</th></tr></thead><tbody><tr><td>任务执行回馈</td><td><code>/api/robot/reporter/task</code></td><td><code>method</code> 默认取 <code>start</code>、<code>outbin</code>、<code>end</code>，需回传任务号、机器人编号与当前步骤序号</td></tr><tr><td>交管区域申请/释放</td><td><code>/api/robot/reporter/zone</code></td><td><code>invoke</code> 为 <code>APPLY</code> 或 <code>RELEASE</code>，业务系统需及时回应，超时会影响通行</td></tr><tr><td>资源申请（WMS/WCS）</td><td>按项目登记</td><td>如请求库位、月台、提升机资源，需返回允许/拒绝</td></tr><tr><td>归巢 / 驱离完成</td><td>按项目登记</td><td>动作完成后回传结果，供调度更新状态</td></tr><tr><td>机器人告警</td><td><code>/api/robot/reporter/robot/warning</code></td><td>含故障码、位置与首次发生时间，<strong>仅推送一次</strong>，不补推</td></tr></tbody></table>
+        <div class="callout warn"><span class="callout-title">回调处理三条原则</span><p>① 快速返回，重逻辑异步处理，避免超时导致对方重试；② 以任务号/请求号做幂等，重复回调不重复落账；③ 告警只推一次，收到即落库并通知，不能指望下次再推。</p></div>
+
+        <h2 id="s11">典型流程编排与排障</h2>
+        <p><strong>通用搬运流程</strong>：任务组声明（可选）→ 下发任务（取货点 COLLECT）→ 等待 <code>WAIT</code> 后调继续 → 收到 <code>outbin</code>/<code>end</code> 回调 → 查询确认 → 下发下一段或结束。</p><p><strong>指定载具初始化</strong>：下发载具初始化类型任务 → 调度选车前往载具点 → 完成绑定/顶升 → 回馈 <code>end</code> → 业务确认载具与机器人绑定关系。</p><p><strong>探测载具</strong>：用于确认储位上是否存在载具，结果通过任务查询或回调返回，不要与“取货成功”混为一谈。</p><p><strong>常见问题定位：</strong></p><ul><li>任务一直 <code>WAIT</code>：漏调继续接口，或前一步完成事件未收到；先查回调日志再查任务状态。</li><li>任务一直 <code>QUEUE</code>：无可用车、路径封锁、区域被暂停，逐一核对机器人状态与区域控制记录。</li><li>401：按签名排查顺序抓原始报文比对，不要先改算法。</li><li>403：确认任务归属系统与操作权限。</li><li>回调重复：用任务号/请求号做幂等，不要靠“计数”判断完成次数。</li></ul>
+        <div class="callout danger"><span class="callout-title">上线前必须压测的三件事</span><p>① 断网/超时（30s/60s）下的重试与幂等；② 调度重启后任务状态能否恢复对账；③ 回调地址不可达时，业务侧是否有补偿查询。三项未验证，不建议直接接入生产。</p></div>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>已取得 appKey 与 appSecret，接口版本与调度系统一致</li>
+          <li>已取得 appKey/appSecret，并确认接口版本与调度系统一致</li>
+          <li>所有请求使用 /rcs/rtas 前缀，请求体为 UTF-8 JSON 对象</li>
           <li>请求头字段齐全，Content-Type 为 application/json;charset=UTF-8</li>
-          <li>签名原串含请求行、指定首部、空行与请求体，字段名大写且顺序正确</li>
-          <li>签名通过后能收到 code=SUCCESS 的响应</li>
-          <li>请求时间戳与服务器时间偏差控制在 120 秒以内</li>
-          <li>任务组 groupSeq 按由小到大顺序下发</li>
-          <li>多步骤任务每步完成后调用继续接口，重复调用不产生重复执行</li>
-          <li>回调地址与超时策略（连接 30 秒、返回 60 秒）已与对方书面确认</li>
+          <li>签名原串包含请求行、指定首部、空行与请求体，首部字段名大写且顺序正确</li>
+          <li>签名以 sign 查询参数放在 URL 最后，Host 与实际访问地址一致</li>
+          <li>客户端与服务器时间偏差控制在 120 秒以内，nonce 每次随机</li>
+          <li>已按 code 判断业务成功，未把 HTTP 200 直接当作成功</li>
+          <li>任务组 groupSeq 按由小到大下发，strategyValue 与业务有序性匹配</li>
+          <li>initPriority 在 1~120 范围内，且按业务分层使用</li>
+          <li>多步骤任务每步完成都调用继续接口，接口已做幂等处理</li>
+          <li>取消/绑定类操作前已确认任务归属，能正确处理 403、Err_TaskFound、Err_Bound</li>
+          <li>回调接口已做幂等、快速响应与超时补偿查询，告警落库不依赖重推</li>
         </ul>
       </div>
 
@@ -125,13 +158,17 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与对接准备</a>
-        <a href="#s2">请求头与报文格式</a>
-        <a href="#s3">签名与验签</a>
-        <a href="#s4">响应与状态码处理</a>
-        <a href="#s5">任务组与任务下发</a>
-        <a href="#s6">继续、取消与查询</a>
-        <a href="#s7">回调接口与常见问题</a>
+        <a href="#s1">对接总览与前置准备</a>
+        <a href="#s2">公共请求头与报文约定</a>
+        <a href="#s3">签名生成与验签</a>
+        <a href="#s4">响应结构与错误码</a>
+        <a href="#s5">任务组策略</a>
+        <a href="#s6">任务下发：参数与路径点</a>
+        <a href="#s7">继续、取消、修改与优先级调整</a>
+        <a href="#s8">区域暂停、归巢驱离、封锁与载具绑定</a>
+        <a href="#s9">查询接口与状态机</a>
+        <a href="#s10">SPI 回调接口</a>
+        <a href="#s11">典型流程编排与排障</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>

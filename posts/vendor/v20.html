@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClientView 低代码页面配置与接口绑定 — 通信与接口 — 现场笔记</title>
-<meta name="description" content="从项目、服务、应用到布局与菜单，说明如何用低代码方式配置工作站和 PDA 页面并对接接口。">
+<meta name="description" content="面向实施人员的 ClientView 配置手册：从项目、服务、应用、布局、菜单五步搭出工作站与 PDA 页面，并用元件标识、请求属性把按钮和表格绑定到后端接口。补齐每类元件的关键参数与联调常见坑。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>通信与接口</span></div>
       <h1>ClientView 低代码页面配置与接口绑定</h1>
-      <p class="lede">从项目、服务、应用到布局与菜单，说明如何用低代码方式配置工作站和 PDA 页面并对接接口。</p>
+      <p class="lede">面向实施人员的 ClientView 配置手册：从项目、服务、应用、布局、菜单五步搭出工作站与 PDA 页面，并用元件标识、请求属性把按钮和表格绑定到后端接口。补齐每类元件的关键参数与联调常见坑。</p>
       <div class="doc-meta">
-        <span>整理自 内部操作手册 V1.0，2024-05</span>
+        <span>整理自 内部操作手册 V1.0（2024-05，45 页）</span>
         <span class="chip">通信与接口</span>
       </div>
 
@@ -81,43 +81,90 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与前置条件</h2>
-        <p>需要为工作站或手持终端定制操作页面时，可用该工具以拖拽元件加接口绑定的方式完成，不必单独开发前端。页面可以对接仓储管理系统，也可以对接调度平台，具体取决于应用类型的选择。</p><ul><li>准备好项目编号、应用编号与目标接口清单。</li><li>明确页面跑在电脑工作站还是 PDA，两者布局方式不同。</li><li>配置顺序建议固定为：项目配置、服务配置、应用配置、布局配置、菜单配置，跳步容易出现页面查不到应用的情况。</li></ul>
+        <h2 id="s1">工具定位与配置总览</h2>
+        <p>ClientView 是低代码页面配置工具，用拖拽元件加接口绑定的方式为工作站或 PDA 定制操作页面，不必单独开发前端。页面既可对接仓储管理系统，也可对接调度平台，取决于应用类型的版本选择。</p><p>整体流程固定为五步，顺序不要打乱：</p>
+        <figure class="shot">
+          <a href="../../assets/img/v20/01-flow.png" target="_blank" rel="noopener"><img src="../../assets/img/v20/01-flow.png" alt="ClientView 整体配置流程图"></a>
+          <figcaption><b>图 1</b> 整体配置流程：项目 → 服务 → 应用 → 布局 → 菜单，最后在网页端与 PDA 端分别验证。</figcaption>
+        </figure><ul><li><strong>项目配置</strong>：建立项目作为资源隔离边界。</li><li><strong>服务配置</strong>：登记后端服务地址与鉴权信息。</li><li><strong>应用配置</strong>：决定页面跑在工作站还是 PDA、对接哪类系统。</li><li><strong>布局配置</strong>：排布页面与元件。</li><li><strong>菜单配置</strong>：把页面挂到 PDA 菜单上。</li></ul>
+        <div class="callout ok"><span class="callout-title">先小后大</span><p>先做一个只含查询按钮的页面，把登录、接口、返回值链路跑通，再逐类添加表格、表单和脚本。一旦白屏或接口报错，能快速判断是配置问题还是接口问题。</p></div>
 
-        <h2 id="s2">登录入口与 PDA 初始设置</h2>
-        <p>网页端有两个入口：直接访问 <code>https://IP/portal/login</code>，或访问 <code>https://IP/portal/home</code> 后点击 ClientView 图标进入。PDA 端需要先配置访问地址：协议选 https，填写服务 IP，端口 443。</p><p>随后在右上角设置中选择配置加载路径，若弹窗未出现可手动填写，格式为：<code>/clientview/apps/wms-pda/index.html?appId=应用编号&amp;projectId=项目编号#/login</code>。其中 appId 为 PDA 应用编号，projectId 为项目编号，两个编号中的字母 i 均为大写，写错会白屏或提示应用不存在。初始化默认账号为 admin，密码以交付资料为准。</p>
+        <h2 id="s2">登录入口与 PDA 初始配置</h2>
+        <p>网页端有两个入口：直接访问 <code>https://IP/portal/login</code>，或访问 <code>https://IP/portal/home</code> 后点击 ClientView 图标进入。</p><p>PDA 端首次使用需配置服务地址：协议选 <strong>https</strong>，填写服务 IP，端口 <strong>443</strong>。随后在右上角“设置”中选择配置加载路径；若弹窗未自动出现，可手动填写：</p><pre><code>/clientview/apps/wms-pda/index.html?appId=应用编号&amp;projectId=项目编号#/login</code></pre><ul><li><code>appId</code> 为 PDA 应用编号，<code>projectId</code> 为项目编号，两者必须与网页端配置一致。</li><li>两个编号中的<strong>字母 i 均为大写</strong>，写成小写会白屏或提示应用不存在。</li><li>初始化管理员账号为 <code>admin</code>，密码以交付资料为准，首次登录后按项目要求修改。</li><li>地址配置错误时，PDA 表现为一直停在加载页；先在浏览器里用同一路径验证，再排查 PDA 网络。</li></ul>
+        <div class="callout warn"><span class="callout-title">i 与 l 容易看混</span><p>编号里的大写 <code>i</code>、小写 <code>l</code>、数字 <code>1</code> 在手持终端上很难分辨。复制编号时从网页端直接拷贝，不要手抄。</p></div>
 
-        <h2 id="s3">基础配置五步</h2>
-        <ol><li><strong>项目配置</strong>：系统管理下点击添加，输入项目名称并确认，然后在列表中选择本项目。</li><li><strong>服务配置</strong>：资源管理下的服务配置中点击添加，登记后端服务信息。</li><li><strong>应用配置</strong>：应用管理下新增应用，类型选工作站或 PDA。PDA 与仓储管理系统配合时选对应的系统版本或标准版，与调度平台配合时选对应平台版本或标准版。</li><li><strong>布局配置</strong>：进入应用管理，选择对应应用后添加布局，按业务需要排列页面与元件。</li><li><strong>菜单配置</strong>：在 PDA 应用的菜单配置中新增菜单并关联页面，不需要展示的菜单可直接关闭显示。</li></ol><div class="callout ok"><span class="callout-title">先小后大</span><p>建议先做一个只含查询按钮的页面跑通登录与接口，再逐步添加表格、表单和脚本，定位问题会快很多。</p></div>
+        <h2 id="s3">基础配置：项目、服务与应用</h2>
+        <ol><li><strong>项目配置</strong>：系统管理下点击“添加”，输入项目名称并确认，然后在列表中选择本项目，后续配置都在该项目下进行。</li><li><strong>服务配置</strong>：资源管理下的“服务配置”中点击添加，登记后端服务信息（服务名、地址、鉴权方式），保存后确认服务状态可用。</li><li><strong>应用配置</strong>：应用管理下新增应用，<strong>类型选工作站或 PDA</strong>。PDA 与仓储管理系统配合时选对应系统版本或标准版；与调度平台配合时选对应平台版本或标准版。</li><li>应用保存后记录其应用编号（appId），供 PDA 加载路径与页面引用。</li></ol><p>应用类型选错是最常见的“页面能打开但没有数据”：工作站页面在 PDA 上显示错位，或 PDA 页面调用了不匹配的接口版本。发现类型不符时新建一个正确类型的应用，不要在同一应用上反复改。</p>
 
-        <h2 id="s4">元件标识与请求属性</h2>
-        <p>标识是元件的唯一 ID，也是按钮发起接口调用时的传参依据。标识需以 <code>#</code> 开头并跟英文字母，<code>#</code> 后不能直接接数字；同一页面内标识不能重复，不同页面之间可以相同。另有“是否显示”用于控制元件是否呈现。</p><p>请求属性决定元件点击后调用哪个接口、怎么传参、结果放到哪里：</p><ul><li><strong>是否开启</strong>：开启后才展开接口相关配置。</li><li><strong>接口标识</strong>：get 方法写 <code>get:/接口路径</code>；post 方法可写 <code>post:/接口路径</code>，也可省略前缀（默认按 post 处理），或写成服务名加方法名的方式。</li><li><strong>请求参数</strong>：值填页面元件的标识即可取该元件的值；固定值直接填写且不要加引号；参数有层级时用模板重新组织，并在参数列表中声明取值，模板内通过 <code>this.字段名</code> 引用。</li><li><strong>目标属性</strong>：填写变量名后，接口返回的 <code>res.data.data</code> 会赋给该变量。</li><li><strong>确认框</strong>：作为请求前的拦截，点击确认才真正调用接口。</li><li><strong>成功提示 / 失败提示</strong>：成功提示可弹提示或文本，失败提示取接口返回的 message 字段。输入框通常选“无”，按钮选“提示”，避免弹框需要再点确认。</li><li><strong>重置列表</strong>：请求成功后清空指定元件；对表格、上下条切换这类绑定了返回值的元件，还需配合更新配置规则清空变量。</li><li><strong>更新配置规则</strong>：操作值填 <code>*</code> 表示作用于全部目标字段，填“标识@index”表示只作用于当前项。</li></ul>
+        <h2 id="s4">布局配置与页面设计</h2>
+        <ul><li>进入应用管理，选择对应应用后点击“添加布局”，填写布局名称。</li><li>进入“布局设计”：工作站为桌面端布局，按屏幕比例划分区域；PDA 为移动端布局，控件尺寸与间距要留出手持操作余量。</li><li>从元件库拖入按钮、表格、输入框等元件，按业务顺序摆放，保存布局。</li><li>一个应用可以有多个布局：例如“查询页”“绑定页”“异常处理页”，分别放置不同元件。</li><li>布局保存后在网页端预览，再到 PDA 验证；两端缓存不同，改完必须分别刷新。</li></ul>
+        <div class="callout warn"><span class="callout-title">先定栅格再摆元件</span><p>按钮的栅格宽度、偏移决定实际尺寸与位置。先按屏幕宽度规划一行放几个元件，再逐个设置，能避免后期为了对齐反复调整。</p></div>
 
-        <h2 id="s5">基础元件：按钮与表格</h2>
-        <p><strong>按钮</strong>：可设置显示文本、尺寸（默认/大/小）、类型（决定颜色）、是否禁用、栅格宽度、栅格偏移，以及请求属性。栅格宽度越大按钮越宽，栅格偏移控制与左侧的距离。</p><p><strong>表格</strong>的数据字段需逐列配置：显示名称为列名；字段需绑定数组类型变量，与绑定值中的属性对应后自动填充；列宽、排序、编辑、显示、顺序按需设置；类型可选“选中”（支持勾选，一般放第一列）、“操作”（自定义图标与功能）或“索引”（行序号）。表格还可设置高度、选中项限制（-1 为不限制）和列间竖线边框。</p><p><strong>表格读写</strong>的典型做法是：按钮开启请求属性；表格的参数绑定与按钮的目标属性使用同一个变量名；在请求参数中以表格标识取选中行，参数类型选数组，模板按 <code>this.table.length &gt; 0 ? this.table[0].字段 : 空值</code> 的形式取值，没有选中时返回空串。</p>
+        <h2 id="s5">元件标识规则</h2>
+        <p>标识是元件的唯一 ID，也是按钮发起接口调用时取值的依据。</p><ul><li>标识必须以 <code>#</code> 开头并跟英文字母，<code>#</code> 后<strong>不能直接接数字</strong>。</li><li>同一页面内标识<strong>不能重复</strong>；不同页面之间可以相同。</li><li>另有“是否显示”开关，用于控制元件是否呈现，不影响其标识与取值。</li><li>标识一旦被请求参数或脚本引用，改名会导致取不到值，调整前先全局搜索引用。</li></ul>
+        <figure class="shot">
+          <a href="../../assets/img/v20/02-element-id.png" target="_blank" rel="noopener"><img src="../../assets/img/v20/02-element-id.png" alt="元件属性面板中的标识设置"></a>
+          <figcaption><b>图 2</b> 元件属性中的标识（如 <code>#element2</code>）：以 # 加字母开头，同页面唯一，后续请求参数直接用它取值。</figcaption>
+        </figure>
 
-        <h2 id="s6">表单元件与菜单</h2>
-        <ul><li><strong>输入框</strong>：默认值可绑定上下文变量（如工位号）；类型支持文本、整数、数值；可限制最大长度、开启扫码、设置回车后切换到的下一个元件、提示语、是否必须、是否只读、是否禁用，并支持正则校验。开启“是否必须”后，若该值被用于请求参数会阻止本次请求。</li><li><strong>选择器</strong>：可绑定接口返回值，配置选项信息、提示语、是否必填、选项名与选项值对应的字段、选项标题和禁用状态。</li><li><strong>开关</strong>：支持 change 事件绑定，值变化时触发脚本。</li><li><strong>单选框、复选框</strong>：选项配置方式与选择器一致。</li><li><strong>日历</strong>：类型支持默认、多选、区间选择。</li><li><strong>步进器</strong>：设置步长、最小值、最大值。</li></ul><p>PDA 菜单在“新建菜单”后关联页面，登录 PDA 即可看到；不需要的菜单关闭显示即可，不必删除。</p>
+        <h2 id="s6">请求属性与接口绑定</h2>
+        <p>请求属性决定元件被点击后调用哪个接口、怎么传参、结果放到哪里。</p><table><thead><tr><th>配置项</th><th>作用</th><th>写法与注意</th></tr></thead><tbody><tr><td>是否开启</td><td>总开关</td><td>开启后才展开接口配置</td></tr><tr><td>接口标识</td><td>指定调用的接口</td><td>get 写 <code>get:/接口路径</code>；post 写 <code>post:/接口路径</code>，省略前缀默认按 post；也可写服务名加方法名</td></tr><tr><td>请求参数</td><td>组装入参</td><td>值填<strong>元件标识</strong>即取该元件的值；固定值直接填且<strong>不加引号</strong>；有层级时用模板，模板内用 <code>this.字段名</code> 引用</td></tr><tr><td>目标属性</td><td>接收返回值</td><td>填变量名，接口返回的 <code>res.data.data</code> 会赋给该变量</td></tr><tr><td>确认框</td><td>请求前拦截</td><td>点击确认才真正调用，适合绑定、解绑、取消等操作</td></tr><tr><td>成功/失败提示</td><td>结果反馈</td><td>成功可弹提示或文本；失败取接口返回的 <code>message</code>。输入框一般选“无”，按钮选“提示”</td></tr><tr><td>重置列表</td><td>清空指定元件</td><td>请求成功后清空；表格、上下条切换等绑定返回值的元件还需配合“更新配置规则”清变量</td></tr><tr><td>更新配置规则</td><td>控制更新范围</td><td><code>*</code> 作用于全部目标字段；<code>标识@index</code> 只作用于当前项</td></tr></tbody></table>
+        <figure class="shot">
+          <a href="../../assets/img/v20/03-request-bind.png" target="_blank" rel="noopener"><img src="../../assets/img/v20/03-request-bind.png" alt="请求属性绑定目标属性的配置界面"></a>
+          <figcaption><b>图 3</b> 为按钮配置请求属性：接口返回的数据经“目标属性”绑定到变量，再被表格或表单引用；目标属性名要与消费方一致。</figcaption>
+        </figure>
+        <div class="callout warn"><span class="callout-title">固定值加引号 = 多传一对引号</span><p>请求参数里填固定值时直接写值；加了引号会连同引号一起提交，后端收到的内容与预期不一致。只有模板语法里才需要引号。</p></div>
 
-        <h2 id="s7">脚本示例与常见问题</h2>
-        <p>较复杂的页面会用到脚本。常见写法是在组件的方法中组装参数，通过接口调用方法提交，再用提示方法反馈结果：</p><pre><code>this.onSubmit = () =&gt; {
-          const params = { ... };
-          this.$api(接口名, params).then((res) =&gt; {
-            if (res.data.success) { this.$tip(提示文本, success); this.clear(); }
+        <h2 id="s7">按钮与表格元件</h2>
+        <p><strong>按钮</strong>：设置显示文本、尺寸（默认/大/小）、类型（决定颜色）、是否禁用、栅格宽度、栅格偏移，以及请求属性。栅格宽度越大按钮越宽，栅格偏移控制与左侧的距离。</p><p><strong>表格</strong>的列需要逐列配置：</p><table><thead><tr><th>列属性</th><th>说明</th></tr></thead><tbody><tr><td>显示名称</td><td>表头文字</td></tr><tr><td>字段</td><td>绑定数组类型变量，与该变量元素的属性名对应后自动填充</td></tr><tr><td>类型</td><td>“选中”（支持勾选，一般放第一列）、“操作”（自定义图标与功能）、“索引”（行序号）</td></tr><tr><td>列宽 / 顺序 / 显示</td><td>控制宽度、排列顺序与是否展示</td></tr><tr><td>排序 / 编辑</td><td>是否允许前端排序、是否可编辑</td></tr></tbody></table><p>表格整体还可设置高度、选中项限制（<code>-1</code> 为不限制）、是否显示列间竖线。选中项限制为 1 时，可实现“只能选一行再操作”的业务。</p>
+
+        <h2 id="s8">表格读写与数组传参</h2>
+        <p>表格读写是配置量最大的一类页面，核心是<strong>按钮与表格共用同一个变量</strong>。</p><ol><li>按钮开启请求属性，设置接口标识与目标属性变量名。</li><li>表格的参数绑定使用<strong>同一个变量名</strong>，列字段与返回数据的属性对应。</li><li>在按钮的请求参数中，值填表格标识，参数类型选<strong>数组</strong>。</li><li>用模板从选中行取值，没有选中时返回空串：</li></ol><pre><code>this.table.length &gt; 0 ? this.table[0].字段 : ''</code></pre><ul><li>字段名必须与表格列绑定的属性一致，大小写不同取不到值。</li><li>需要一次提交多行时去掉 <code>[0]</code>，直接传 <code>this.table</code>。</li><li>“重置列表”与“更新配置规则”要配合使用，否则查询后旧数据仍留在表格或变量里。</li></ul>
+        <figure class="shot">
+          <a href="../../assets/img/v20/05-table-json.png" target="_blank" rel="noopener"><img src="../../assets/img/v20/05-table-json.png" alt="表格返回数据结构示例"></a>
+          <figcaption><b>图 4</b> 表格绑定的返回数据结构示例：<code>tableData</code> 为数组，列字段与数组元素属性一一对应，数组为空时表格不渲染行。</figcaption>
+        </figure>
+
+        <h2 id="s9">表单元件与选择器</h2>
+        <p><strong>输入框</strong>：默认值可绑定上下文变量（如工位号）；类型支持文本、整数、数值；可限制最大长度、开启扫码、设置回车后切换到的下一个元件、提示语、是否必须、是否只读、是否禁用，并支持正则校验。开启“是否必须”后，该值被用于请求参数时会阻止本次请求。</p><p><strong>选择器</strong>：可绑定接口返回值，配置选项信息、提示语、是否必填、选项名与选项值对应的字段、选项标题和禁用状态。</p><ul><li><strong>开关</strong>：支持 change 事件绑定，值变化时触发脚本。</li><li><strong>单选框 / 复选框</strong>：选项配置方式与选择器一致。</li><li><strong>日历</strong>：类型支持默认、多选、区间选择。</li><li><strong>步进器</strong>：设置步长、最小值、最大值。</li></ul>
+        <figure class="shot">
+          <a href="../../assets/img/v20/04-selector.png" target="_blank" rel="noopener"><img src="../../assets/img/v20/04-selector.png" alt="选择器选项信息配置界面"></a>
+          <figcaption><b>图 5</b> 选择器的选项信息：分别配置选项名、选项值、选项标题与禁用状态对应字段，选项值才是提交给接口的内容。</figcaption>
+        </figure>
+        <div class="callout ok"><span class="callout-title">扫码输入框的取巧</span><p>PDA 扫码枪本质是键盘输入。输入框开启扫码并让回车切换到下一个元件，可实现“扫工位 → 扫物料 → 自动聚焦按钮”，减少操作员点击次数。</p></div>
+
+        <h2 id="s10">PDA 菜单设置</h2>
+        <ol><li>进入 PDA 应用的<strong>菜单配置</strong>，点击“新建菜单”。</li><li>填写菜单名称，关联已经配置好的页面。</li><li>设置菜单图标与顺序，保存后在 PDA 登录验证。</li><li>不需要展示的菜单直接关闭“显示”，不必删除；保留配置便于后续启用。</li></ol><p>PDA 登录后看不到菜单，依次检查：菜单是否关联了页面、页面是否属于当前应用、应用类型是否为 PDA、PDA 加载路径中的 appId/projectId 是否正确。</p>
+
+        <h2 id="s11">脚本示例与联调避坑</h2>
+        <p>较复杂的页面会用到脚本。常见写法是在组件方法中组装参数，调用接口后用提示方法反馈结果：</p><pre><code>this.onSubmit = () =&gt; {
+          const params = { 字段: this.form['#输入框标识'] };
+          this.$api('接口名', params).then((res) =&gt; {
+            if (res.data.success) {
+              this.$tip('提交成功', 'success');
+            } else {
+              this.$log(res.data.message);
+              this.$tip('提交失败', 'error');
+            }
           });
-        };</code></pre><ul><li>脚本中通过 <code>this.form[#标识]</code> 读取表单元件值，通过 <code>this.$tip</code> 弹提示，通过 <code>this.$log</code> 记录失败信息。</li><li>appId 与 projectId 中的字母 i 必须大写，否则加载路径无法解析。</li><li>同一页面内标识重复会导致取值错乱，改动前先全局检查一遍。</li><li>请求参数中的固定值不要加引号，否则会连同引号一起提交。</li><li>修改配置后既要在网页端验证，也要在 PDA 上验证，两端的加载路径和缓存不同。</li></ul>
+        };</code></pre><ul><li>脚本中通过 <code>this.form['#标识']</code> 读取表单元件值，用 <code>this.$tip</code> 弹提示，用 <code>this.$log</code> 记录失败信息。</li><li><code>appId</code> 与 <code>projectId</code> 中的字母 i 必须大写，否则加载路径无法解析。</li><li>同一页面内标识重复会导致取值错乱，改动前先全局检查一遍。</li><li>请求参数中的固定值不要加引号，否则会连同引号一起提交。</li><li>修改配置后既要在网页端验证，也要在 PDA 上验证，两端加载路径和缓存不同。</li><li>页面白屏先看浏览器控制台与网络请求，再查应用类型和加载路径，不要直接重建应用。</li></ul>
+        <div class="callout danger"><span class="callout-title">上线前的四个验证</span><p>① 空数据、单行、多行三种表格状态；② 必填项为空时请求被拦截；③ 接口失败时提示文案正确；④ 网页端与 PDA 端均能正常加载并完成一次完整业务闭环。</p></div>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>项目、服务、应用、布局、菜单五步配置齐全，顺序未打乱。</li>
-          <li>PDA 访问地址使用 https、端口 443，加载路径中 appId 与 projectId 正确且字母 i 为大写。</li>
-          <li>应用类型选择与后端匹配（工作站或对应版本的 PDA 应用）。</li>
-          <li>元件标识以 # 开头、后接英文字母，同页面内不重复。</li>
-          <li>接口标识方法前缀正确，固定参数未加引号，复杂参数用模板并声明取值。</li>
-          <li>表格参数绑定变量与按钮目标属性变量名一致，传参类型为数组。</li>
-          <li>必填项与校验规则已在输入框上配置，空值时能阻止请求。</li>
-          <li>配置完成后在网页端与 PDA 端分别验证页面加载和接口返回。</li>
+          <li>项目、服务、应用、布局、菜单五步配置齐全且顺序正确</li>
+          <li>应用类型与后端匹配（工作站或对应版本的 PDA 应用）</li>
+          <li>PDA 访问地址使用 https、端口 443，加载路径 appId/projectId 正确且字母 i 为大写</li>
+          <li>元件标识以 # 开头后接英文字母，同页面内不重复</li>
+          <li>接口标识方法前缀正确（get:/ 或 post:/），固定参数未加引号</li>
+          <li>复杂参数已用模板并在参数列表中声明取值，模板内用 this.字段名 引用</li>
+          <li>表格参数绑定变量与按钮目标属性同名，传参类型为数组</li>
+          <li>表格读写模板已处理未选中行的情况，字段名与列绑定一致</li>
+          <li>输入框必填、正则、只读等校验已配置并能阻止无效请求</li>
+          <li>PDA 菜单已关联页面并在终端登录验证可见</li>
+          <li>网页端与 PDA 端分别验证页面加载、接口返回与完整业务闭环</li>
+          <li>默认账号已按项目要求修改密码，敏感配置未写入公开文档</li>
         </ul>
       </div>
 
@@ -130,13 +177,17 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与前置条件</a>
-        <a href="#s2">登录入口与 PDA 初始设置</a>
-        <a href="#s3">基础配置五步</a>
-        <a href="#s4">元件标识与请求属性</a>
-        <a href="#s5">基础元件：按钮与表格</a>
-        <a href="#s6">表单元件与菜单</a>
-        <a href="#s7">脚本示例与常见问题</a>
+        <a href="#s1">工具定位与配置总览</a>
+        <a href="#s2">登录入口与 PDA 初始配置</a>
+        <a href="#s3">基础配置：项目、服务与应用</a>
+        <a href="#s4">布局配置与页面设计</a>
+        <a href="#s5">元件标识规则</a>
+        <a href="#s6">请求属性与接口绑定</a>
+        <a href="#s7">按钮与表格元件</a>
+        <a href="#s8">表格读写与数组传参</a>
+        <a href="#s9">表单元件与选择器</a>
+        <a href="#s10">PDA 菜单设置</a>
+        <a href="#s11">脚本示例与联调避坑</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>

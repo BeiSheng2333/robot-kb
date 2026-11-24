@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>调度系统安装、升级与配套软件部署 — 实施部署 — 现场笔记</title>
-<meta name="description" content="说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。">
+<meta name="description" content="调度系统（RCS-Lite）的首次安装、补丁升级、卸载，以及监控客户端、PDA、数据库三类配套件的部署顺序与版本要求。本篇按手册章节顺序整理环境门槛、业务类型选择、License 导入、补丁包升级和 DbTool 切库的具体步骤，并给出每个环节的判断依据。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
       <h1>调度系统安装、升级与配套软件部署</h1>
-      <p class="lede">说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。</p>
+      <p class="lede">调度系统（RCS-Lite）的首次安装、补丁升级、卸载，以及监控客户端、PDA、数据库三类配套件的部署顺序与版本要求。本篇按手册章节顺序整理环境门槛、业务类型选择、License 导入、补丁包升级和 DbTool 切库的具体步骤，并给出每个环节的判断依据。</p>
       <div class="doc-meta">
-        <span>整理自 内部操作手册 V1.0，2023-09</span>
+        <span>整理自 内部操作手册 V1.0（15 页）</span>
         <span class="chip">实施部署</span>
       </div>
 
@@ -83,38 +83,73 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与前置条件</h2>
-        <p>适用于调度系统在服务器上的全新安装、版本升级、卸载，以及监控客户端、PDA 和数据库的配套准备。</p><ul><li>硬件：CPU 建议 i5 及以上，内存 8 GB 及以上，安装盘至少预留 70 GB。</li><li>软件：64 位 Windows 7/10/11，或 Windows Server 2016/2019。</li><li>若服务器已装同系列旧版本调度系统，需先卸载旧版本再安装，避免服务与端口冲突。</li><li>数据库无需提前准备：安装过程会自动安装 PostgreSQL，安装包内也自带 SQLite。</li></ul>
+        <h2 id="s1">适用范围与版本关系</h2>
+        <p>本篇覆盖调度系统 RCS-Lite 的<strong>首次安装、升级、卸载</strong>，以及配套的<strong>监控客户端、PDA、数据库</strong>三件事。三点前提先确认：</p><ul><li>若服务器上已装过旧版调度系统（RCS-2000），必须<strong>先卸载旧版本</strong>，再装 RCS-Lite，否则服务与端口会冲突。</li><li>安装包内<strong>已自带 SQLite</strong>，安装过程中还会<strong>自动安装 PostgreSQL</strong>，两种数据库都无需另行准备。</li><li>补丁升级以 <strong>V1.3</strong> 为基线，是否跨版本流程完全一致，都走补丁包。</li></ul><div class="callout warn"><span class="callout-title">先确认是「装」还是「升」</span><p>首次安装看第 1 章，已装同版本/旧版本要升级的看第 2 章的补丁流程。把升级当成重装去做，会丢掉原有数据和配置。</p></div>
 
-        <h2 id="s2">首次安装</h2>
-        <ol><li>Windows Server 环境先进入安装盘的运行时库目录，安装 VC 2015 运行库。</li><li>运行安装包，按开机向导逐步执行安装。</li><li>确认安装目录所在磁盘在装完后仍有充足空间。</li></ol><div class="callout warn"><span class="callout-title">空间不足会中途失败</span><p>安装盘至少预留 70 GB，且应预留日志与数据库增长空间，不建议卡着下限部署。</p></div>
+        <h2 id="s2">环境门槛：硬件与操作系统</h2>
+        <table><thead><tr><th>项目</th><th>要求</th></tr></thead><tbody><tr><td>CPU</td><td>Intel i5 处理器</td></tr><tr><td>内存</td><td>8 GB 及以上</td></tr><tr><td>硬盘</td><td><strong>安装目录所在磁盘</strong>至少预留 70 GB</td></tr><tr><td>操作系统</td><td>Windows 7 / 10 / 11（均为 64 位），或 Windows Server 2016 / 2019</td></tr></tbody></table><p>70 GB 是安装目录所在<strong>那块盘</strong>的余量，不是整机总量；日志与数据库后续会持续增长，不要刚好卡着下限部署。</p>
 
-        <h2 id="s3">登录与业务类型</h2>
-        <ul><li>首次运行客户端需选择业务类型，选择后不再询问。</li><li>需要切换业务类型时，删除安装目录下 Param\clientType.xml，再重新运行客户端。</li><li>不同业务类型的数据库不通用，切换模式需要重建数据库。</li><li>登录需填写用户名、密码、服务器 IP 与端口；客户端端口默认 6543，多网卡服务器要选对业务网段 IP。</li><li>首次登录需先导入 License 才能进入系统；登录后应立即修改默认密码并定期更换。</li></ul>
+        <h2 id="s3">阶段一 · 首次安装</h2>
+        <ol><li><strong>清理旧版本</strong>：确认服务器上没有 RCS-2000 等在运行的旧调度系统，有则先卸载。</li><li><strong>核对磁盘空间</strong>：安装目录所在磁盘剩余空间 ≥ 70 GB。</li><li><strong>补运行时库（可选）</strong>：若操作系统是 Windows Server，进入安装盘 <code>RcsLite\VCRedist\VC 2015 Redist</code>，双击 <code>vc_redist.x64.exe</code> 安装。Win 7/10/11 客户端系统一般不需要这一步。</li><li><strong>运行安装包</strong>：按开机向导逐页执行，安装路径选空间充足的磁盘。</li></ol><div class="callout danger"><span class="callout-title">Server 系统漏装运行库的典型表现</span><p>安装能走完但程序起不来，或启动即报缺少运行库组件。Windows Server 上务必先装 VC 2015 运行库再安装主程序。</p></div>
 
-        <h2 id="s4">升级与卸载</h2>
-        <ul><li>升级统一采用补丁包方式，无论是否跨版本流程一致。</li><li>升级步骤：关闭程序，运行补丁包中的 PatchInstall，按命令行提示操作，结束后重启程序。</li><li>卸载步骤：关闭程序，进入安装目录运行 uninst.exe。</li><li>升级与卸载前建议先导出配置并备份数据库，便于回退。</li></ul>
+        <h2 id="s4">阶段二 · 选择业务类型</h2>
+        <p>首次运行客户端时，必须选择<strong>业务类型</strong>（按机器人形态区分），选择完成后不再询问：</p>
+        <figure class="shot">
+          <a href="../../assets/img/v07/01-business-type.png" target="_blank" rel="noopener"><img src="../../assets/img/v07/01-business-type.png" alt="首次运行时选择业务类型"></a>
+          <figcaption><b>图 1</b> 首次启动的「请选择业务」页：按现场机器人形态选一种后点「进入」。选择结果会被记住，后续不再弹出。点击图片可看原图。</figcaption>
+        </figure>
+        <ul><li><strong>选错了怎么改</strong>：进入安装盘 <code>RcsLite\Param</code>，删除 <code>clientType.xml</code>，再重新运行客户端。</li><li><strong>切换代价</strong>：不同业务类型之间的<strong>数据库不通用</strong>，切换模式需要删除并重建数据库，属于有损操作。</li></ul><div class="callout warn"><span class="callout-title">选择前先确认机型清单</span><p>业务类型要与现场实际机器人形态一致。误选后再切换会清掉已有数据，交付前务必与项目经理核对。</p></div>
 
-        <h2 id="s5">配套软件版本匹配</h2>
-        <p>客户端与 PDA 对版本较敏感，版本不配套通常表现为无法登录或功能缺失，部署前先核对。</p><table><thead><tr><th>配套软件</th><th>支持版本</th><th>默认端口</th></tr></thead><tbody><tr><td>监控客户端</td><td>V3.2.0，其他版本不兼容</td><td>6543</td></tr><tr><td>PDA</td><td>V1.0.1，其他版本不兼容</td><td>8182</td></tr></tbody></table><ul><li>监控客户端启动时业务选择“搬运系统”，IP 填调度服务器地址。</li><li>PDA 登录同样使用调度服务器 IP，端口为 8182。</li></ul>
+        <h2 id="s5">阶段三 · 登录与导入 License</h2>
+        <ol><li>输入登录信息：用户名默认 <code>admin</code>；密码为交付的初始密码；<strong>服务器 IP</strong> 为安装 RCS-Lite 的服务器地址；端口默认 <code>6543</code>。</li><li>多网卡服务器<strong>必须选对业务网段的 IP</strong>，选错会出现「能连上但业务异常」。</li><li>点击<strong>导入 License</strong>，选择授权文件；未导入 License 无法进入系统。</li><li>点击<strong>登录</strong>，进入后<strong>立即修改默认密码</strong>，并按规定周期更新。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v07/02-login.png" target="_blank" rel="noopener"><img src="../../assets/img/v07/02-login.png" alt="RCS-Lite 登录界面"></a>
+          <figcaption><b>图 2</b> 登录界面：服务器地址、端口（默认 6543）、记住密码 / 自动登录，底部为「导入 License」。图中服务器地址已做遮盖处理，请填安装该系统的服务器 IP。</figcaption>
+        </figure>
 
-        <h2 id="s6">数据库与切换</h2>
-        <ul><li>运行安装目录下的 DbTool.exe 可查看当前数据库类型。</li><li>默认使用 SQLite；若要切换为 PostgreSQL，需先手动安装 PostgreSQL 服务。</li><li>安装 PostgreSQL 时记录数据库密码与端口（默认 5432），后续在 DbTool 中填写。</li><li>在 DbTool 中选择 PostgreSQL，填写库名、用户名、密码、服务器 IP 与端口后点击设置。</li></ul><div class="callout warn"><span class="callout-title">切换需停机</span><p>不同业务模式的数据库不通用，切换模式或数据库类型会影响既有数据，应在停机窗口内完成并提前备份。</p></div>
+        <h2 id="s6">阶段四 · 补丁升级</h2>
+        <p>升级<strong>不区分是否跨版本</strong>，统一用补丁包：</p><ol><li>关闭正在运行的调度系统。</li><li>打开补丁包目录，双击 <code>PatchInstall</code>（Windows 批处理）。</li><li>按 cmd 窗口中的提示逐项确认，等待执行完成。</li><li>升级结束后<strong>重新启动</strong>调度系统，确认能正常登录。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v07/03-patch-folder.png" target="_blank" rel="noopener"><img src="../../assets/img/v07/03-patch-folder.png" alt="补丁包内的目录结构与 PatchInstall"></a>
+          <figcaption><b>图 3</b> 补丁包解压后的结构：<code>cms</code>、<code>Rcslite</code>、<code>skin</code>、<code>translations</code> 与 <code>PatchInstall</code>。补丁包需整体保留，不要只拷 <code>PatchInstall</code>。</figcaption>
+        </figure>
+        <div class="callout warn"><span class="callout-title">升级前先备份</span><p>补丁执行前导出配置并备份数据库，这是回滚的唯一依据；升级窗口内不要有其他客户端在写数据。</p></div>
 
-        <h2 id="s7">常见问题</h2>
-        <ul><li>安装或启动报缺少运行库：Windows Server 未装 VC 2015 运行时，补装后重试。</li><li>客户端登录失败：先确认客户端版本与服务端配套，再核对 IP 与 6543 端口。</li><li>能登录但业务异常：多网卡环境选错 IP，需与服务器网卡地址逐项核对。</li><li>PDA 连不上：优先检查 8182 端口与服务器防火墙策略。</li><li>切换业务类型后无数据：属正常现象，不同模式的数据库相互独立。</li></ul>
+        <h2 id="s7">阶段五 · 卸载</h2>
+        <ol><li>关闭调度系统与所有客户端。</li><li>进入软件安装目录，运行 <code>uninst.exe</code>，按提示完成卸载。</li><li>确认服务已停止、目录已清理干净，再安装新版本。</li></ol><p>卸载前同样备份数据库与配置。需要「原地重装」的现场，务必走完卸载再装，直接覆盖安装容易残留旧服务。</p>
+
+        <h2 id="s8">配套软件：版本必须配对</h2>
+        <table><thead><tr><th>配套软件</th><th>支持版本</th><th>业务 / 端口</th></tr></thead><tbody><tr><td>监控客户端</td><td>V3.2.0（其他版本不兼容）</td><td>业务选择「搬运系统」，端口 <code>6543</code></td></tr><tr><td>PDA</td><td>V1.0.1（其他版本不兼容）</td><td>端口 <code>8182</code></td></tr></tbody></table><p>两者都填<strong>安装调度系统那台服务器的 IP</strong>，不是自己的工控机 IP。</p>
+        <figure class="shot">
+          <a href="../../assets/img/v07/04-pda-login.png" target="_blank" rel="noopener"><img src="../../assets/img/v07/04-pda-login.png" alt="PDA 登录界面"></a>
+          <figcaption><b>图 4</b> PDA 登录页：用户名、密码、服务器地址与端口 <code>8182</code>。图中服务器地址已遮盖，请填调度服务器 IP。</figcaption>
+        </figure>
+        <p>版本不配套的典型表现是<strong>登录直接失败</strong>或登录后功能缺失，而不是报错提示版本，所以部署前先核对版本号再做联调。</p>
+
+        <h2 id="s9">数据库：先看类型，再决定是否切换</h2>
+        <ol><li>进入安装盘 <code>RcsLite</code> 目录，运行 <code>DbTool.exe</code>，可查看<strong>当前使用的数据库类型</strong>。</li><li>默认使用 SQLite（安装包自带），<strong>无需额外安装</strong>。</li><li>如需切换到 PostgreSQL：先手动安装 PostgreSQL 服务，安装时<strong>记录数据库密码与端口</strong>（端口默认 <code>5432</code>）。</li><li>再次运行 <code>DbTool.exe</code>，类型选 <strong>PostgreSQL</strong>，填写 DB 名称、用户名、密码、IP（服务器地址）、端口后点<strong>设置</strong>。</li><li>重启服务，确认数据正常。</li></ol><div class="callout danger"><span class="callout-title">切库属于停机操作</span><p>切换数据库类型或业务模式都会导致既有数据不可用。必须在停机窗口内进行，且提前完成数据库与配置备份；密码、端口未记录会导致后续无法连接。</p></div>
+
+        <h2 id="s10">常见问题与判断顺序</h2>
+        <table><thead><tr><th>现象</th><th>先查什么</th><th>处理</th></tr></thead><tbody><tr><td>安装/启动报缺少运行库</td><td>是否为 Windows Server 且未装 VC 2015 运行库</td><td>补装 <code>vc_redist.x64.exe</code> 后重试</td></tr><tr><td>客户端登录失败</td><td>先版本（客户端 V3.2.0）、再 IP、最后 6543 端口</td><td>版本不配套则换版本；IP 错则重选网卡地址</td></tr><tr><td>能登录但业务数据异常</td><td>多网卡服务器选错业务网段 IP</td><td>按服务器网卡地址逐项核对</td></tr><tr><td>PDA 连不上</td><td>8182 端口与服务器防火墙策略</td><td>放通端口，确认 PDA 与服务器同网段可达</td></tr><tr><td>切换业务类型后没有数据</td><td>不同业务类型数据库相互独立</td><td>属正常现象，确认是否真需要切换</td></tr><tr><td>升级后功能缺失</td><td>补丁包是否完整、是否漏跑 PatchInstall</td><td>重新执行补丁并重启服务</td></tr></tbody></table>
+
+        <h2 id="s11">交付收尾</h2>
+        <ul><li>安装完成后先登录一次，确认 License 已导入、业务类型正确、监控客户端能连上。</li><li>修改默认密码并登记到交付资料；默认账号 <code>admin</code> 不得继续使用初始密码上线。</li><li>多网卡服务器把业务 IP、端口（6543 / 8182）、数据库类型与连接信息写入交付记录。</li><li>把补丁包、安装包与备份的数据库放在同一交付目录，便于后续回退或扩容。</li><li>若后续还要接外设（呼叫器、自动门、电梯），需在同一套调度系统内继续配置，相关步骤见外设对接篇。</li></ul><div class="callout ok"><span class="callout-title">部署完成的判断</span><p>调度系统能登录、监控客户端 V3.2.0 能连、PDA V1.0.1 能连、地图与任务数据可正常读写，四项齐全才算部署完成。</p></div>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>服务器 CPU、内存、磁盘满足 i5、8 GB、70 GB 要求</li>
-          <li>操作系统为 64 位且属于受支持版本</li>
-          <li>旧版本已卸载，安装盘剩余空间充足</li>
-          <li>Windows Server 已安装 VC 2015 运行时库</li>
-          <li>首次登录已导入 License 并修改默认密码</li>
-          <li>监控客户端与 PDA 版本分别为 V3.2.0、V1.0.1</li>
-          <li>多网卡服务器登录 IP 已选对，端口使用 6543</li>
-          <li>切换 PostgreSQL 前已记录密码与端口并在 DbTool 中验证</li>
+          <li>服务器 CPU / 内存 / 安装盘剩余空间满足 i5、8 GB、70 GB</li>
+          <li>操作系统为 64 位且属于受支持版本（Win7/10/11 或 Server 2016/2019）</li>
+          <li>服务器上已有的旧版调度系统已卸载，无端口冲突</li>
+          <li>Windows Server 已安装 VC 2015 运行库（vc_redist.x64.exe）</li>
+          <li>首次运行已选择正确业务类型，并了解切换需删除 clientType.xml 且会清库</li>
+          <li>已导入 License，登录后立即修改默认密码</li>
+          <li>多网卡服务器登录时选择的是业务网段 IP，端口使用 6543</li>
+          <li>升级走补丁包：已关闭程序 → 运行 PatchInstall → 按提示完成 → 重启验证</li>
+          <li>升级/卸载前已备份数据库与配置，可回退</li>
+          <li>监控客户端为 V3.2.0（业务选搬运系统），PDA 为 V1.0.1（端口 8182）</li>
+          <li>如需 PostgreSQL，已安装服务并记录密码与端口（默认 5432），DbTool 中验证连接成功</li>
+          <li>交付记录中已登记业务 IP、端口、数据库类型与初始账号信息</li>
         </ul>
       </div>
 
@@ -127,13 +162,17 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与前置条件</a>
-        <a href="#s2">首次安装</a>
-        <a href="#s3">登录与业务类型</a>
-        <a href="#s4">升级与卸载</a>
-        <a href="#s5">配套软件版本匹配</a>
-        <a href="#s6">数据库与切换</a>
-        <a href="#s7">常见问题</a>
+        <a href="#s1">适用范围与版本关系</a>
+        <a href="#s2">环境门槛：硬件与操作系统</a>
+        <a href="#s3">阶段一 · 首次安装</a>
+        <a href="#s4">阶段二 · 选择业务类型</a>
+        <a href="#s5">阶段三 · 登录与导入 License</a>
+        <a href="#s6">阶段四 · 补丁升级</a>
+        <a href="#s7">阶段五 · 卸载</a>
+        <a href="#s8">配套软件：版本必须配对</a>
+        <a href="#s9">数据库：先看类型，再决定是否切换</a>
+        <a href="#s10">常见问题与判断顺序</a>
+        <a href="#s11">交付收尾</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>

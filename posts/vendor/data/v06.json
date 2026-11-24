@@ -2,52 +2,86 @@
   "id": "v06",
   "title": "机器人点位方向与货架方向配置",
   "category": "地图与定位",
-  "lede": "说明点位方向、货架方向与旋转控制的配置关系，用于解决取放货姿态与货架方向不生效的问题。",
-  "source": "内部操作手册 V1.0，2023-06",
+  "lede": "点位方向、货架方向、旋转控制是地图配置里最容易混淆的三套参数：它们分别决定机器人进点后的车头朝向、货架相对地码的摆放方向，以及机器人能否在货架下旋转。本篇按手册的操作顺序整理取值、点配置与线配置的选择条件、adjust_type 的六种组合和典型场景，并给出验证方法。",
+  "source": "内部操作手册 V4.0（24 页）",
   "keywords": [
     "点位方向",
     "货架方向",
-    "旋转控制",
-    "adjust_type",
+    "载具方向配置",
     "点配置",
+    "线配置",
     "刷地图",
     "允许旋转",
-    "货架结构"
+    "货物允许旋转",
+    "可旋转 AMR 类型",
+    "adjust_type",
+    "货物下调整类型",
+    "盲举",
+    "逆向行驶",
+    "货架角度"
   ],
   "sections": [
     {
-      "h": "适用场景与三个概念",
-      "html": "<p>本笔记对应地图配置中与姿态相关的三类设置，决定机器人到达目标点后的车头朝向、货架摆放方向，以及举升前后能否调整姿态。</p><ul><li>点位方向：机器人进入该点时车头相对地图坐标系的方向，只对任务目标点生效。</li><li>货架方向：货码 x 轴相对地码 x 轴的方向，实施规范要求货架长边平行于货码 x 轴。</li><li>旋转控制：由点属性、货架属性与货架结构组合决定机器人能否在货架下旋转或微调。</li></ul><div class=\"callout ok\"><span class=\"callout-title\">配置前先问三件事</span><p>目标点是否需要固定车头方向、该点是否需要固定货架方向、机器人是否允许在货架下独立旋转。三者分别由点位方向、货架方向、旋转控制负责。</p></div>"
+      "h": "三套参数各管什么",
+      "html": "<p>这三个概念作用的对象不同，配错时表现也不同，先分清再动手：</p><ul><li><strong>点位方向</strong>：机器人进入该点后<strong>车头</strong>相对地图坐标系的方向，<strong>只对任务目标点有效</strong>，途经点不生效。</li><li><strong>货架方向</strong>：<strong>货码 x 轴</strong>相对<strong>地码 x 轴</strong>的方向。实施规范要求货架长边平行于货码 x 轴；它写在点上（点配置）或线上（线配置），由新建地图时的「载具方向配置」决定。</li><li><strong>旋转控制</strong>：由点属性（AMR 允许旋转、货物允许旋转）、货架结构（可旋转 AMR 类型）组合而成，最终以 <code>adjust_type</code> 下发给机器人。</li></ul><div class=\"callout ok\"><span class=\"callout-title\">动手前先问三句</span><p>① 这个点要不要固定车头？② 这个点要不要固定货架朝向？③ 机器人允不允许在货架下自己转？三问分别对应点位方向、货架方向、旋转控制，互不替代。</p></div>"
     },
     {
-      "h": "点位方向的取值与实际应用",
-      "html": "<p>点位方向的取值以地码坐标为基准，进入点与预设不一致时，机器人进入后会旋转到设定方向。</p><table><thead><tr><th>取值</th><th>含义</th></tr></thead><tbody><tr><td>默认</td><td>车头朝向由任务决定</td></tr><tr><td>横向</td><td>车头与地码 x 轴同方向</td></tr><tr><td>纵向</td><td>车头与地码 y 轴同方向</td></tr><tr><td>0 / 90</td><td>分别对应地码 x、y 轴正方向</td></tr><tr><td>-90 / 180</td><td>分别对应地码 y、x 轴负方向</td></tr></tbody></table><p>典型应用是让机器人倒车进入目标点：前一个点允许旋转，先在原地把车头转到目标方向，目标点设置固定方向并关闭允许旋转，机器人便只能以倒退姿态进入。</p><ul><li>若前一点被设为不可旋转，机器人会提前到更前一个点完成旋转。</li><li>仅给目标点设置方向不够，目标点还必须关闭允许旋转，否则机器人可能正向驶入后再旋转。</li><li>线属性中的线上旋转用于掉头，不能让机器人在线上完成姿态调整。</li></ul>"
+      "h": "点位方向：取值与判断依据",
+      "html": "<p>点位方向以地码坐标系为基准，进入时若与预设不一致，进入后会旋转到设定方向。取值共 7 种：</p><table><thead><tr><th>点位方向</th><th>描述</th></tr></thead><tbody><tr><td>默认</td><td>该点车头朝向由任务决定</td></tr><tr><td>横向</td><td>车头与地码 x 轴同方向</td></tr><tr><td>纵向</td><td>车头与地码 y 轴同方向</td></tr><tr><td>0</td><td>车头与地码 x 轴<strong>正</strong>方向同向</td></tr><tr><td>90</td><td>车头与地码 y 轴<strong>正</strong>方向同向</td></tr><tr><td>-90</td><td>车头与地码 y 轴<strong>负</strong>方向同向</td></tr><tr><td>180</td><td>车头与地码 x 轴<strong>负</strong>方向同向</td></tr></tbody></table><p>「横向 / 纵向」只约束到轴，「0 / 90 / -90 / 180」约束到具体朝向。需要倒车、需要固定朝向来对接输送线或站台的场景，用带符号的角度值。</p>"
     },
     {
-      "h": "货架方向的配置方式与约束",
-      "html": "<p>新建地图时需在地图属性中选择载具方向配置方式，默认为点配置。以下场景必须使用点配置：</p><ul><li>开启刷地图。</li><li>货架短边不可进。</li><li>由第三方系统控制货架方向。</li><li>对接仓储管理系统管理货架。</li></ul><p>点配置下，货架方向与货架角度都写在点上，进入点和离开点必须与设定方向一致。</p><table><thead><tr><th>货架方向</th><th>含义</th></tr></thead><tbody><tr><td>竖向</td><td>货码 x 轴与地码 y 轴同方向</td></tr><tr><td>横向</td><td>货码 x 轴与地码 x 轴同方向</td></tr><tr><td>任意方向</td><td>由任务决定</td></tr></tbody></table><div class=\"callout warn\"><span class=\"callout-title\">相邻点方向约束</span><p>同一线段两端不能分别设为横向和竖向。确实需要转向时，必须在中间增加一个点，并把该点货架方向设为全向，让货架在中间点完成旋转。</p></div>"
+      "h": "实操：让机器人在 A 点转好、倒退进入 B 点",
+      "html": "<p>需求：机器人行驶到 A 点后，以<strong>后退</strong>方式从 A 点进入 B 点。要点是<strong>在 A 点把车头转到 -90°，在 B 点禁止旋转</strong>。</p><ol><li>根据机器人编号确认机型：进入「AMR 配置 &gt; AMR 添加」，查找到执行任务的机器人类型。</li><li>编辑 <strong>A 点</strong>的 LMR 潜伏属性，<strong>开启「允许旋转」</strong>，确保执行任务的机器人可在 A 点旋转。</li><li>编辑 <strong>B 点</strong>的「点位方向」为 <strong>-90°</strong>，并<strong>关闭「允许旋转」</strong>，保证机器人不在 B 点旋转。</li><li>在监控客户端下发从 A 到 B 的移动命令，观察进点姿态。</li></ol>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v06/01-allow-rotate.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v06/01-allow-rotate.png\" alt=\"点属性中开启 LMR 潜伏的允许旋转\"></a>\n  <figcaption><b>图 1</b> 点属性信息中，AMR 属性的 LMR 潜伏下打开「允许旋转」——这是机器人能在该点原地调整车头的前提。点击图片可看原图。</figcaption>\n</figure>\n<div class=\"callout warn\"><span class=\"callout-title\">易错点</span><p>只把 B 点设成 -90° 是不够的：B 点必须<strong>同时关闭「允许旋转」</strong>，否则机器人会先正向驶到 B 点，再在 B 点转到 -90°。</p></div>"
     },
     {
-      "h": "旋转控制与 adjust_type",
-      "html": "<p>旋转能力由三层开关叠加：点属性的 AMR 允许旋转、货架属性的货物允许旋转，以及货架结构中的可旋转 AMR 类型。</p><ul><li>AMR 允许旋转：未开启时该类型机器人不能在此点旋转。</li><li>货物允许旋转：未开启时货架不能在此点旋转。</li><li>可旋转 AMR 类型：全局开关，未勾选时机器人空载也不能在货架下旋转，背货时只能与货架一起转。</li></ul><p>adjust_type 是上述开关组合后下发到机器人的调整类型，控制举升前与下放货架前的动作。</p><table><thead><tr><th>adjust_type</th><th>底盘相对货架可转</th><th>底盘可微调</th><th>举升盘可转</th></tr></thead><tbody><tr><td>0</td><td>是</td><td>是</td><td>是</td></tr><tr><td>1</td><td>否</td><td>是</td><td>否</td></tr><tr><td>2</td><td>否</td><td>否</td><td>否</td></tr><tr><td>3</td><td>是</td><td>是</td><td>否</td></tr><tr><td>4</td><td>否</td><td>否</td><td>是</td></tr><tr><td>5</td><td>否</td><td>是</td><td>是</td></tr></tbody></table><p>配置时按目标动作反查：需要整车与货架相对旋转，就同时打开允许旋转并勾选可旋转 AMR 类型；只需小角度微调，可仅保留微调能力。</p>"
+      "h": "点位方向的三条 FAQ 判断",
+      "html": "<ul><li><strong>A 点设成不可旋转会怎样？</strong>机器人会提前到 A 点<strong>之前</strong>的那个点完成旋转，再从 A 点倒退进 B。此时 A 的点位方向对任务没有影响——即便设了方向，机器人仍会在 A 点前转成 -90° 再进入 B。</li><li><strong>A、B 都设 -90° 就够了吗？</strong>不够。B 点还需<strong>配置不可旋转</strong>，否则仍会正向行驶到 B 点再旋转。</li><li><strong>把 A→B 的线设为「线上旋转」能让机器人在线上转吗？</strong>不能。线属性的「线上旋转」是给机器人<strong>掉头</strong>用的，无法让车在线上完成姿态调整。</li></ul><p>判断依据统一为：<strong>旋转发生在前一个仍允许旋转的点上</strong>。所以「倒车进点」的配置永远是「前点可转 + 目标点定向且不可转」这一对。</p>"
     },
     {
-      "h": "判断标准与常见问题",
-      "html": "<table><thead><tr><th>现象</th><th>可能原因</th><th>验证与处理</th></tr></thead><tbody><tr><td>配置了货架方向但实际不符</td><td>货架长宽被配置成相同值，机器人无法旋转货架</td><td>检查货架参数，长宽需相差至少 1mm</td></tr><tr><td>货架不在指定点旋转</td><td>货架结构未勾选该机器人类型为可旋转 AMR</td><td>在货架参数中补勾对应类型</td></tr><tr><td>盲举货架仍出现旋转配置</td><td>盲举启用后可旋转 AMR 类型失效</td><td>确认盲举开关，按盲举逻辑排查</td></tr><tr><td>旋转申请失败</td><td>周边拥堵、距点误差超限或该点不可旋转</td><td>疏通周边、调整点位误差、开启点旋转属性</td></tr><tr><td>货架方向与地图线配置冲突</td><td>任务带货架角度要求点配置，但地图按线配置且线默认水平</td><td>改用点配置并设置货架方向</td></tr><tr><td>刷地图现场出现错位</td><td>人为搬移货架后平台状态与实际不符</td><td>规范先解绑再搬移、搬来后重新绑定</td></tr></tbody></table>"
+      "h": "货架方向：先定用点配置还是线配置",
+      "html": "<p>新建地图时，在地图属性中选「载具方向配置」，<strong>默认是点配置</strong>。以下四类场景<strong>必须</strong>选点配置：</p><ul><li>开启<strong>刷地图</strong>（放下货架时该点被动态改写为储位：空车可穿过、背货架不可穿过；抬起货架时改写为道路）。</li><li><strong>货架短边不可进</strong>。</li><li>由<strong>第三方系统</strong>控制货架方向。</li><li>对接<strong>上游仓储系统</strong>管理货架。</li></ul>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v06/02-vehicle-dir.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v06/02-vehicle-dir.png\" alt=\"编辑地图中选择载具方向配置\"></a>\n  <figcaption><b>图 2</b> 编辑地图时「载具方向配置」可选「点配置 / 线配置」，没有上述四类需求时保持默认的点配置即可。</figcaption>\n</figure>\n<p>点配置下的「货架方向」指货码 x 轴相对地码坐标系的方向，<strong>进入点和离开点都必须是设定方向</strong>；「货架角度」只对任务目标点有效。</p>"
     },
     {
-      "h": "注意事项",
-      "html": "<ul><li>点位方向只影响任务目标点，途经点按路径行驶，不会主动调整车头。</li><li>货架方向设为横向或竖向后，即使货架类型允许旋转，实际也不会在途中改变方向。</li><li>货架方向配置与点位方向是两套独立参数，倒车进点场景只需点位方向配合，不必修改货架方向。</li><li>双向通行应使用线属性的逆向行驶，而不是在两个点之间画两条线；画两条线后再开启逆向没有意义。</li><li>人为移架频繁的现场建议不开启刷地图，否则平台状态容易与实际货架位置脱节。</li></ul><div class=\"callout ok\"><span class=\"callout-title\">验证方法</span><p>完成配置后，用一条起点到终点的空载与满载任务各跑一次，观察车头朝向、货架方向与旋转动作是否与点位设置一致。</p></div>"
+      "h": "货架方向取值与相邻点约束",
+      "html": "<table><thead><tr><th>货架方向</th><th>描述</th></tr></thead><tbody><tr><td>竖向</td><td>该点货码 x 轴与地码 y 轴同方向</td></tr><tr><td>横向</td><td>该点货码 x 轴与地码 x 轴同方向</td></tr><tr><td>任意方向</td><td>该点货架方向由任务决定（全向）</td></tr></tbody></table>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v06/03-shelf-dir.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v06/03-shelf-dir.png\" alt=\"点属性中设置货架方向与货架角度\"></a>\n  <figcaption><b>图 3</b> 点属性的「载具属性 &gt; 货架属性」中设置货架方向（示例为横向）与货架角度（0°）。</figcaption>\n</figure>\n<div class=\"callout warn\"><span class=\"callout-title\">相邻点不能一横一竖</span><p>货架方向为横向或竖向后，进点、出点都必须是该方向，即使货架类型设了可旋转<strong>实际也不会转</strong>。因此同一条线上两个点不能分别设横向和竖向；确实要转向，必须在中间<strong>加一个点为「任意方向」</strong>，让货架在中间点完成旋转。</p></div>"
+    },
+    {
+      "h": "实操：A 横 → B 竖的三段带载搬运",
+      "html": "<p>需求：从 A 点背货架水平背到 B 点，再从 B 点垂直背到 C 点，用点配置实现。</p><ol><li>A、B 点的「货架方向」设为<strong>横向</strong>（A→B 途中不能旋转）。</li><li>在 B、C 之间加 <strong>D 点</strong>，其「货架方向」设为<strong>任意方向</strong>（全向），货架会在 D 点转成垂直方向。</li><li>C 点的「货架方向」设为<strong>竖向</strong>。</li><li>进入「控制调度 &gt; 任务调度」把货架绑定到 A 点，字段取值见下表。</li><li>再用「任务调度」下发搬运任务。</li></ol><table><thead><tr><th>字段</th><th>取值 / 来源</th></tr></thead><tbody><tr><td>存储对象种类</td><td>站点</td></tr><tr><td>存储对象编号</td><td>「存储对象 &gt; 站点管理」中的站点名称或编号</td></tr><tr><td>载具种类</td><td>货架</td></tr><tr><td>载具类型 / 载具编号</td><td>「搬运对象 &gt; 货架管理」中的载具类型与货架编号</td></tr><tr><td>载具方向</td><td>与 A 点的货架方向一致（本例横向）</td></tr><tr><td>绑定类型</td><td>绑定</td></tr></tbody></table><p>任务调度还需要：<strong>任务类型</strong>（「任务编排 &gt; 任务流程列表」中举升车搬运流程的编号）、<strong>优先级</strong>（1~120，值越大越优先）、<strong>类型</strong>（区域 / 站点 / 仓位 / 载具编号，示例选站点编号，几个站点就加几条）、<strong>值</strong>（所选类型对应的编号）。</p>"
+    },
+    {
+      "h": "旋转控制：三层开关谁管谁",
+      "html": "<ul><li><strong>机器人旋转</strong>：点属性 AMR 属性开启「允许」后，该类型机器人才能在该点旋转（图 1 的开关）。</li><li><strong>货架旋转</strong>：点属性货架属性开启「货物允许旋转」后，货架才能在该点旋转。</li><li><strong>货架结构 &gt; 可旋转 AMR 类型</strong>：控制机器人能否在<strong>货架底下独自</strong>旋转。未勾选时，空车不能在货架底下旋转，背货架时只能和货架一起转。</li></ul>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v06/04-shelf-structure.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v06/04-shelf-structure.png\" alt=\"货架结构中的可旋转 AMR 类型\"></a>\n  <figcaption><b>图 4</b> 编辑货架结构：底部「可旋转 AMR 类型」是<strong>全局开关</strong>，不勾选则该类型机器人在货架下永远不能单独旋转。</figcaption>\n</figure>\n<p>两者的分工：货架结构的开关<strong>全局</strong>生效；点属性里的「货物下调整类型-车不可转」只对<strong>搬运任务的起点、终点，以及背货途中货架与机器人相对角度变化时</strong>生效。空车移动到货架底下的任务，不受「车不可转」约束。</p>"
+    },
+    {
+      "h": "adjust_type：六种调整类型",
+      "html": "<p><code>adjust_type</code> 是点属性 LMR 潜伏的「货物下调整类型」+「允许旋转」+ 货架结构「可旋转 AMR 类型」组合后<strong>下发给机器人</strong>的结果，控制机器人<strong>举升货架前（任务起点）</strong>和<strong>下放货架前（任务终点）</strong>的动作。</p>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v06/05-adjust-type.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v06/05-adjust-type.png\" alt=\"adjust_type 六种类型对照\"></a>\n  <figcaption><b>图 5</b> adjust_type 的 0~5 六种取值：底盘能否相对货架旋转 / 微调，与举升盘能否旋转的组合。</figcaption>\n</figure>\n<table><thead><tr><th>adjust_type</th><th>底盘相对货架可旋转</th><th>底盘相对货架可微调</th><th>举升盘相对货架可旋转</th><th>举升盘可微调</th></tr></thead><tbody><tr><td>0</td><td>是</td><td>是</td><td>是</td><td>都可微调，贴小码则不微调</td></tr><tr><td>1</td><td>否</td><td>是</td><td>否</td><td>—</td></tr><tr><td>2</td><td>否</td><td>否</td><td>否</td><td>—</td></tr><tr><td>3</td><td>是</td><td>是</td><td>否</td><td>—</td></tr><tr><td>4</td><td>否</td><td>否</td><td>是</td><td>—</td></tr><tr><td>5</td><td>否</td><td>是</td><td>是</td><td>—</td></tr></tbody></table><p>生效范围：底盘两项「举升前后都生效」；举升盘旋转「举升前后生效，放下货架后不生效」。</p>"
+    },
+    {
+      "h": "adjust_type 的配置对照",
+      "html": "<p>由目标值反查三项配置（<code>/</code> 表示可配可不配，其余按表填）：</p><table><thead><tr><th>adjust_type</th><th>货物下调整类型</th><th>允许旋转</th><th>货架结构可旋转 AMR 类型</th></tr></thead><tbody><tr><td>0</td><td>不限制</td><td>开启</td><td>勾选</td></tr><tr><td>1</td><td>车可微调，执行机构不可转</td><td>/</td><td>/</td></tr><tr><td>2</td><td>车不可转，执行机构不可转</td><td>/</td><td>不勾选</td></tr><tr><td>3</td><td>车可转，执行机构不可转</td><td>开启</td><td>勾选</td></tr><tr><td>4</td><td>车不可转，执行机构可转</td><td>/</td><td>不勾选</td></tr><tr><td>5</td><td>车可微调，执行机构可转</td><td>/</td><td>/</td></tr></tbody></table><p>四个手册场景的配置组合：</p><table><thead><tr><th>场景</th><th>货架结构</th><th>货物允许旋转</th><th>允许旋转</th><th>货物下调整类型</th></tr></thead><tbody><tr><td>A：车可转、举升盘可转</td><td>勾选</td><td>关闭</td><td>关闭</td><td>车不可转，执行机构可转</td></tr><tr><td>B：车可小角度调、举升盘不可转</td><td>勾选</td><td>关闭</td><td>关闭</td><td>车可微调，执行机构不可转</td></tr><tr><td>C：车可转、举升盘可转</td><td>勾选</td><td>关闭</td><td>开启</td><td>不限制</td></tr><tr><td>D：车不可转、仅小角度调</td><td>不勾选</td><td>关闭</td><td>关闭</td><td>车可微调，执行机构不可转</td></tr></tbody></table>"
+    },
+    {
+      "h": "常见问题速查",
+      "html": "<table><thead><tr><th>现象</th><th>原因</th><th>处理</th></tr></thead><tbody><tr><td>配了货架方向，实际方向不对</td><td>货架参数中长、宽配成相同值，机器人无法带架旋转</td><td>货架长、宽需相差<strong>至少 1mm</strong></td></tr><tr><td>货架不在指定点旋转</td><td>货架参数里没勾选该机器人型号为「可旋转 AMR 类型」</td><td>补勾对应类型</td></tr><tr><td>盲举货架还能选可旋转 AMR 类型</td><td>启用盲举后该配置<strong>失效</strong></td><td>按盲举逻辑排查，不依赖该勾选</td></tr><tr><td>货架方向与地图线冲突</td><td>任务要求货架角度，但地图用线配置且线默认水平</td><td>改用点配置并逐点设货架方向</td></tr><tr><td>刷地图现场错位</td><td>人为搬架后平台状态与实际不符（平台以为没货架、实际有）</td><td>移走货架先解绑，搬来后再绑定</td></tr><tr><td>双向通行想加线</td><td>在两元素点之间画了两条线</td><td>只画一条线并启用「逆向行驶」；画两条线再加逆向无意义</td></tr></tbody></table><p>关于刷地图的判断：不开启时，储位上<strong>空车和背货架都不能经过</strong>；开启后放下货架即改写为储位。人为移架频繁的项目不建议开启。</p>"
+    },
+    {
+      "h": "收尾与验证",
+      "html": "<ul><li>点位方向只影响<strong>任务目标点</strong>，途经点按路径行驶、不会主动调头。</li><li>货架方向与点位方向是两套独立参数：倒车进点场景只需点位方向配合，<strong>不要顺手改货架方向</strong>。</li><li>货架方向设为横向 / 竖向后，途中不会改变方向；需要转向就加「任意方向」的中间点。</li><li>双向通行用线属性的「逆向行驶」，不要画两条线。</li><li>改动后按「空载一趟 + 满载一趟」各跑一条任务，观察车头朝向、货架朝向、举升前后的旋转动作是否与配置一致。</li></ul><div class=\"callout ok\"><span class=\"callout-title\">验证通过的标志</span><p>目标点进点方向正确、货架长边与货码 x 轴平行、举升/下放前后没有多余旋转、监控客户端上机器人姿态与地图箭头一致。</p></div>"
     }
   ],
   "checks": [
-    "确认地图载具方向配置方式：涉及刷地图、短边不可进、第三方控制货架方向时必须选点配置",
-    "目标点的点位方向与允许旋转开关成对设置，避免驶入后才旋转",
-    "货架长宽配置差值不小于 1mm，否则无法通过旋转改变货架方向",
-    "同一条线两端不设置相反的货架方向；需要转向时在中间加全向点",
-    "货架结构中的可旋转 AMR 类型已勾选实际使用的机器人类型",
-    "盲举货架不再依赖可旋转 AMR 类型配置",
-    "需要双向通行的线段使用逆向行驶，而不是重复画线",
-    "上线前用空载与满载各跑一条任务，核对车头与货架实际方向"
+    "已确认地图「载具方向配置」选点配置还是线配置；涉及刷地图、短边不可进、第三方/仓储系统控货架方向时必须点配置",
+    "倒车进点场景：前点开启「允许旋转」，目标点设置点位方向并关闭「允许旋转」",
+    "点位方向角度值与现场实际朝向核对过（0/90/-90/180 对应地码轴的正负方向）",
+    "同一条线上没有一横一竖的货架方向；需要转向处已加「任意方向」的中间点",
+    "货架参数中长、宽的差值不小于 1mm",
+    "货架结构「可旋转 AMR 类型」已勾选现场实际使用的机器人类型",
+    "盲举货架不依赖「可旋转 AMR 类型」，按盲举逻辑配置",
+    "adjust_type 由「货物下调整类型 + 允许旋转 + 可旋转 AMR 类型」组合反查，与需求动作一致",
+    "开启了刷地图的现场，已约定「移架前解绑、摆好后绑定」的操作规范",
+    "需要双向通行的线段只画一条并启用「逆向行驶」",
+    "货架已按载具方向绑定在起点的存储对象上，绑定方向与该点货架方向一致",
+    "上线前空载、满载各跑一条任务，核对车头朝向、货架方向与举升前后动作"
   ]
 }

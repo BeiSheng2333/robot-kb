@@ -123,295 +123,295 @@
 
       <div class="notes" id="notesList">
         <a class="note-row" href="posts/vendor/v21.html" data-cat="实施部署"
-           data-text="AGV 加密文件修改与导入刷写流程（软标定制） 实施部署 加密文件 sec.bin 软标 软件标识符 castor imx6_encrypto AGV-V1 TFTP Tftpd32 SecureCRT 升级口 RCU U-Boot HKVS 串口升级">
+           data-text="AGV 加密文件修改与导入刷写流程（软标定制） 实施部署 加密文件 sec.bin 软标 软件标识符 castor_export_sec_bin castor_get_sec_info imx6_encrypto AGV-V1 Tftpd32 TFTP SecureCRT 升级口 RCU HKVS U-Boot setenv Intel">
           <div class="note-side">
             <span class="note-cat">实施部署</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>AGV 加密文件修改与导入刷写流程（软标定制）</h3>
-            <p>按操作手册完整步骤整理：导出并校验 sec.bin、用加密工具改软标、配置 TFTP 与串口、U-Boot 刷写与重启验证，含每步判断依据与易错点，附 5 张脱敏截图。</p>
+            <p>现场定制、改制时需要修改小车软件标识符（软标）并刷入对应的加密文件 sec.bin。本篇按操作手册的完整步骤整理：从导出与校验、用加密工具改软标、准备 TFTP 与串口，到 U-Boot 刷写与重启验证，并标出每一步的判断依据和易错点。</p>
             <div class="note-tags"><span>加密文件</span><span>sec.bin</span><span>软标</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v20.html" data-cat="通信与接口"
-           data-text="ClientView 低代码页面配置与接口绑定 通信与接口 ClientView PDA 布局配置 元件标识 请求属性 接口标识 表格读写 appId">
+           data-text="ClientView 低代码页面配置与接口绑定 通信与接口 ClientView PDA 低代码 布局配置 元件标识 请求属性 接口标识 目标属性 表格读写 appId projectId">
           <div class="note-side">
             <span class="note-cat">通信与接口</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>ClientView 低代码页面配置与接口绑定</h3>
-            <p>从项目、服务、应用到布局与菜单，说明如何用低代码方式配置工作站和 PDA 页面并对接接口。</p>
-            <div class="note-tags"><span>ClientView</span><span>PDA</span><span>布局配置</span></div>
+            <p>面向实施人员的 ClientView 配置手册：从项目、服务、应用、布局、菜单五步搭出工作站与 PDA 页面，并用元件标识、请求属性把按钮和表格绑定到后端接口。补齐每类元件的关键参数与联调常见坑。</p>
+            <div class="note-tags"><span>ClientView</span><span>PDA</span><span>低代码</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v19.html" data-cat="配置与工具"
-           data-text="终端工具连接机器人与服务端的常用操作 配置与工具 PuTTY MobaXterm SSH sz rz vim castor_cli SFTP">
+           data-text="终端工具连接机器人与服务端的常用操作 配置与工具 PuTTY MobaXterm SSH 主机密钥 sz rz SFTP vim castor_cli 日志保存">
           <div class="note-side">
             <span class="note-cat">配置与工具</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>终端工具连接机器人与服务端的常用操作</h3>
-            <p>介绍用 PuTTY 和 MobaXterm 登录机器人或服务器、上传下载文件、开打印和在线改配置的常用手法。</p>
+            <p>现场最常用的两类终端操作：用 PuTTY 登录机器人主控跑调试命令、开打印留证；用 MobaXterm 登录服务器，通过 SSH 与 SFTP 上传下载、在线改配置。按操作手册 V5.1 补齐界面步骤、命令与易错点。</p>
             <div class="note-tags"><span>PuTTY</span><span>MobaXterm</span><span>SSH</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v18.html" data-cat="通信与接口"
-           data-text="调度系统 HTTP API 签名与任务接口 通信与接口 HTTP API HMAC-SHA256 签名 X-lr-appkey 任务组 任务下发 SPI 回调 状态码">
+           data-text="调度系统 HTTP API 签名与任务接口 通信与接口 HTTP API HMAC-SHA256 签名 X-lr-appkey task/submit 任务组 继续任务 SPI 回调 taskStatus 错误码">
           <div class="note-side">
             <span class="note-cat">通信与接口</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>调度系统 HTTP API 签名与任务接口</h3>
-            <p>面向对接方的接口说明：请求头与签名算法、状态码处理、任务组与任务全流程及回调接口。</p>
+            <p>面向 WMS/MES 对接方的接口手册：请求头与签名算法、错误码判定、任务组与任务下发/继续/取消/查询全流程，以及调度系统回调上层系统的 SPI 接口。按 RCS V4.1 对外接口文档整理。</p>
             <div class="note-tags"><span>HTTP API</span><span>HMAC-SHA256</span><span>签名</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v17.html" data-cat="地图与定位"
-           data-text="叉车激光标定与多车一致性调整 地图与定位 激光标定 基准车 参考线 安装偏差 运动中心 多车一致性 标定值 全向叉车">
+           data-text="叉车激光标定与多车一致性调整 地图与定位 激光标定 基准车 参考线 安装偏差 运动中心 运动误差 标定值 多车一致性 calib_flag 全向叉车">
           <div class="note-side">
             <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>叉车激光标定与多车一致性调整</h3>
-            <p>以基准车参考线为基准逐台标定激光安装偏差，使多车在同一储位点的停车姿态保持一致。</p>
+            <p>多台叉车在同一储位点停车姿态反复不一致，本质是导航激光相对运动中心的安装偏差不同。本篇按手册补全标定原理、参考线选取、角度与侧向的符号规则、运动误差扣除，以及旧版指令标定、主控 2.8 以上整包 JSON 标定和全向叉车差异。</p>
             <div class="note-tags"><span>激光标定</span><span>基准车</span><span>参考线</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v16.html" data-cat="地图与定位"
-           data-text="L-SLAM 地图核查与轮廓优化 地图与定位 L-SLAM 地图核查 激光回放 轮廓差异 替换裁剪 融合裁剪 激光无效区 定位干扰">
+           data-text="L-SLAM 地图核查与轮廓优化 地图与定位 L-SLAM 地图核查 激光回放 轮廓差异 异常核查点 异常区域 替换裁剪 融合裁剪 激光无效区 定位干扰 断层检测 置信度">
           <div class="note-side">
             <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>L-SLAM 地图核查与轮廓优化</h3>
-            <p>介绍用激光回放与地图核查比对轮廓差异、优化地图并排查定位干扰的操作步骤与判断标准。</p>
+            <p>现场环境变化后，机器人扫描轮廓与 L-SLAM 地图对不上，表现为置信度低、行走精度差。本篇按手册完整流程整理：日志回放定位问题、在线/离线两种地图核查、结果判读，以及用替换裁剪和融合裁剪优化轮廓、处理激光干扰。</p>
             <div class="note-tags"><span>L-SLAM</span><span>地图核查</span><span>激光回放</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v15.html" data-cat="地图与定位"
-           data-text="L-SLAM 建图流程与路径规划 地图与定位 L-SLAM 导航建图 闭环 路径规划 地图分辨率 长廊 反光板 离线建图">
+           data-text="L-SLAM 建图流程与路径规划 地图与定位 L-SLAM 激光建图 在线建图 离线建图 闭环检测 反光板 反光柱 路径规划 地图分辨率 长廊 光伏场景 车厂场景 拓扑点采集 重定位 地图偏移量">
           <div class="note-side">
             <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>L-SLAM 建图流程与路径规划</h3>
-            <p>说明 L-SLAM 建图的适用评估、在线与离线流程、闭环路径规划及长廊等特殊场景的处理要点。</p>
-            <div class="note-tags"><span>L-SLAM</span><span>导航建图</span><span>闭环</span></div>
+            <p>L-SLAM 建图不是「推着车走一圈」这么简单：环境评估、反光板部署、闭环路线规划、分辨率选择、特殊场景规避，每一步都会决定地图能不能用。本篇按建图手册的完整章节整理在线/离线两条建图链路，并把闭环与路径规划的技巧拆成可执行的规则。</p>
+            <div class="note-tags"><span>L-SLAM</span><span>激光建图</span><span>在线建图</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v14.html" data-cat="排障方法"
-           data-text="机器人端与平台端日志种类及下载方法 排障方法 日志 agv_log evt rcd TRACE IAS OPS coredump 日志打包">
+           data-text="机器人端与平台端日志种类及下载方法 排障方法 机器人日志 平台日志 agv_log evt rcd lidar sens llc_log wpa IAS OPS 日志下载 TRACE 日志等级 打包下载">
           <div class="note-side">
             <span class="note-cat">排障方法</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>机器人端与平台端日志种类及下载方法</h3>
-            <p>说明机器人端与平台端各类日志的含义、命名时间规则、下载入口，以及临时开启 TRACE 的方法。</p>
-            <div class="note-tags"><span>日志</span><span>agv_log</span><span>evt</span></div>
+            <p>排障效率取决于日志拿得对不对。本篇按日志说明手册整理：先分清机器人端（agv_log、evt、rcd、lidar、sens、llc_log、wpa 等）与平台端日志的种类与目录，再给出 V3.X / V4.X 两代平台的下载路径、日志时间戳读法与 TRACE 开关用法。</p>
+            <div class="note-tags"><span>机器人日志</span><span>平台日志</span><span>agv_log</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v13.html" data-cat="排障方法"
-           data-text="现场问题反馈与排查规范 排障方法 问题反馈 日志 TRACE ping_cnt 规划库 锁格 自动门 电梯 core-dump">
+           data-text="现场问题反馈与排查规范 排障方法 问题反馈 提交规范 排查思路 平台失联 ping_cnt 无有效路径 申请锁格失败 死锁 空间干涉 异常重启 core dump 自动门 电梯 呼叫器 日志附件">
           <div class="note-side">
             <span class="note-cat">排障方法</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>现场问题反馈与排查规范</h3>
-            <p>把现场问题按统一模板描述并附上关键日志与排查证据，缩短定位与升级处理的时间，减少反复沟通。</p>
-            <div class="note-tags"><span>问题反馈</span><span>日志</span><span>TRACE</span></div>
+            <p>问题反馈质量决定处理速度。很多工单被反复退回，不是现场没干活，而是缺时间点、缺日志、缺结论。本篇按规范手册的完整结构整理：先讲通用流程与前期准备，再按「不上线—单体问题—平台问题—第三方对接」逐类给出排查路径与提交三件套，可直接照单填写。</p>
+            <div class="note-tags"><span>问题反馈</span><span>提交规范</span><span>排查思路</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v12.html" data-cat="配置与工具"
-           data-text="监控客户端登录与现场管控操作要点 配置与工具 监控客户端 RCS 端口 预设封锁区 一键收工 一键关机 地图背景 路径连通性">
+           data-text="监控客户端登录与现场管控操作要点 配置与工具 监控客户端 MonitorClient RCS-2000 登录端口 监控录制 预设封锁区 一键收工 一键关机 自动唤醒 准关电量 地图背景 路径连通性 无有效路径 现场管控">
           <div class="note-side">
             <span class="note-cat">配置与工具</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>监控客户端登录与现场管控操作要点</h3>
-            <p>说明监控客户端如何登录平台、录制现场画面，并用封锁区、收工、关机和路径查询完成日常运维。</p>
-            <div class="note-tags"><span>监控客户端</span><span>RCS</span><span>端口</span></div>
+            <p>监控客户端是现场值班与运维最常用的图形化工具：看地图、看车、录屏、封锁区、批量收工与关机、路径排查都在这里完成。本篇按工具的操作顺序整理：先解决登录与端口对应关系，再逐项说明每个管控功能的入口、参数和判断依据。</p>
+            <div class="note-tags"><span>监控客户端</span><span>MonitorClient</span><span>RCS-2000</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v11.html" data-cat="实施部署"
-           data-text="潜伏机器人平台搭建与任务配置 实施部署 平台部署 地图配置 设备注册 货架绑定 任务编排 模拟器 第三方通讯 上线">
+           data-text="潜伏机器人平台搭建与任务配置 实施部署 潜伏机器人 业务部署 RCS 平台 添加地图 地码类型 每格宽度 AMR 类型 服务配置 货架结构 任务编排 申请载具 申请站点 设备注册端口 监控客户端 接口下发 载具绑定">
           <div class="note-side">
             <span class="note-cat">实施部署</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>潜伏机器人平台搭建与任务配置</h3>
-            <p>从平台登录到地图、设备、货架、机器人和任务流程的完整搭建顺序，适合新现场首次部署参照。</p>
-            <div class="note-tags"><span>平台部署</span><span>地图配置</span><span>设备注册</span></div>
+            <p>从零把一台潜伏机器人跑起来，要按顺序打通「地图—设备—服务—货架—机器人—客户端—任务」七段链路。本篇按业务部署手册的完整步骤整理：每一步给出现场要填的参数与判断依据，并标出关联地图、设备注册端口、载具绑定等最容易漏配的环节。</p>
+            <div class="note-tags"><span>潜伏机器人</span><span>业务部署</span><span>RCS 平台</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v10.html" data-cat="排障方法"
-           data-text="叉车机器人常见告警排查 排障方法 叉车机器人 平台失联 电池过放 CAN 线 激光误检测 读码外参 充电故障 告警排查">
+           data-text="叉车机器人常见告警排查 排障方法 平台失联 地图切换失败 旋转申请失败 IP 冲突 无法开机 电池过放 充电桩 继电器 拉线传感器 读码外参 陀螺仪标定 CAN 线不通 激光误检测 读码头通讯异常">
           <div class="note-side">
             <span class="note-cat">排障方法</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>叉车机器人常见告警排查</h3>
-            <p>按告警类别整理叉车机器人现场排查顺序，覆盖失联、能源、举升、导航、安全与声光故障。</p>
-            <div class="note-tags"><span>叉车机器人</span><span>平台失联</span><span>电池过放</span></div>
+            <p>叉车类机器人的告警按模块分为主控、能源、举升、导感、导航库、安全、声光与特殊故障八类。本篇按「现象 → 原因 → 验证步骤 → 恢复方法」统一口径整理，重点补上失联的六步定位、无法开机的电压分级判断、电池过放的两种补电路径和读码头的拆检顺序。</p>
+            <div class="note-tags"><span>平台失联</span><span>地图切换失败</span><span>旋转申请失败</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v09.html" data-cat="硬件与外设"
-           data-text="外设对接：呼叫器、自动门与电梯配置 硬件与外设 外设管理 呼叫器 自动门 电梯 WCS 任务模板 跨楼层 IO 配置">
+           data-text="外设对接：呼叫器、自动门与电梯配置 硬件与外设 外设管理 呼叫器 自动门 电梯 WCS TCP 对接 任务模板 F62 F20 F201 IO 配置 区域框选 跨楼层 接驳点 等待点 锁定标志">
           <div class="note-side">
             <span class="note-cat">硬件与外设</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>外设对接：呼叫器、自动门与电梯配置</h3>
-            <p>整理外设经 TCP/WCS 接入调度系统的链路，以及呼叫器、自动门、电梯的配置与任务模板编排。</p>
+            <p>外设与调度系统的对接分两条线：链路侧（TCP 经 WCS 转发）和配置侧（呼叫器、自动门、电梯的添加与任务模板编排）。本篇按手册顺序整理第三方类型的选择、四类任务通知的方法名、呼叫器三种按钮功能的区别、自动门区域框选与通信协议，以及电梯跨楼层 / 不跨楼层两套任务模板的差异。</p>
             <div class="note-tags"><span>外设管理</span><span>呼叫器</span><span>自动门</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v08.html" data-cat="地图与定位"
-           data-text="叉取机器人 SLAM 建图与上线 地图与定位 叉取机器人 SLAM 建图 反光条 离线建图 地图旋转 拓扑地图 上线配置 灯语">
+           data-text="叉取机器人 SLAM 建图与上线 地图与定位 叉取机器人 SLAM 建图 反光条 反光柱 离线建图 MapStudio LSLAM 激光日志 拓扑地图 SLAM 背景 批量选点 平台 IP 上线灯语 定位数据不可信">
           <div class="note-side">
             <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>叉取机器人 SLAM 建图与上线</h3>
-            <p>覆盖叉取机器人从反光条布置、离线建图到平台上线与灯语排障的完整操作顺序和判断标准。</p>
+            <p>叉车实施的标准顺序是「布反光条 → SLAM 采图建图 → 平台上线 → 画拓扑地图」。本篇按手册顺序拆开每一步：有线连接与无线配置、反光条与反光柱的量化要求、采图速度与闭环、日志目录与下载、离线建图与旋转、平台服务与地图导入、拓扑绘制与偏移，以及用灯语判断上线状态。</p>
             <div class="note-tags"><span>叉取机器人</span><span>SLAM 建图</span><span>反光条</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v07.html" data-cat="实施部署"
-           data-text="调度系统安装、升级与配套软件部署 实施部署 安装部署 License 补丁升级 PostgreSQL SQLite 监控客户端 PDA 端口">
+           data-text="调度系统安装、升级与配套软件部署 实施部署 RCS-Lite 安装部署 业务类型 clientType.xml License 补丁包 PatchInstall uninst.exe 监控客户端 PDA PostgreSQL SQLite DbTool 6543 8182 VC 2015 运行库">
           <div class="note-side">
             <span class="note-cat">实施部署</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>调度系统安装、升级与配套软件部署</h3>
-            <p>说明调度系统的软硬件要求、首次安装与登录、补丁升级、卸载及客户端与数据库的配套设置。</p>
-            <div class="note-tags"><span>安装部署</span><span>License</span><span>补丁升级</span></div>
+            <p>调度系统（RCS-Lite）的首次安装、补丁升级、卸载，以及监控客户端、PDA、数据库三类配套件的部署顺序与版本要求。本篇按手册章节顺序整理环境门槛、业务类型选择、License 导入、补丁包升级和 DbTool 切库的具体步骤，并给出每个环节的判断依据。</p>
+            <div class="note-tags"><span>RCS-Lite</span><span>安装部署</span><span>业务类型</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v06.html" data-cat="地图与定位"
-           data-text="机器人点位方向与货架方向配置 地图与定位 点位方向 货架方向 旋转控制 adjust_type 点配置 刷地图 允许旋转 货架结构">
+           data-text="机器人点位方向与货架方向配置 地图与定位 点位方向 货架方向 载具方向配置 点配置 线配置 刷地图 允许旋转 货物允许旋转 可旋转 AMR 类型 adjust_type 货物下调整类型 盲举 逆向行驶 货架角度">
           <div class="note-side">
             <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>机器人点位方向与货架方向配置</h3>
-            <p>说明点位方向、货架方向与旋转控制的配置关系，用于解决取放货姿态与货架方向不生效的问题。</p>
-            <div class="note-tags"><span>点位方向</span><span>货架方向</span><span>旋转控制</span></div>
+            <p>点位方向、货架方向、旋转控制是地图配置里最容易混淆的三套参数：它们分别决定机器人进点后的车头朝向、货架相对地码的摆放方向，以及机器人能否在货架下旋转。本篇按手册的操作顺序整理取值、点配置与线配置的选择条件、adjust_type 的六种组合和典型场景，并给出验证方法。</p>
+            <div class="note-tags"><span>点位方向</span><span>货架方向</span><span>载具方向配置</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v05.html" data-cat="地图与定位"
-           data-text="L-SLAM 地图编辑要点 地图与定位 L-SLAM 地图旋转 地图偏移 轮廓编辑 地图拼接 特征区 激光无效区 车道线">
+           data-text="L-SLAM 地图编辑要点 地图与定位 L-SLAM 地图旋转 地图偏移 负坐标 混跑偏移 轮廓擦除 元素选择 地图拼接 自动匹配 断层检测 车道线 激光无效区 轮廓稳定区">
           <div class="note-side">
             <span class="note-cat">地图与定位</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>L-SLAM 地图编辑要点</h3>
-            <p>整理 L-SLAM 地图的旋转调平、偏移换算、轮廓清理、拼接与特征区设置顺序，并给出现场判据。</p>
+            <p>L-SLAM 的地图不是扫完就能用：先旋转到墙面水平垂直，再留出右上方偏移防负坐标，然后擦掉临时轮廓、删掉杂点和误判反光板，必要时拼接增补区域，最后用车道线、激光无效区、轮廓稳定区兜住定位稳定性。每一步都有“做错也不报错、但会飘”的坑。</p>
             <div class="note-tags"><span>L-SLAM</span><span>地图旋转</span><span>地图偏移</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v04.html" data-cat="实施部署"
-           data-text="潜伏机器人典型业务场景部署 实施部署 潜伏机器人 盲举 探测载具 缓存递进 巷道 地图切换 跨地图充电 外设申请">
+           data-text="潜伏机器人典型业务场景部署 实施部署 潜伏车 盲举 PF-AMR-BLIND-LIFT-CARRIER 随车料箱码 PF-DETECT-CARRIER PF-LMR-INIT-CARRIER 缓存递进 BACK_OFF 动态任务终点 巷道 交接点 跨地图充电 外设申请 PF-LMR-CONVEYOR-TRANSHIP">
           <div class="note-side">
             <span class="note-cat">实施部署</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>潜伏机器人典型业务场景部署</h3>
-            <p>按载具形态与业务目标梳理潜伏机器人的典型部署方案，给出业务配置、流程编号与任务下发要点。</p>
-            <div class="note-tags"><span>潜伏机器人</span><span>盲举</span><span>探测载具</span></div>
+            <p>潜伏车的现场差异几乎全在任务编排上：同一台车，盲举、随车料箱码、探测载具、缓存递进、动态终点、巷道、跨图、外设申请，各自对应一个流程编号和一组节点改法。这份笔记把这些场景的“配置改什么、流程选哪个、节点填什么表达式”逐条对齐，避免拿到流程却改错节点。</p>
+            <div class="note-tags"><span>潜伏车</span><span>盲举</span><span>PF-AMR-BLIND-LIFT-CARRIER</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v03.html" data-cat="配置与工具"
-           data-text="主控配置文件 castor_conf 配置项速查 配置与工具 castor_conf sensor_conf underpan work_mode navi_conf energy_conf SSH 举升参数">
+           data-text="主控配置文件 castor_conf 配置项速查 配置与工具 castor_conf sensor_conf run_conf plat_conf navi_conf fusion_type loc_ctrl lift_conf energy_conf slam_conf work_mode underpan reg_ip 配置项">
           <div class="note-side">
             <span class="note-cat">配置与工具</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>主控配置文件 castor_conf 配置项速查</h3>
-            <p>梳理机器人主控配置文件的分组结构、常用配置项取值与改动后的验证方法，便于现场核对参数。</p>
-            <div class="note-tags"><span>castor_conf</span><span>sensor_conf</span><span>underpan</span></div>
+            <p>castor_conf 是主控侧的总配置：传感器、运行模式、平台对接、定位融合、举升、能源、精度、维护、低功耗、SLAM、图像库全在一份文件里。这份速查按模块拆开，把每个子项的值域与含义列全，重点是那些“填错就整机异常”的枚举值。</p>
+            <div class="note-tags"><span>castor_conf</span><span>sensor_conf</span><span>run_conf</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v02.html" data-cat="实施部署"
-           data-text="叉取机器人地图规划与业务部署 实施部署 拓扑地图 叉车等待点 储位坐标 弧线设计 货架绑定 巷道 任务模板 能力集">
+           data-text="叉取机器人地图规划与业务部署 实施部署 叉取机器人 拓扑地图 储位点 叉车等待点 弧线设计 加密文件 sec.bin imx6_encrypto 举升偏移量 货架配置 容器盲举 能力集 任务模板 巷道业务 先进后出">
           <div class="note-side">
             <span class="note-cat">实施部署</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>叉取机器人地图规划与业务部署</h3>
-            <p>从拓扑地图、点位坐标到叉车参数、巷道任务，说明叉取机器人上线前的配置顺序与易错点。</p>
-            <div class="note-tags"><span>拓扑地图</span><span>叉车等待点</span><span>储位坐标</span></div>
+            <p>叉取车型的部署链路和潜伏车差别很大：地图要专门做储位点与等待点、出入弧线，AMR 类型要照加密文件填参数，货架与容器要区分托盘落地与托盘上架两种场景，巷道业务还要单独建巷道并校验。这里按手册的六章顺序把关键参数、易错项和判断标准一次讲清。</p>
+            <div class="note-tags"><span>叉取机器人</span><span>拓扑地图</span><span>储位点</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>
 
         <a class="note-row" href="posts/vendor/v01.html" data-cat="通信与接口"
-           data-text="调度系统与上层平台的 REST 接口对接 通信与接口 REST 任务下发 回调通知 reqCode 结果码 绑定解绑 告警推送 JSON">
+           data-text="调度系统与上层平台的 REST 接口对接 通信与接口 REST genAgvSchedulingTask continueTask cancelTask agvCallback reqCode positionCodePath taskTyp 第三方信息 结果码 forceCancel blockArea queryAgvStatus warnCallback JSON">
           <div class="note-side">
             <span class="note-cat">通信与接口</span>
             <span class="note-date">2026-11-24</span>
           </div>
           <div class="note-main">
             <h3>调度系统与上层平台的 REST 接口对接</h3>
-            <p>梳理调度系统对外提供的 REST 接口、回调约定与结果码，帮现场一次性把任务链路调通。</p>
-            <div class="note-tags"><span>REST</span><span>任务下发</span><span>回调通知</span></div>
+            <p>按操作手册的完整顺序梳理 RCS-Lite 对外 REST 接口：先在任务模板里配好第三方信息与四类通知方法名，再逐条调通生成任务单、继续执行、取消任务三条必调接口，最后接入回调与可选接口。每个接口给出参数表、取值枚举、示例报文与结果码排障口径。</p>
+            <div class="note-tags"><span>REST</span><span>genAgvSchedulingTask</span><span>continueTask</span></div>
           </div>
           <span class="note-arrow">→</span>
         </a>

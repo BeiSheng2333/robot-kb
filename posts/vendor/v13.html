@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>现场问题反馈与排查规范 — 排障方法 — 现场笔记</title>
-<meta name="description" content="把现场问题按统一模板描述并附上关键日志与排查证据，缩短定位与升级处理的时间，减少反复沟通。">
+<meta name="description" content="问题反馈质量决定处理速度。很多工单被反复退回，不是现场没干活，而是缺时间点、缺日志、缺结论。本篇按规范手册的完整结构整理：先讲通用流程与前期准备，再按「不上线—单体问题—平台问题—第三方对接」逐类给出排查路径与提交三件套，可直接照单填写。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -60,9 +60,9 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
       <h1>现场问题反馈与排查规范</h1>
-      <p class="lede">把现场问题按统一模板描述并附上关键日志与排查证据，缩短定位与升级处理的时间，减少反复沟通。</p>
+      <p class="lede">问题反馈质量决定处理速度。很多工单被反复退回，不是现场没干活，而是缺时间点、缺日志、缺结论。本篇按规范手册的完整结构整理：先讲通用流程与前期准备，再按「不上线—单体问题—平台问题—第三方对接」逐类给出排查路径与提交三件套，可直接照单填写。</p>
       <div class="doc-meta">
-        <span>整理自 内部操作手册 V2.3，2025-01</span>
+        <span>整理自 内部操作手册 V2.3（32 页）</span>
         <span class="chip">排障方法</span>
       </div>
 
@@ -81,38 +81,66 @@
           <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
         </div>
 
-        <h2 id="s1">适用场景与前置条件</h2>
-        <p>这份规范面向技术支持、现场实施和项目经理，用于统一问题描述方式：先按手册给出的分支自查，再带着问题描述、排查过程和必要日志提交，避免反复补充信息。内容按平台 V4.X 及之后、主控 V4.X 及之后的版本整理，低版本部分判断方法可能不同。</p><ul><li>提交前先完成本岗能做的自查，不要只写“机器人不动”。</li><li>问题描述至少包含：发生时间、机器人编号、坐标值、现象与已做的操作。</li><li>排查结果要能对应到具体日志文件名和时间点。</li></ul>
+        <h2 id="s1">反馈流程总览</h2>
+        <p>规范要求每次反馈都包含三部分：<strong>问题描述（现象 + 时间 + 对象）→ 排查过程（做了哪些验证、结果如何）→ 必要附件（日志、截图、录像、抓包）</strong>。缺少任一项，问题大概率被退回补料，处理周期直接翻倍。</p><p>标准动作顺序：</p><ol><li><strong>固定现场</strong>：保留录像、截图，不要急于重启或复位；</li><li><strong>取时间点</strong>：精确到分钟（撞车、走偏等追责类问题要到秒）；</li><li><strong>按类排查</strong>：对照本手册对应章节的决策树走一遍，记录结论；</li><li><strong>备齐附件</strong>：按该问题类别要求的日志种类下载，必要时先开 TRACE 再复现；</li><li><strong>提交</strong>：问题描述 + 排查结果 + 附件，一次给全。</li></ol>
+        <figure class="shot">
+          <a href="../../assets/img/v13/01-flow.png" target="_blank" rel="noopener"><img src="../../assets/img/v13/01-flow.png" alt="问题反馈规范总体流程图，按平台失联、机器人单体、平台类、第三方对接四类展开"></a>
+          <figcaption><b>图 1</b> 问题反馈规范总览：前期准备（资料、日志、TRACE）之后，按四类问题分别进入对应子流程。</figcaption>
+        </figure>
 
-        <h2 id="s2">反馈前的准备</h2>
-        <p>资料、日志和日志级别是后续排查的基础，建议在复现问题的同时就完成采集。</p><ol><li>按现场资料目录获取对应版本的参考手册，避免用旧流程套新版本。</li><li>下载机器人日志与平台日志，保留问题时间点前后的完整片段。</li><li>问题无法从常规日志判断时，临时把日志打印等级调到 TRACE，再复现一次。</li><li>按操作流程图梳理分支，把已经排除的可能写在排查结果里。</li></ol><div class="callout ok"><span class="callout-title">采集顺序</span><p>先确认时间点（可参考事件日志），再按时间筛选日志；先抓机器人侧，再对照平台侧。这样附件中的文件名与时间点更容易对齐。</p></div>
+        <h2 id="s2">前期准备：资料、日志与 TRACE</h2>
+        <p><strong>资料获取：</strong>手册中「推荐参考资料」指的专项排查手册（注册与失联、任务空闲不走、死锁空间干涉、自动门、充电异常等），在内部知识平台或社区资料目录中检索下载，先看专项手册再提工单，能解决大部分常见问题。</p><p><strong>日志下载：</strong>机器人日志与平台日志的下载方法见《机器人日志说明手册》，本篇附件要求中反复出现的 <code>rcs_logbak</code>、<code>AGV</code>、<code>RCD</code>、<code>rcms</code>、<code>rtas</code>、<code>SENS</code>、<code>Lidar</code>、<code>EVT</code> 都是其中的日志种类。</p><p><strong>TRACE 开启：</strong>默认日志等级不足以定位算法类问题，需要临时把日志打印等级调到 TRACE 再复现；<strong>复现后务必调回默认等级</strong>，否则日志量暴涨会占满磁盘并影响运行。</p><div class="callout warn"><span class="callout-title">顺序很重要</span><p>正确顺序是「先开 TRACE → 再复现 → 立即打包日志」。先复现再开 TRACE，关键日志已经丢了，只能等下一次复现。</p></div>
 
-        <h2 id="s3">机器人不上线（平台失联）</h2>
-        <p>失联先分三类：网络通讯、服务器异常、机器人自身。网络侧继续区分调度平台不通、网关不通、漫游失败（需记录漫游失败错误码）；服务器侧检查有无 dump 文件或重启迹象。</p><ul><li>在 AGV 日志中搜索 <code>ping_cnt</code>，值为 -1 表示 ping 不通，取失联时间点附近的记录作为证据。</li><li>问题描述写清失联范围：全部机器人、固定地点失联，还是个别机器人；同时给出失联时间、设备与服务器 IP。</li><li>附件一般包括 AGV 日志、无线网络日志、内核日志，以及机器人与服务器两端抓包；全部失联时还需对应时间点的平台日志。</li><li>抓包要注明涉及设备与服务 IP，否则无法判断丢包方向。</li></ul>
+        <h2 id="s3">机器人不上线：平台失联排查</h2>
+        <p>「不上线」先分两大类：<strong>网络通讯</strong>与<strong>服务器异常</strong>，再往下分具体分支。</p><ul><li><strong>网络通讯</strong>：RCS 不通 / 网关不通 / 漫游失败（要记录漫游失败的错误码）；</li><li><strong>服务器异常</strong>：检查服务器上有无 <code>rcs dump</code> 文件、RCS 有无重启迹象。</li></ul><p>按下面的决策树走，能快速定位到具体分支，而不是笼统写「车掉线了」：</p>
+        <figure class="shot">
+          <a href="../../assets/img/v13/02-offline-tree.png" target="_blank" rel="noopener"><img src="../../assets/img/v13/02-offline-tree.png" alt="平台失联排查决策树，按网络层与数据链路层分支"></a>
+          <figcaption><b>图 2</b> 平台失联排查决策树：先判断是「不上线」还是「上线异常」，再按网络层 / 数据链路层分支定位到具体检查项。</figcaption>
+        </figure><p>失联专项的深入排查见《注册与失联排查手册》。</p>
 
-        <h2 id="s4">机器人单体问题</h2>
-        <p>单体问题建议先归类，再按对应分支取证。常见类型包括：无路径或不在拓扑元素、空闲不走、旋转点无法旋转、旋转时超声无效、激光方案无效、撞货架、走偏、遇障、短边进货架无效、背货途中下放货架、异常重启、无线充电异常。</p><ul><li><strong>无路径</strong>：先用路径连通性查询定位，再核对起点终点路线是否限制机器人类型、背货时线路上的货架方向与全向点、准入货架类型。</li><li><strong>空闲不走</strong>：依次看子任务单状态、平台是否下发目标点指令、规划库是否输出目标、机器人是否收到任务并报错。</li><li><strong>旋转点无法旋转</strong>：在机器人日志按 <code>tid</code> 找到算法日志中的申请记录，核对平台下发的 <code>adjust_type</code> 是否正确，并确认是否报“旋转中”。</li><li><strong>旋转时超声无效</strong>：先确认配置已打开，AGV 日志搜 <code>work cond</code>，值为 3 表示左右传感器已开；再用终端工具 <code>castor_cli -R 7</code> 打开全部传感器、<code>castor_cli -T 0</code> 与 <code>castor_cli -T 1</code> 控制打印，用 <code>castor_cli -R</code> 指定通道测试（2 左、3 右、0 前、1 后）。<code>msk</code> 为 1、3、7、15 分别代表 1～4 个传感器命中，检测到物体却不停车即为异常。</li><li><strong>激光方案无效</strong>：确认 <code>safe_dist</code> 是否下发，核对规划库输出的 <code>sp</code>（sensor_plan）与地图配置是否一致，再看机器人日志的 <code>barrier_level</code>、<code>safe_dist</code>；<code>sp</code> 大于 100 通常表示旋转避让半径，例如 300 对应 200mm，需要结合配置理解。</li><li><strong>撞货架</strong>：核对平台上机器人尺寸、货架尺寸与规划库是否一致，检查线上是否用激光方案屏蔽了激光，以及刷地图模式是否开启（1 开、0 关）。刷地图记录中 <code>p_id</code> 为 0 表示刷空、1 表示刷满，(x, y) 为坐标，(w, l) 为货架宽长；新版本记录文件名为 <code>trp_update_map.log</code>。</li><li><strong>异常重启</strong>：先看 <code>/mnt</code> 下有无 <code>core-dump</code>，有则多为软件异常；无则取内核日志 <code>/tmp/kernel_log</code> 下的 <code>kmsg_log.x</code>，共 5 个文件，序号越小内容越新。</li><li><strong>充电异常</strong>：确认伸缩机构是否伸出、是否接触刷块，区分有电压无电流与完全无电压；机器人侧 V2.8.X 主控看 <code>action_type=48</code>、4.X 看 <code>task_type=3</code>；充电桩日志看 <code>cmd_type</code>，1 为开始充电、2 为取消充电。</li></ul>
+        <h2 id="s4">平台失联的提交规范</h2>
+        <p><strong>问题描述</strong>必须写清属于哪种情况：全部机器人同时失联 / 全部机器人在固定位置失联 / 个别机器人失联；同时给出<strong>失联时间、失联设备、服务器 IP</strong>。</p><p><strong>排查结果</strong>要给出定位依据：抓包需说明涉及设备与服务 IP；并提供对应时间点的 AGV 与 WPA 日志。AGV 日志中搜索关键字 <code>ping_cnt</code>（<strong>-1 表示 ping 不通</strong>），定位失联时间点附近的记录，把搜索结果贴进工单：</p><pre>[2021-01-12 06:37:19][05993][ERROR][WIF]ip:&lt;机器人IP&gt;, ping_cnt:-1, rcs_ret -1,
+        switchret 0, conn_cnt:1 temp:&lt;MAC&gt;, last:&lt;MAC&gt;, sec:1610433439</pre><p><strong>附件</strong>：AGV 日志、WPA 日志、内核日志、机器人端与服务器端抓包。全部机器人失联时，还必须附对应时间点的平台日志。</p><p>日志中出现的 IP 与 MAC 仅作字段说明，提交时替换为现场实际值；对外流转前按项目要求脱敏。</p>
 
-        <h2 id="s5">平台类问题</h2>
-        <p>平台问题多与任务分配、路径规划、资源锁定有关，排查时按“任务是否下发、算法是否规划、机器人是否执行”三段走。</p><ul><li><strong>任务不分配机器人</strong>：核对任务模板勾选的机器人类型、是否有该类型空闲机器人、任务起点地图连通性、货架状态，以及模板是否勾选出库或入库。</li><li><strong>任务未完成</strong>：在机器人日志搜 <code>send up robotID</code> 确认是否到位并上报完成；再看规划库输出中 <code>fil</code> 是否在 1 和 0 之间交替；都正常时检查接收侧是否收到完成消息，必要时查 rcms 日志。</li><li><strong>平台指令错误</strong>：在机器人日志搜 <code>ALARM_PROC</code>，查看告警码 1-13 前后几行的错误信息。</li><li><strong>申请锁格失败</strong>：本质是机器人需在该点旋转但算法未通过，先看算法日志报错码；再区分锁格请求来自规划库指令还是机器人自申请，若来自规划库需核对本周期的输入与系统配置。</li><li><strong>死锁或空间干涉</strong>：核对规划库中的机器人、货架尺寸与实际是否一致，坐标是否偏离拓扑位置，相邻拓扑点是否设为可避让、拓扑边是否可回退。</li><li><strong>目标角度不可达与货架方向错误</strong>：检查终点货架角度设置、目标点旋转货架类型是否包含该货架、横竖转换中间是否有全向点；按子任务单号查 RCS 日志中报文 <code>Direction</code> 字段，并核对规划库的 <code>pod_type</code>。</li></ul>
+        <h2 id="s5">单体问题 · 无路径 / 不在拓扑元素</h2>
+        <p><strong>排查路径：</strong></p><ol><li>看起点与终点之间的路线是否<strong>限制了机器人类型</strong>，路径是否连通；</li><li>背货架时还要看：线路上货架横向拓扑点与竖向拓扑点之间<strong>是否有可旋转的全向点</strong>，以及该点的<strong>准入货架类型</strong>是否包含当前货架；</li><li>用监控客户端「控制 → 路径连通性查询」，选空闲机器人，在地图上依次点选关键路径点，点查询，界面会直接给出无路径原因。</li></ol><p><strong>提交：</strong>机器人/货架实际尺寸、路径连通性截图、路径上是否设置了货架方向；规划库日志名与具体时间点（如 <code>log_bak20240220110541.log</code> → <code>trp_log/AA</code> → <code>AAtrp_proc_main_output_1.log</code>）。附件需 rcs_logbak 日志、拓扑地图、查询截图、录像。</p>
 
-        <h2 id="s6">第三方对接问题</h2>
-        <p>对接类问题要先弄清数据流向，再逐段确认，不要一上来就怀疑末端设备。</p><ul><li><strong>自动门</strong>：门控申请数据依次经过算法、调度平台、中心管理服务、仓储控制系统到门控制器，按这条链路逐段核对日志。</li><li><strong>电梯</strong>：按手册给出的分支流程确认是调度侧、对接侧还是梯控侧的问题。</li><li><strong>呼叫器触发无效</strong>：先确认服务器与呼叫器能互相 ping 通；能通则登录呼叫器执行 <code>dev_cli -T 1</code> 打开打印，再按键观察交互信息，检查接口调用是否正确。</li></ul><div class="callout warn"><span class="callout-title">附件别漏</span><p>对接问题通常需要多段日志，自动门与电梯问题要同时提供平台侧、调度侧和仓储控制系统侧日志，只给一段很难判断断点。</p></div>
+        <h2 id="s6">单体问题 · 旋转与传感器类</h2>
+        <p><strong>旋转点无法旋转：</strong>在机器人日志中按 <code>tid</code> 找到申请记录，检查平台下发的 <code>adjust_type</code> 是否正确；日志中出现 <code>Request_lock failed, ret = 3</code> 说明锁格被拒，需要连同坐标、时间点一并提交。</p><p><strong>旋转时超声无效：</strong></p><ol><li>先确认配置是否打开：AGV 日志搜 <code>work cond</code>，值为 <code>3</code> 表示左右传感器已打开；</li><li>4.X 之前主控可做实测：转到位后拍急停，左右两侧 30 cm 处放硬纸箱；</li><li>终端登录主控执行 <code>castor_cli -R 7</code> 打开全部传感器，<code>castor_cli -T 0 -T 1</code> 放开打印；</li><li>执行 <code>castor_cli -R "47 1 2"</code> 验证单个传感器（<code>2</code> 左超声、<code>3</code> 右超声、<code>0</code> 前超声、<code>1</code> 后超声）；</li><li>看 <code>msk</code> 值：1 = 1 个传感器，3 = 0X11 两个，7 = 0111 三个，15 = 1111 四个。检测到物体时会给出距离（如 370 mm）；<strong>检测到却不停车即为异常</strong>。</li></ol><p><strong>激光方案无效：</strong>开 TRACE 后看日志里 <code>safe_dist</code> 是否下发；比对规划库输出的激光方案 <code>sp</code>（<code>sensor_plan</code>）与地图配置值是否一致；机器人日志看 <code>barrier_level</code>、<code>safe_dist</code>；注意 <code>sp &gt; 100</code> 表示旋转避让半径，例如 <code>sp 300</code> 对应 200 mm。</p>
 
-        <h2 id="s7">提交模板与附件清单</h2>
-        <p>每个问题按“问题描述、排查结果、附件资料”三段提交，缺一段都会延长处理时间。</p><ul><li><strong>问题描述</strong>：机器人编号、时间点（精确到秒）、坐标值、现象、复现条件，以及问题是调试阶段还是运行阶段出现。</li><li><strong>排查结果</strong>：写明用过的查询入口、看到的报错码或关键字段，并给出规划库日志、分配库日志的文件名与时间点。</li><li><strong>附件资料</strong>：常见组合为 rcs_logbak、rcms、rtas、AGV 与 RCD 日志、录像文件；异常重启补充 core-dump、<code>kmsg_log.x</code> 与电池日志；导航相关按导航方式补充拓扑地图、激光或定位日志。</li><li>涉及子任务的问题，务必带上子任务单号，便于按单号串起全链路日志。</li></ul>
+        <h2 id="s7">单体问题 · 撞货架、走偏与遇障</h2>
+        <p><strong>撞货架：</strong></p><ul><li>核对平台与规划库中的机器人尺寸、货架尺寸是否一致；线上是否用激光方案屏蔽了激光；</li><li>看规划库是否开启<strong>刷地图模式</strong>（<code>map_control_flag</code>：1 开启、0 未开启）；</li><li>比对储位货架真实状态与算法库状态：刷地图日志 <code>trp_set_map_even.txt</code> / <code>trp_set_map_odd.txt</code>（新版本为 <code>**trp_update_map.log</code>），<code>p_id 0</code> 刷空、<code>p_id 1</code> 刷满，<code>(x,y)</code> 为坐标，<code>(w,l)</code> 为货架宽长；</li><li>状态不符时查 rcs 日志：该储位上一次任务的 <code>out_frombin</code> 与放下任务是否完成、有无 <code>setmap</code> 打印；再看机器人位置是否跳变。</li></ul><p><strong>走偏：</strong>确认报警码是否为 <strong>6-17</strong>；若提示连续地码未识别，先到现场看地码是否贴歪、污损；再用 IAS 智能分析定位时间点并导出报告。</p><p><strong>遇障：</strong>先用 MapStudioPro 看激光轮廓，再用 IAS 下载对应时段日志分析；提交时说明是空车遇障还是背货架遇障、前方是否有障碍物。</p>
+
+        <h2 id="s8">单体问题 · 短边进、背货下放、重启与充电</h2>
+        <table><thead><tr><th>现象</th><th>排查要点</th><th>必附资料</th></tr></thead><tbody><tr><td>短边进货架无效</td><td>货架参数是否勾选「短边可进」的 AGV 类型；货架位置是否为储位；刷地图日志中货架方向是否正确；规划库输入是否合理</td><td>rcs_logbak 日志 + 规划库日志名与时间点、刷地图日志与 d_n 值</td></tr><tr><td>背货途中下放货架</td><td>查 <code>pod_type</code> 与 <code>adjust_type</code>；检查 <code>pod_config.xml</code> 是否把托盘错配成货架（托盘不能配成有腿货架）</td><td>rcs_logbak、AGV、RCD 日志、录像</td></tr><tr><td>机器人异常重启</td><td>先看 <code>/mnt</code> 下有无 <code>core-dump</code>（有则多为软件异常）；无则下内核日志 <code>/tmp/kernel_log/kmsg_log.x</code>（共 5 个，序号越小越新）</td><td>AGV 日志、core-dump、kmsg_log.x、电池日志、录像</td></tr><tr><td>无线充电桩充电异常</td><td>伸缩机构是否正常伸出（手动不能伸出→硬件）；有电压无电流/无电压；AGV 是否收到充电任务（2.8.X 主控 <code>action_type=48</code>，4.X <code>task_type=3</code>）；充电桩日志 <code>cmd_type</code>：1 开始、2 取消</td><td>AGV 日志、充电桩日志</td></tr></tbody></table><p>提交时统一写清时间点、机器人编号、坐标值，异常重启要写清重启次数与时间段（如 15:30–15:40 发生两三次）。</p>
+
+        <h2 id="s9">平台类问题（任务、锁格、死锁、角度）</h2>
+        <p><strong>任务不分配机器人：</strong>检查任务模板勾选的机器人类型是否有同类型空闲车；检查任务起点地图连通性；用智能分析按货架编号查货架状态；确认模板勾选了出库或入库。</p><p><strong>任务未完成：</strong>顺序验证「车是否到位并报完成（AGV 日志搜 <code>send up robotID</code> 看坐标与时间）→ 算法是否报完成（规划库 Ou 输出，<code>fil</code> 是否 1/0 交替）→ 3.x 还要看分配库是否报完成 → 平台是否收到完成消息（未收到查 rcms 日志）」。全程核对 <code>taskid</code> 是否一一对应。</p><p><strong>平台指令错误：</strong>AGV 日志搜 <code>ALARM_PROC</code>，看告警码 <strong>1-13</strong> 前后几行的错误信息。</p><p><strong>申请锁格失败：</strong>先看算法日志报错码；再确认本次申请是规划库指令触发的还是机器人自己发起的；规划库指令要回溯「给规划库的输入是否合理」（本周期机器人输入信息 + 系统配置参数）。</p><p><strong>死锁 / 空间干涉：</strong>核对规划库中的机器人、货架尺寸与实际是否一致；运行空间是否足够、坐标是否偏离拓扑位置；地图上相邻点的「可避让」属性与拓扑边「可回退避让」是否设置。</p><p><strong>目标角度不可达 / 货架方向错误：</strong>核对业务要求的终点货架角度、目标点旋转货架类型是否包含该货架；横竖向转换中间是否有全向点；RCS 任务报文 <code>Direction</code> 字段与规划库 <code>pod_type</code> 是否一致。</p>
+
+        <h2 id="s10">第三方对接：自动门、电梯、呼叫器</h2>
+        <p><strong>自动门：</strong>先理解数据流向 <code>算法 → RCS → RCMS → WCS → 门控制器</code>，按流向逐段验证，哪一段断就在哪一段取日志。提交时给时间点、机器人编号、自动门编号、子任务单号。</p><p><strong>电梯：</strong>按决策树逐分支排查，重点区分是「电梯侧未响应」「平台侧未下发」还是「机器人未执行到位」：</p>
+        <figure class="shot">
+          <a href="../../assets/img/v13/03-elevator-tree.png" target="_blank" rel="noopener"><img src="../../assets/img/v13/03-elevator-tree.png" alt="电梯问题排查决策树"></a>
+          <figcaption><b>图 3</b> 电梯排查决策树：从呼叫电梯、开门、进梯、选层到出梯逐环节判断，便于在工单中写明停在哪一分支。</figcaption>
+        </figure><p><strong>呼叫器触发无效：</strong>先确认服务器与呼叫器互 ping 是否通；通的话登录呼叫器执行 <code>dev_cli -T 1</code> 开打印，按下呼叫器按钮观察交互信息中接口调用是否正确。提交需附呼叫器主控版本与打印日志。</p>
+
+        <h2 id="s11">通用提交模板与收尾</h2>
+        <p>按下面模板填，基本不会被退单：</p><p><strong>① 问题描述：</strong>现象一句话 + 首次发生时间 + 复现频率 + 影响范围（单台/多台/全场）+ 机器人编号与坐标 + 服务器与设备 IP（脱敏后）。</p><p><strong>② 排查结果：</strong>按手册对应章节列出做了哪几步、每步结论；涉及日志的一定给<strong>文件名 + 时间点</strong>（如 <code>AAtrp_proc_main_output_1.log #time# 2024-02-20T10:50:51.055</code>）；关键报错原文贴出。</p><p><strong>③ 附件：</strong>按类别给全，通常包含 rcs_logbak、AGV、RCD、rcms、rtas 日志，必要时加 WPA、内核日志、SENS、Lidar、EVT、拓扑地图、抓包、录像、IAS 分析报告。</p><div class="callout warn"><span class="callout-title">三条硬性提醒</span><p>① 时间点必须准确，撞车/走偏类要到秒；② TRACE 用完要关，避免磁盘占满；③ 附件与描述要对得上，不能只丢一个压缩包。</p></div>
 
         <h2 id="checks">上线前核对</h2>
 
         <ul>
-          <li>问题描述包含机器人编号、精确到秒的时间点、坐标值和现象。</li>
-          <li>已按操作流程图完成本岗自查，并在排查结果中说明已排除的分支。</li>
-          <li>日志覆盖问题发生前后时间段，且注明了日志文件名与时间点。</li>
-          <li>常规日志不足时已临时开启 TRACE，并在复现后恢复默认级别。</li>
-          <li>失联问题已提供 ping_cnt 记录、失联范围、设备与服务器 IP 及两端抓包。</li>
-          <li>单体问题已附对应告警码或关键字段（如 adjust_type、sp、pod_type、p_id）。</li>
-          <li>平台问题已附规划库、分配库日志及子任务单号。</li>
-          <li>异常重启已附 core-dump 或 kmsg_log.x、电池日志与录像。</li>
+          <li>已按现象归类（不上线 / 单体 / 平台 / 第三方），并走完对应决策树</li>
+          <li>已记录首次发生时间、复现频率、影响范围与机器人编号、坐标</li>
+          <li>日志文件名与时间点已核对，工单中写明具体文件与时间戳</li>
+          <li>需要 TRACE 的问题已在复现前开启，复现后已调回默认等级</li>
+          <li>失联问题已提供 ping_cnt 搜索结果与 WPA / 平台日志</li>
+          <li>无路径问题已附路径连通性查询截图与拓扑地图</li>
+          <li>撞车、走偏类问题时间点精确到秒，并附录像与 IAS 分析报告</li>
+          <li>平台类问题已提供规划库 / 分配库日志名与时间点及子任务单号</li>
+          <li>第三方问题已按数据流向分段验证并取到对应侧日志</li>
+          <li>附件清单与问题类别要求一致，未缺项（rcs_logbak / AGV / RCD / rcms 等）</li>
+          <li>提交前已按项目要求对 IP、MAC、设备编号做脱敏</li>
         </ul>
       </div>
 
@@ -125,13 +153,17 @@
     <aside class="toc">
       <p class="toc-title">本页目录</p>
       <nav id="tocNav">
-        <a href="#s1">适用场景与前置条件</a>
-        <a href="#s2">反馈前的准备</a>
-        <a href="#s3">机器人不上线（平台失联）</a>
-        <a href="#s4">机器人单体问题</a>
-        <a href="#s5">平台类问题</a>
-        <a href="#s6">第三方对接问题</a>
-        <a href="#s7">提交模板与附件清单</a>
+        <a href="#s1">反馈流程总览</a>
+        <a href="#s2">前期准备：资料、日志与 TRACE</a>
+        <a href="#s3">机器人不上线：平台失联排查</a>
+        <a href="#s4">平台失联的提交规范</a>
+        <a href="#s5">单体问题 · 无路径 / 不在拓扑元素</a>
+        <a href="#s6">单体问题 · 旋转与传感器类</a>
+        <a href="#s7">单体问题 · 撞货架、走偏与遇障</a>
+        <a href="#s8">单体问题 · 短边进、背货下放、重启与充电</a>
+        <a href="#s9">平台类问题（任务、锁格、死锁、角度）</a>
+        <a href="#s10">第三方对接：自动门、电梯、呼叫器</a>
+        <a href="#s11">通用提交模板与收尾</a>
         <a href="#checks">上线前核对</a>
       </nav>
     </aside>

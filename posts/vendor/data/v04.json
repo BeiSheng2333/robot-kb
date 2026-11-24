@@ -2,52 +2,86 @@
   "id": "v04",
   "title": "潜伏机器人典型业务场景部署",
   "category": "实施部署",
-  "lede": "按载具形态与业务目标梳理潜伏机器人的典型部署方案，给出业务配置、流程编号与任务下发要点。",
-  "source": "内部操作手册 V1.4，2025-02",
+  "lede": "潜伏车的现场差异几乎全在任务编排上：同一台车，盲举、随车料箱码、探测载具、缓存递进、动态终点、巷道、跨图、外设申请，各自对应一个流程编号和一组节点改法。这份笔记把这些场景的“配置改什么、流程选哪个、节点填什么表达式”逐条对齐，避免拿到流程却改错节点。",
+  "source": "内部操作手册 V1.4（58 页）",
   "keywords": [
-    "潜伏机器人",
+    "潜伏车",
     "盲举",
-    "探测载具",
+    "PF-AMR-BLIND-LIFT-CARRIER",
+    "随车料箱码",
+    "PF-DETECT-CARRIER",
+    "PF-LMR-INIT-CARRIER",
     "缓存递进",
+    "BACK_OFF",
+    "动态任务终点",
     "巷道",
-    "地图切换",
+    "交接点",
     "跨地图充电",
-    "外设申请"
+    "外设申请",
+    "PF-LMR-CONVEYOR-TRANSHIP"
   ],
   "sections": [
     {
-      "h": "适用场景与业务分类",
-      "html": "<p>适用于潜伏式机器人在平台侧落地常规业务，涵盖无码载具、起点未绑定载具、缓存与路径优化、跨区域调度以及外设协同等场景。</p><ul><li>无码载具：盲举、随车料箱码、随机生成临时载具编号。</li><li>有码但起点未绑定：探测载具、指定载具初始化。</li><li>效率与路径类：缓存递进、动态任务终点、巷道出入库、空车移动加搬运触发。</li><li>跨区域类：载货或空车切地图、自主跨地图充电。</li><li>外设协同类：取货申请、放货申请、取放合并，以及不放加搬回触发。</li></ul><div class=\"callout ok\"><span class=\"callout-title\">选型思路</span><p>先确认载具是否贴货码、起点是否已绑定载具，据此挑选搬运流程，最后再补外设与触发节点，避免流程反复返工。</p></div>"
+      "h": "场景总表：先选流程，再改节点",
+      "html": "<p>潜伏车业务全部走“业务配置 + 任务编排 + 任务下发”三步。业务配置改的是货架、载具、外设、路径、巷道这些静态对象；任务编排决定用哪个流程、改哪几个节点；任务下发只是填必填项与报文。</p><table><thead><tr><th>场景</th><th>流程编号</th><th>核心配置</th></tr></thead><tbody><tr><td>盲举（无码载具）</td><td>PF-AMR-BLIND-LIFT-CARRIER</td><td>货架勾选盲举</td></tr><tr><td>随车料箱码</td><td>PF-LMR-COMMON</td><td>上镜头贴码 + 无码且控方向</td></tr><tr><td>探测载具</td><td>PF-DETECT-CARRIER</td><td>探测载具货架结构</td></tr><tr><td>指定载具初始化</td><td>PF-LMR-INIT-CARRIER</td><td>载具编号需提前在平台添加</td></tr><tr><td>缓存递进</td><td>PF-LMR-BUFFER</td><td>BACK_OFF 路径由缓存区指向工作台</td></tr><tr><td>巷道入库 / 出库</td><td>PF-AMR-STACK-CARRIER-IN / -OUT</td><td>巷道管理 + 巷道头/尾/缓冲点</td></tr><tr><td>地图切换</td><td>PF-LMR-COMMON（载货）</td><td>交接点 + 目标图交接点编号</td></tr><tr><td>自主跨地图充电</td><td>PF-CROSS-FLOOR-CHARGE-RETURN</td><td>充电桩外设 + 跨地图充电策略</td></tr><tr><td>取货 + 放货申请</td><td>PF-LMR-CONVEYOR-TRANSHIP</td><td>外设 + BACK_OFF 申请点路径</td></tr><tr><td>不放 + 搬回</td><td>PF-LMR-TASK-CONTINUE</td><td>等待点箭头指向终点工位，BACK_OFF</td></tr></tbody></table><div class=\"callout ok\"><span class=\"callout-title\">判断顺序</span><p>先看载具有没有码、起点绑没绑载具，再看是否需要申请外设或跨图。选错流程后改节点是白费功夫，因为节点结构本身不一样。</p></div>"
     },
     {
-      "h": "无码与未绑定载具的处理方式",
-      "html": "<table><thead><tr><th>场景</th><th>关键配置</th><th>流程编号</th></tr></thead><tbody><tr><td>盲举（载具无码且不识别货码）</td><td>货架勾选盲举，并添加载具类型</td><td>PF-AMR-BLIND-LIFT-CARRIER</td></tr><tr><td>随车料箱码（货架无码但需控制方向）</td><td>上镜头贴码，货架结构勾选无码且需控制方向，货架号绑定在起点</td><td>PF-LMR-COMMON</td></tr><tr><td>随机临时载具编号</td><td>脚本节点生成临时编号，申请载具引用该变量</td><td>按业务组合</td></tr><tr><td>探测载具（有码、起点未绑定）</td><td>添加探测载具货架结构、载具类型与载具编号</td><td>PF-DETECT-CARRIER</td></tr><tr><td>指定载具初始化</td><td>平台预建载具编号，由上层报文指定</td><td>PF-LMR-INIT-CARRIER</td></tr></tbody></table><ul><li>载具类型通过自定义报文传入，形如给 carrierInfo 数组指定 carrierType 的编号。</li><li>现场只有一种载具类型时，可在流程运行数据中把载具类型值预先固定，下发时无需再传。</li><li>随车料箱码场景下，机器人上报的货架号会被平台记录的货架号替换，交互统一使用平台侧编号。</li><li>随机临时载具场景依赖平台工具类生成唯一编号，建议加固定前缀便于识别。</li></ul>"
+      "h": "盲举业务：载具没贴货码",
+      "html": "<p>适用于载具未贴货码、机器人不识别货码直接搬运的场景。</p><ol><li><strong>添加货架并勾选盲举</strong>。</li><li>添加载具类型。</li><li>任务编排使用 <code>PF-AMR-BLIND-LIFT-CARRIER</code>。</li><li>任务下发填写带 * 的必填项。</li></ol>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v04/01-shelf-blind-lift.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v04/01-shelf-blind-lift.png\" alt=\"编辑货架结构窗口：盲举开关被打开，其余为货架腿高、货架高度、重量等参数\"></a>\n  <figcaption><b>图 1</b> 货架结构里打开“盲举”。盲举一旦开启，机器人不再依赖货码识别，载具方向与编号都需要由平台侧保证。</figcaption>\n</figure>\n<p>两个减少下发工作量的技巧：</p><ul><li>若现场只有一种载具类型，可在任务编排的搬运任务——运行数据中把 <code>carrierValue</code> 设成载具类型编号，下发时就不用再选。</li><li>也可在自定义编辑中直接传入：<code>{\"carrierInfo\":[{\"carrierType\":\"1\"}]}</code> 表示编号为 1 的载具类型。</li></ul>"
     },
     {
-      "h": "缓存递进与动态任务终点的编排",
-      "html": "<p>缓存递进用于工作台前存在一个或多个缓存区的情况：工作台有载具时先放到缓存区，待工作台腾空后自动生成递进搬运任务。</p><ul><li>在路径管理中新增路径，标签固定为 BACK_OFF，方向由缓存区指向工作台。</li><li>目标站点为空则直达；被占用则停在上一级缓存点；多级均被占用时依次占用更远的缓存点。</li><li>下游空出后系统自动补齐逐级搬运任务，流程编号为 PF-LMR-BUFFER。</li></ul><p>动态任务终点用于一次搬运途经多个工作台拣货，拣货完成后继续前往下一个工作台，全部完成后送到终点储位。</p><ul><li>申请站点节点输出参数改名为 site1，搬运任务目标取该站点的坐标字段，任务模式选举升不锁车，并开启终点锁定载具。</li><li>用声明变量节点从目标路径中截取中间工作台列表，再以串行多实例子流程逐个处理。</li><li>末段申请站点按路径长度取终点，搬运任务选择释放去暂驻点。</li></ul><div class=\"callout warn\"><span class=\"callout-title\">变量一致性</span><p>节点输出名与后续引用必须完全一致，改名后未同步修改引用会导致任务无法生成。</p></div>"
+      "h": "随车料箱码：货架不能贴码但要控方向",
+      "html": "<p>现场货架无法贴货码，却又需要控制货架方向、记录货架信息时使用。做法是在<strong>机器人上镜头</strong>贴一张随车料箱码，平台里再添加对应的货架号并绑定在搬运起点上。</p><p>执行过程中，机器人上报的随车货架号会被替换成“平台申请载具获取的货架号”，与平台交互全部使用平台记录的货架号。</p><p>配置四步：</p><ol><li>AMR 车型增加“上镜头是否贴码”配置，开启后会<strong>过滤机器人上报的货架信息</strong>。</li><li>货架结构增加“无码且需控制货架方向”配置。</li><li>创建载具类型，套用上一步的载具结构参数，并关联开启上镜头贴码的 AMR 类型。</li><li>创建真实货架编号并绑定在所属站点上，确保能正确记录货架信息。</li></ol><p>随车料箱码的载具编号<strong>无需在平台添加</strong>，可按货码标准打印任意码值，固定在上镜头上方作为货码识别。任务编排按普通搬运处理，直接用 <code>PF-LMR-COMMON</code>。</p>"
     },
     {
-      "h": "巷道、地图切换与跨地图充电",
-      "html": "<p>巷道业务需在地图中添加巷道头、巷道尾与缓冲点，并在存储对象的巷道管理中登记巷道参数。</p><ul><li>单向巷道只能配置先进后出；双向巷道可选先进先出或先进后出。</li><li>先进后出：从巷道头进入并放到离巷道尾最近的空位；取货从巷道头进入，取离巷道头最近的载具。</li><li>先进先出：入库同上；出库从巷道尾进入，取离巷道尾最近的载具。</li><li>特征值可将同批次或同物料载具约束在同一巷道；巷道编号保存后不可修改。</li><li>入库流程 PF-AMR-STACK-CARRIER-IN，出库流程 PF-AMR-STACK-CARRIER-OUT，下发时终点或起点类型选巷道编号。</li></ul><p>地图切换需把切图点位元素类型改为交接点，并补充目标地图交接点编号与当前地图的导航方式和地码类型。</p><ul><li>二维码导航：导航方式选二维码，地码类型取当前地图地码类型。</li><li>SLAM 导航：导航方式选激光，并选择当前地图的 SLAM 地码类型。</li><li>载货切图复用通用搬运流程；空车切图由站点申请、线路查找与空车移动组合，申请时仅查询不锁定，终点锁定机器人关闭。</li></ul><p>跨地图充电适用于本地图无可用充电桩的现场：配置充电桩外设与跨地图充电策略，选择目标充电地图并设定跨楼层申请阈值。</p><ul><li>充电中的机器人不在新地图响应任务；返回原楼层途中可接受充电楼层到原楼层的搬运任务。</li><li>流程默认调用空车跨楼层充电并返回，属于满足阈值后自主触发，无需人工下发。</li></ul>"
+      "h": "随机生成临时载具号：起点不绑、载具无码",
+      "html": "<p>用于起点不绑定载具、载具也没有货码，但业务需要“不放 + 搬回、跨楼层、外设申请”等非纯点到点场景。核心是用脚本临时造一个载具号。</p><p><strong>业务配置</strong>：添加货架并勾选盲举，再添加载具类型。</p><p><strong>任务编排</strong>：在系统节点中添加脚本逻辑节点，改名为“随机生成临时载具编号”，输出变量 <code>carrierCode</code>，脚本内容：</p><pre>import robot.glory.framework.util.CodeGenerateUtil\nString carrierCode = \"SYS_\" + CodeGenerateUtil.generate();\ncarrierCode</pre><p>随后的两个节点是关键：</p><table><thead><tr><th>节点</th><th>填法</th></tr></thead><tbody><tr><td>申请载具</td><td>载具编号填 <code>${carrierCode}</code>；载具类型若现场多于一种，填 <code>${submitParam.extra.carrierInfo[0].carrierType}</code>，只有一种则直接选</td></tr><tr><td>搬运任务</td><td><strong>信任报文起始站点必须选“是”</strong>，否则任务无法下发</td></tr></tbody></table><div class=\"callout warn\"><span class=\"callout-title\">最常踩的坑</span><p>忘了打开“信任报文起始站点”，现象是任务编排看起来没问题、下发却不成功，日志里也难直接看到原因。</p></div>"
     },
     {
-      "h": "判断标准与常见报错",
-      "html": "<table><thead><tr><th>现象</th><th>可能原因</th><th>验证与处理</th></tr></thead><tbody><tr><td>随机临时载具任务无法下发</td><td>搬运任务未信任报文中的起始站点</td><td>检查搬运任务节点的信任报文开关，改为是</td></tr><tr><td>申请不到载具</td><td>起点未绑定载具，或载具编号未在平台登记</td><td>核对载具与站点绑定关系及载具类型</td></tr><tr><td>随车料箱码货架方向不受控</td><td>货架结构未选无码且需控制方向，或上镜头未贴码</td><td>检查车型配置与货架结构参数是否匹配</td></tr><tr><td>切图后机器人不接任务</td><td>进入新地图后地图参数未切换成功</td><td>核对车端地图配置，必要时释放小车后做远程配置</td></tr><tr><td>跨地图充电未触发</td><td>未达申请阈值，或目标地图缺少充电外设</td><td>检查充电策略阈值与充电桩配置</td></tr><tr><td>缓存递进任务不生成</td><td>路径标签不是 BACK_OFF，或路径箭头方向相反</td><td>检查路径标签与起止方向</td></tr><tr><td>巷道取货取错位置</td><td>进出方式与巷道类型不匹配</td><td>单向巷道改为先进后出，并核对特征值约束</td></tr></tbody></table>"
+      "h": "起点未绑载具但有货码：探测与初始化",
+      "html": "<table><thead><tr><th>场景</th><th>流程</th><th>要点</th></tr></thead><tbody><tr><td>探测载具（起点未绑定、载具有货码）</td><td><code>PF-DETECT-CARRIER</code></td><td>添加“探测载具”的货架结构；添加载具类型与对应载具编号；下发时在自定义编辑传 <code>{\"carrierInfo\":[{\"carrierType\":\"1\"}]}</code></td></tr><tr><td>指定载具初始化（起点未绑定、载具有货码，由上层给编号）</td><td><code>PF-LMR-INIT-CARRIER</code></td><td>载具编号需<strong>提前在平台添加</strong>；下发时传 <code>{\"carrierInfo\":[{\"carrierCode\":\"P1007\"}]}</code> 指定初始化对象</td></tr></tbody></table><p>两者差别在于“谁来定载具号”：探测是由机器人扫到的货码决定，初始化是由上层报文指定。选错流程会出现“扫到的码和上层给的号对不上”。</p>"
     },
     {
-      "h": "实施注意事项",
-      "html": "<ul><li>流程编号与平台版本相关，升级后应重新核对，避免沿用旧编号。</li><li>自定义报文下发前先格式化，确认字段层级与载具类型编号无误。</li><li>载具类型多于一种时必须由上层传入，不能依赖流程内固定值。</li><li>巷道编号一旦保存无法修改，规划阶段就要确定命名规则。</li><li>空车切图与跨楼层充电都涉及站点申请策略，需确认仅查询不锁定等开关是否按场景设置。</li><li>缓存递进的级数与缓存点容量应结合节拍评估，级数过多会拉长补位时间。</li></ul><div class=\"callout warn\"><span class=\"callout-title\">上线前验证</span><p>流程改动后先在小范围点位测试一次完整任务链路，确认载具申请、站点申请与搬运节点均按预期执行后再全量启用。</p></div>"
+      "h": "缓存递进：工作台有缓存区时提效",
+      "html": "<p>工作台有一个或多个缓存区。工作台有载具时，前往工作台的任务先把载具放到缓存区；等载具被拉走后，自动触发“缓存区 → 工作台”的补货任务。</p><p><strong>业务配置</strong>：地图配置 &gt; 路径管理 &gt; 添加，完成缓存递进路径，路径标签默认 <code>BACK_OFF</code>，路径方向由缓存区指向工作台。</p><p>以 1、2 号缓存区与 3 号工作台为例，递进逻辑是：</p><ul><li>3 号站点为空 → 直达 3 号；</li><li>3 号有载具 → 直达 2 号，待 3 号空出后自动生成“2 → 3”的任务；</li><li>3、2 号都有载具 → 直达 1 号，3 号空出后生成“2 → 3”，同时生成“1 → 2”。</li></ul><p><strong>任务编排</strong>使用 <code>PF-LMR-BUFFER</code>，下发时填写带 * 的必填项。</p><div class=\"callout warn\"><span class=\"callout-title\">注意</span><p>缓存递进依赖路径标签 <code>BACK_OFF</code> 才能识别“从缓存区回到工作台”的关系。标签写错不会报错，只会表现为永远不触发补货。</p></div>"
+    },
+    {
+      "h": "动态任务终点：一次搬运途经 N 个工作台",
+      "html": "<p>场景是：起点储位取载具 → 途经 N 个工作台拣货，每完成一个由人工触发继续 → 全部完成后送到终点储位。</p><p>编排要点按顺序：</p><ol><li><strong>申请载具</strong>节点不修改。</li><li><strong>申请站点</strong>节点：运行数据输出参数名改为 <code>site1</code>。</li><li><strong>查找 AMR 类型</strong>不修改。</li><li><strong>搬运任务</strong>：目标站点值改为 <code>${site1.slotCode}</code>，任务模式选“举升不锁车”，打开“终点是否锁定载具”。</li><li><strong>声明变量</strong>节点：参数名 <code>targetRouteSubList</code>，参数类型选脚本，内容 <code>new ArrayList(submitParam.targetRoute.subList(2, submitParam.targetRoute.size()-1));</code>。</li><li><strong>嵌入式子流程</strong>：多实例运行选<strong>串行</strong>，集合填 <code>${targetRouteSubList}</code>，元素变量填 <code>item</code>。</li><li>子流程内：开始节点 + 继续执行消息事件；申请站点节点站点获取方式选“目标路径”、站点值 <code>${item}</code>、申请方式选“一直”；搬运任务节点选“举升不锁车”并打开“终点是否锁定载具”。</li><li>之后声明变量 <code>size</code> = <code>${submitParam.targetRoute.size()}</code>，申请站点节点站点获取方式选“接口自动获取”、站点值 <code>${size}</code>、输出参数名 <code>site2</code>；最后一个搬运任务目标站点填 <code>${site2.slotCode}</code>，任务模式选“释放去暂驻点”。</li></ol>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v04/02-dynamic-endpoint.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v04/02-dynamic-endpoint.png\" alt=\"流程编排界面：嵌入式子流程串行执行，右侧声明变量节点填写 size 表达式\"></a>\n  <figcaption><b>图 2</b> 动态任务终点：中间工作台用“嵌入式子流程 + 串行多实例”遍历，最后用 <code>size</code> 定位终点站点。</figcaption>\n</figure>\n<p>下发时按实际起点、途经点、终点的点位数量给 <code>targetRoute</code>，代码里 subList 从索引 2 取到 size-1，正好扣掉起点与终点。</p>"
+    },
+    {
+      "h": "巷道业务：单向只可先进后出",
+      "html": "<p><strong>地图编辑</strong>：添加巷道头、巷道尾、巷道缓冲点。单向巷道只能配置先进后出；双向巷道可配先进先出或先进后出。RCS V4.x 中巷道头和巷道尾也可当缓冲点放载具。</p><p><strong>巷道参数</strong>（搭建模型 &gt; 存储对象 &gt; 巷道管理 &gt; 添加，选择对应地图）：</p><table><thead><tr><th>参数</th><th>说明</th></tr></thead><tbody><tr><td>巷道编号</td><td>自定义，<strong>保存后无法修改</strong></td></tr><tr><td>巷道名称</td><td>自定义</td></tr><tr><td>关联载具类型</td><td>勾选允许放入该巷道的载具类型</td></tr><tr><td>巷道头站点编号</td><td>选择对应巷道头坐标</td></tr><tr><td>进出方式</td><td>先进后出 / 先进先出</td></tr><tr><td>特征值</td><td>需要把同批次或同物料聚到同一巷道时开启并打标记</td></tr></tbody></table><p>进出方式的差别：先进后出是“从巷道头进、从巷道头出”，取出离巷道头最近的载具；先进先出是“从巷道头进、从巷道尾出”，取出离巷道尾最近的载具。两种模式的“进”都是放到离巷道尾最近的空站点。</p><p><strong>任务</strong>：入库用 <code>PF-AMR-STACK-CARRIER-IN</code>（下发时终点类型选巷道编号）；出库用 <code>PF-AMR-STACK-CARRIER-OUT</code>（起点类型选巷道编号）。</p><div class=\"callout danger\"><span class=\"callout-title\">编号不可改</span><p>巷道编号保存后无法修改，规划阶段就要和上层约定的编号对齐，事后改只能删了重建，历史任务会全部失联。</p></div>"
+    },
+    {
+      "h": "地图切换：靠交接点走",
+      "html": "<p><strong>业务配置</strong>：地图配置中把切地图点位的元素类型改为<strong>交接点</strong>，然后按导航方式填参数：</p><table><thead><tr><th>导航方式</th><th>需填写</th></tr></thead><tbody><tr><td>二维码</td><td>目标地图交接点编号、当前地图导航方式选二维码、地码类型选当前地图地码类型</td></tr><tr><td>SLAM</td><td>目标地图交接点编号、当前地图导航方式选激光、选择当前地图的 SLAM 地码类型</td></tr></tbody></table><p><strong>载货切地图</strong>：任务编排直接用 <code>PF-LMR-COMMON</code>，下发填必填项。</p><p><strong>空车切地图</strong>需要自己搭：申请站点（接口自动获取、站点值 2、申请策略先进先出、打开“仅查询不锁定”）→ 查找 AMR 类型（潜伏车）→ 查找线路（起始站点接口自动获取填 1，目标站点填 2）→ 线路子流程（查找 AMR 类型选潜伏车）→ 空车移动（目标站点 <code>${site.slotCode}</code>，AMR 系列潜伏车，<strong>终点锁定机器人关闭</strong>）。</p>"
+    },
+    {
+      "h": "自主跨地图充电",
+      "html": "<p>适用条件：机器人所在地图没有可用充电桩，达到跨楼层充电申请阈值后自主去充电，充完由系统自动调度回原地图。</p><p>规则细节：跨图充电的机器人<strong>不在新地图响应任务</strong>；但充电返回原楼层的过程中，可以接受“充电楼层 → 原楼层”的搬运任务。</p><ol><li><strong>充电桩配置</strong>：搭建模型 &gt; 外设配置 &gt; 添加，类型选充电桩或无线充电桩。</li><li><strong>充电策略</strong>：搭建模型 &gt; AMR 配置 &gt; 充电策略 &gt; 添加，策略类型选“跨地图充电”，选择关联 AMR 类型与目标充电地图（<strong>该地图必须已添加充电外设</strong>），按需填写跨楼层充电申请阈值。</li><li><strong>任务编排</strong>默认调用 <code>PF-CROSS-FLOOR-CHARGE-RETURN</code>。</li><li><strong>任务下发</strong>：无需人工下发，达到阈值后自动生成。</li></ol>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v04/03-peripheral-charger.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v04/03-peripheral-charger.png\" alt=\"外设配置中添加充电桩：外设类型、编号、名称、地图与坐标\"></a>\n  <figcaption><b>图 3</b> 充电桩外设：类型、坐标必须落在目标充电地图内，否则跨图充电策略找不到桩。</figcaption>\n</figure>"
+    },
+    {
+      "h": "外设申请：取货、放货与两者都要",
+      "html": "<p>业务流程：AMR 从输送线/机台申请取货，通过后进入取货；取到载具后<strong>释放外设</strong>；放料前再向终点申请放货，通过后进入放货。</p><p><strong>业务配置</strong>：外设配置中添加起点/终点外设，并把申请点的点位属性改为<strong>工作台</strong>；路径管理中配置对应的外设申请点路径，<strong>申请点箭头指向输送线/机台</strong>，路径标签填 <code>BACK_OFF</code>。</p><p><strong>任务编排</strong>：</p><table><thead><tr><th>场景</th><th>流程</th><th>子流程处理</th></tr></thead><tbody><tr><td>取货 + 放货</td><td>PF-LMR-CONVEYOR-TRANSHIP</td><td>原始子流程即取放货，无需替换</td></tr><tr><td>仅取货</td><td>PF-LMR-CONVEYOR-TRANSHIP（复制）</td><td>替换为 <code>SPF-EQPT-APPLY-GET-LMR</code>（外设申请取货入库）</td></tr><tr><td>仅放货</td><td>PF-LMR-CONVEYOR-TRANSHIP（复制）</td><td>替换为 <code>SPF-EQPT-APPLY-PUT-LMR</code>（外设申请放货）</td></tr></tbody></table><p>申请载具节点统一填法：载具种类不选，载具类型填 <code>${carrierSdk.getCarrierTypeByCarrierInfo(submitParam.extra.carrierInfo[0])}</code>，载具编号填 <code>${submitParam.extra.carrierInfo[0].carrierCode}</code>，<strong>关闭“从仓位中找”</strong>；申请站点节点存储对象种类选站点，“申请不到抛出异常”选是。</p>\n<figure class=\"shot\">\n  <a href=\"../../assets/img/v04/04-carrier-node.png\" target=\"_blank\" rel=\"noopener\"><img src=\"../../assets/img/v04/04-carrier-node.png\" alt=\"流程编排中的申请载具节点，载具类型使用 carrierSdk 表达式\"></a>\n  <figcaption><b>图 4</b> 申请载具节点：载具类型与编号都用表达式从报文取，避免不同载具混用时写死。</figcaption>\n</figure>\n<p>下发时在自定义编辑器输入载具信息，例如 <code>{\"carrierInfo\":[{\"carrierType\":\"ZJ7\"},{\"carrierCode\":\"P7001\"}]}</code>，可用“格式化”校验报文。</p>"
+    },
+    {
+      "h": "不放 + 搬回，与空车移动后的搬运触发",
+      "html": "<p>两个“等触发”的场景，都靠 <code>BACK_OFF</code> 路径与继续执行消息事件串起来。</p><p><strong>场景一：路径指定等待点</strong>——AMR 取走载具后移动到终点工位前的等待点，触发后搬回终点工位。</p><ul><li>路径管理中配置路径，等待点箭头指向终点工位，标签 <code>BACK_OFF</code>。</li><li>用 SDK 接口节点找前置路径：实现类型选表达式，表达式 <code>${routeInfoSdk.findPreRoute('SITE',site.slotCode,'BACK_OFF')}</code>，输出变量 <code>site1</code>。</li><li>第一个搬运任务：目标站点获取方式选“目标路径”，目标站点值 <code>${site1}</code>，任务模式选<strong>举升锁车</strong>。</li><li>第二个搬运任务：起始站点获取方式选“目标路径”，起始站点值 <code>${site1}</code>，AMR 编号填 <code>${transportTask.robotCode}</code>，任务模式选“释放去暂驻点”。</li></ul><p>继续执行消息事件默认按任务号触发，也可改为：触发类型站点填 <code>${site.slotCode}</code>；触发类型机器人，前一步空车移动填 <code>${moveTask.robotCode}</code>、前一步搬运任务填 <code>${transportTask.robotCode}</code>；触发类型载具填 <code>${pod.carrierCode}</code>。</p><p><strong>场景二：上层传入目标终点</strong>——取走载具后先去工位一，等上层触发并告知工位二再过去。流程用 <code>PF-LMR-TASK-CONTINUE</code>，下发时起点选载具放置点、终点选工位一。</p><p><strong>空车移动 + 搬运触发</strong>：AMR 先空车到起点等待点，触发后前往起点取货再送到终点。路径标签同样 <code>BACK_OFF</code>，表达式改为 <code>${routeInfoSdk.findPreRoute('SITE',pod.slot.slotCode,'BACK_OFF')}</code>；空车移动节点目标站点填 <code>${site1.code}</code> 并打开<strong>终点锁定机器人</strong>，搬运任务节点 AMR 编号填 <code>${moveTask.robotCode}</code>、任务模式选“释放去暂驻点”。</p><div class=\"callout warn\"><span class=\"callout-title\">两种锁定的区别</span><p>“不放 + 搬回”第一个搬运任务是<strong>举升锁车</strong>（车不能接别的任务）；“空车移动”是<strong>终点锁定机器人打开</strong>。锁错会导致后续触发拿不到车。</p></div>"
     }
   ],
   "checks": [
-    "确认载具是否贴货码，据此选择盲举、探测载具或指定载具初始化流程",
-    "盲举场景检查货架已勾选盲举，且 carrierInfo 中的载具类型编号与平台一致",
-    "随机临时载具场景确认脚本节点输出临时编号，搬运任务已开启信任报文起始站点",
-    "缓存递进路径标签为 BACK_OFF，箭头由缓存区指向工作台",
-    "巷道进出方式与巷道类型匹配：单向巷道只配置先进后出",
-    "切图点元素已改为交接点，导航方式与地码类型和当前地图一致",
-    "跨地图充电策略已选目标地图，且该地图已添加充电桩外设",
-    "任务下发前核对起点已绑定载具，避免报申请不到载具"
+    "已按“载具有无货码 / 起点是否绑定 / 是否需外设或跨图”选定流程，未混用",
+    "盲举场景货架已勾选盲举，载具类型已添加",
+    "随车料箱码场景已开启上镜头贴码与“无码且需控制货架方向”，货架已绑定站点",
+    "随机临时载具号场景搬运任务节点“信任报文起始站点”已选是",
+    "探测载具与指定载具初始化流程未混用，指定编号已在平台提前添加",
+    "缓存递进路径标签为 BACK_OFF，方向由缓存区指向工作台",
+    "动态任务终点子流程为串行、集合与元素变量填写正确，size 表达式无误",
+    "巷道编号与上层约定一致（保存后不可改），单向巷道只配先进后出",
+    "切图点位元素类型为交接点，目标图交接点编号与导航方式匹配",
+    "跨图充电策略的目标地图已添加充电外设，阈值已按现场填写",
+    "外设申请点属性为工作台、路径标签 BACK_OFF 且箭头指向输送线",
+    "不放搬回与空车移动场景的锁车方式区分正确（举升锁车 / 终点锁定机器人）"
   ]
 }
