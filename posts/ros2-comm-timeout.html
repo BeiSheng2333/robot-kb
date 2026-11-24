@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROS 2 通信超时与丢包的逐层排查 — 现场笔记</title>
+<meta name="description" content="话题偶发收不到、消息延迟忽高忽低：按网络层、中间件层、QoS 层、应用层依次收敛。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+      <a href="../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">知识库目录</p>
+      <nav>
+        <span class="side-group">排障方法</span>
+        <a href="troubleshooting-layers.html">通用分层排查法</a>
+        <span class="side-group">实施部署</span>
+        <a href="deployment-checklist.html">现场交付清单</a>
+        <span class="side-group">通信与网络</span>
+        <a href="ros2-comm-timeout.html" class="active">通信超时与丢包</a>
+        <span class="side-group">导航与定位</span>
+        <a href="amr-localization-drift.html">定位漂移处理</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="device-node-changed.html">设备命名治理</a>
+      </nav>
+      <div class="side-back"><a href="../index.html">← 返回知识库首页</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../index.html">首页</a><span class="sep">/</span><span>通信与网络</span></div>
+      <h1>ROS 2 通信超时与丢包的逐层排查</h1>
+      <p class="lede">通信问题最麻烦的地方是：它时好时坏。所以不要试图一次解释全部现象，先用命令把范围一层层收窄。</p>
+      <div class="doc-meta">
+        <span>更新 2026-11-18</span>
+        <span>约 9 分钟</span>
+        <span class="chip">通信与网络</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>知识库目录</summary>
+        <nav>
+          <a href="troubleshooting-layers.html">通用分层排查法</a>
+          <a href="deployment-checklist.html">现场交付清单</a>
+          <a href="ros2-comm-timeout.html" class="active">通信超时与丢包</a>
+          <a href="amr-localization-drift.html">定位漂移处理</a>
+          <a href="device-node-changed.html">设备命名治理</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <p>“话题收不到数据”在 ROS 2 里至少有五种完全不同的原因：网络丢了、发现没建起来、QoS 不匹配、消息太大传不过去、或者发布端根本就没在发。它们的现象很像，处理方式却完全不同。</p>
+
+        <h2 id="s1">先分清三种现象</h2>
+
+        <table>
+          <thead>
+            <tr><th>现象</th><th>典型表现</th><th>优先怀疑</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>完全收不到</td><td><code>ros2 topic list</code> 里看不到，或能看到但永久无数据</td><td>发现机制、Domain ID、QoS</td></tr>
+            <tr><td>偶发丢失</td><td>有数据，但频率低于预期，时间轴上有空洞</td><td>无线丢包、大消息分片</td></tr>
+            <tr><td>延迟抖动</td><td>平均延迟正常，但 P99 很高，偶尔卡顿</td><td>网络拥塞、CPU 抢占、序列化开销</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="s2">第 0 步：固定基线</h2>
+
+        <p>先确认三件事，否则后面所有结论都不可信：</p>
+
+        <pre><code><span class="cmt"># 中间件实现，必须两端一致</span>
+echo $RMW_IMPLEMENTATION
+
+<span class="cmt"># 域 ID，跨网段多套系统时最容易撞</span>
+echo $ROS_DOMAIN_ID
+
+<span class="cmt"># 本地回环是否正常</span>
+ros2 run demo_nodes_cpp talker  <span class="cmt"># 窗口 A</span>
+ros2 run demo_nodes_cpp listener <span class="cmt"># 窗口 B</span></code></pre>
+
+        <p>如果本机 demo 都收不到，问题不在业务代码，而在环境变量或中间件安装。先修这里。</p>
+
+        <h2 id="s3">网络层：先证明链路是干净的</h2>
+
+        <p>不要用一次 ping 就下结论，看的是分布，不是平均值。</p>
+
+        <pre><code><span class="cmt"># 连续 1000 包，观察丢包与抖动</span>
+ping -i 0.2 -c 1000 192.168.1.10
+
+<span class="cmt"># 探测 MTU 是否被截断（不要分片）</span>
+ping -M do -s 1400 -c 5 192.168.1.10
+
+<span class="cmt"># 无线链路质量</span>
+iw dev wlan0 link</code></pre>
+
+        <div class="callout warn">
+          <span class="callout-title">现场高频原因</span>
+          <p>车端连的是 2.4G 且与现场其他设备同信道；AP 漫游时重关联耗时过长；交换机端口协商成半双工。这三类都会表现为“偶发丢包”，但和 ROS 2 本身没有任何关系。</p>
+        </div>
+
+        <h2 id="s4">中间件层：发现机制是否建立</h2>
+
+        <p>ROS 2 默认依赖多播做节点发现。很多企业网络和无线 AP 会屏蔽多播，于是表现为“进程都活着，但互相看不见”。</p>
+
+        <pre><code><span class="cmt"># 查看参与者与端点信息</span>
+ros2 node list
+ros2 topic info /scan --verbose
+
+<span class="cmt"># 综合诊断</span>
+ros2 doctor --report</code></pre>
+
+        <p>如果 <code>topic list</code> 里根本没有目标话题，先检查发现：临时把两端接同一台交换机、关闭防火墙、或显式配置单播 peers，再观察是否恢复。恢复即说明是多播被阻断。</p>
+
+        <h2 id="s5">QoS 层：最隐蔽的不匹配</h2>
+
+        <p>ROS 2 的 QoS 不兼容不会报错，只会安静地收不到。典型组合：</p>
+
+        <table>
+          <thead>
+            <tr><th>发布端</th><th>订阅端</th><th>结果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>reliable</td><td>best_effort</td><td>可以通信</td></tr>
+            <tr><td>best_effort</td><td>reliable</td><td>无法建立，收不到</td></tr>
+            <tr><td>transient_local</td><td>volatile</td><td>能收到新消息，拿不到历史</td></tr>
+            <tr><td>volatile</td><td>transient_local</td><td>无法建立</td></tr>
+          </tbody>
+        </table>
+
+        <p>传感器话题（激光、图像）通常是 <code>best_effort</code>，而业务代码里手写的订阅者默认是 <code>reliable</code>。这一条能解释大量“我明明订阅了却收不到”的问题。</p>
+
+        <h2 id="s6">大消息：图像与点云的专属问题</h2>
+
+        <p>超过 MTU 的消息需要分片重组。无线环境下分片丢失会导致整帧丢弃，表现为“帧率上不去、偶尔整段缺失”。</p>
+
+        <ul>
+          <li>优先降低分辨率或频率，而不是盲目加大缓冲区；</li>
+          <li>在车端内部节点之间启用共享内存传输，减少网络拷贝；</li>
+          <li>跨机传输考虑压缩或按需拉流，不要把原始点云直接推给调度端；</li>
+          <li>确认发布端没有在单线程里同时做重计算，导致实际发布频率低于配置值。</li>
+        </ul>
+
+        <h2 id="s7">时间与结论</h2>
+
+        <p>最后别忘了时间。<code>ros2 topic hz</code> 显示正常、TF 却报 extrapolation 错误，通常是系统时钟被 NTP 大幅校正过。检查方法：</p>
+
+        <pre><code>timedatectl status
+chronyc tracking</code></pre>
+
+        <div class="callout ok">
+          <span class="callout-title">收尾清单</span>
+          <p>两端 RMW 与 Domain 一致 → ping 分布干净 → 节点互相可见 → QoS 组合兼容 → 消息大小合理 → 时钟稳定。六步都过，再回去看业务代码。</p>
+        </div>
+      </div>
+
+      <div class="pager">
+        <a href="deployment-checklist.html">
+          <span class="pager-label">上一篇</span>
+          <span class="pager-title">移动机器人现场实施交付清单</span>
+        </a>
+        <a class="next" href="amr-localization-drift.html">
+          <span class="pager-label">下一篇</span>
+          <span class="pager-title">AMR 定位漂移：从现象到根因的处理顺序</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">先分清三种现象</a>
+        <a href="#s2">第 0 步：固定基线</a>
+        <a href="#s3">网络层</a>
+        <a href="#s4">中间件层</a>
+        <a href="#s5">QoS 层</a>
+        <a href="#s6">大消息</a>
+        <a href="#s7">时间与结论</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

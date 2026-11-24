@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>现场笔记 · 机器人运维知识库</title>
+<meta name="description" content="移动机器人现场实施、交付验收与运行故障排查的可复用笔记：通信超时、定位漂移、设备命名、分层排查方法。">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site-header" id="header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">FN</span>
+      现场笔记
+    </a>
+    <nav class="nav">
+      <a href="#library">知识库</a>
+      <a href="#lookup">排障速查</a>
+      <a href="#about">关于</a>
+      <a href="#library" class="nav-cta">开始检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Field Notes · 机器人实施与运维</p>
+          <h1>把现场踩过的坑，<br>写成<span>可以复用的文档</span>。</h1>
+          <p>面向移动机器人（AGV / AMR）实施与运维的实战笔记：从现场交付、环境搭建，到通信超时、定位漂移、设备节点异常的分层排查路径。</p>
+
+          <div class="search-block">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+            </svg>
+            <input id="searchInput" type="search" placeholder="搜索文档：超时、定位漂移、ttyUSB、验收…" aria-label="搜索知识库文档">
+            <p class="search-hint" id="searchHint">共 5 篇文档 · 输入关键词即可过滤</p>
+          </div>
+        </div>
+
+        <aside class="hero-side">
+          <dl>
+            <dt>收录</dt><dd>5 篇实战文档</dd>
+            <dt>方向</dt><dd>实施 / 通信 / 定位 / 硬件 / 方法论</dd>
+            <dt>适用</dt><dd>ROS 2 · Ubuntu 22.04 · AGV / AMR</dd>
+            <dt>维护</dt><dd>一线实施工程师，持续更新</dd>
+          </dl>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="library">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>分类</h2>
+        <p class="section-desc">点击分类可过滤下方文档</p>
+      </div>
+
+      <div class="cat-grid" id="catGrid">
+        <button class="cat-card" type="button" data-cat="实施部署">
+          <div class="cat-top"><span class="cat-num">01</span><span class="cat-count">1 篇</span></div>
+          <h3>实施部署</h3>
+          <p>现场勘察、环境搭建、参数配置与交付验收的完整清单。</p>
+        </button>
+
+        <button class="cat-card" type="button" data-cat="通信与网络">
+          <div class="cat-top"><span class="cat-num">02</span><span class="cat-count">1 篇</span></div>
+          <h3>通信与网络</h3>
+          <p>DDS 配置、QoS 不匹配、MTU 与时间同步导致的超时丢包。</p>
+        </button>
+
+        <button class="cat-card" type="button" data-cat="导航与定位">
+          <div class="cat-top"><span class="cat-num">03</span><span class="cat-count">1 篇</span></div>
+          <h3>导航与定位</h3>
+          <p>定位漂移、重定位失败、地图与环境变化引发的异常。</p>
+        </button>
+
+        <button class="cat-card" type="button" data-cat="硬件与外设">
+          <div class="cat-top"><span class="cat-num">04</span><span class="cat-count">1 篇</span></div>
+          <h3>硬件与外设</h3>
+          <p>串口、CAN、设备节点命名与上电时序相关的现场问题。</p>
+        </button>
+
+        <button class="cat-card" type="button" data-cat="排障方法">
+          <div class="cat-top"><span class="cat-num">05</span><span class="cat-count">1 篇</span></div>
+          <h3>排障方法</h3>
+          <p>从现象到根因的分层定位思路，以及证据采集的规范做法。</p>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>全部文档</h2>
+        <p class="section-desc">按更新时间排序</p>
+      </div>
+
+      <div class="filter-bar" id="filterBar">
+        <button class="chip-btn is-active" type="button" data-cat="全部">全部</button>
+        <button class="chip-btn" type="button" data-cat="排障方法">排障方法</button>
+        <button class="chip-btn" type="button" data-cat="实施部署">实施部署</button>
+        <button class="chip-btn" type="button" data-cat="通信与网络">通信与网络</button>
+        <button class="chip-btn" type="button" data-cat="导航与定位">导航与定位</button>
+        <button class="chip-btn" type="button" data-cat="硬件与外设">硬件与外设</button>
+        <span class="filter-meta" id="filterMeta">显示 5 / 5</span>
+      </div>
+
+      <div class="notes" id="notesList">
+        <a class="note-row" href="posts/amr-localization-drift.html" data-cat="导航与定位"
+           data-text="AMR 定位漂移 定位丢失 重定位 地图 激光 点云 轮速 里程计 外参 初始位姿 导航">
+          <div class="note-side">
+            <span class="note-cat">导航与定位</span>
+            <span class="note-date">2026-11-22</span>
+          </div>
+          <div class="note-main">
+            <h3>AMR 定位漂移：从现象到根因的处理顺序</h3>
+            <p>定位突然跳到走廊另一侧、走直线缓慢跑偏、回到旧地图位置——先查什么，后查什么。</p>
+            <div class="note-tags"><span>定位</span><span>标定</span><span>现场</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/ros2-comm-timeout.html" data-cat="通信与网络"
+           data-text="ROS 2 通信超时 丢包 DDS QoS RMW 中间件 话题 延迟 抖动 MTU 时间同步 多播 multicast">
+          <div class="note-side">
+            <span class="note-cat">通信与网络</span>
+            <span class="note-date">2026-11-18</span>
+          </div>
+          <div class="note-main">
+            <h3>ROS 2 通信超时与丢包的逐层排查</h3>
+            <p>话题偶发收不到、消息延迟忽高忽低：按网络层、中间件层、QoS 层、应用层依次收敛。</p>
+            <div class="note-tags"><span>ROS 2</span><span>DDS</span><span>QoS</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/device-node-changed.html" data-cat="硬件与外设"
+           data-text="设备节点 ttyUSB udev 串口 CAN 命名 规则 重启 上电时序 权限 dialout 多设备 识别顺序">
+          <div class="note-side">
+            <span class="note-cat">硬件与外设</span>
+            <span class="note-date">2026-11-11</span>
+          </div>
+          <div class="note-main">
+            <h3>重启后 /dev/ttyUSB0 变成 ttyUSB1：设备命名治理</h3>
+            <p>多串口设备识别顺序不稳定，是现场“昨天还好好的”最典型的原因之一，用 udev 规则彻底解决。</p>
+            <div class="note-tags"><span>udev</span><span>串口</span><span>CAN</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/deployment-checklist.html" data-cat="实施部署"
+           data-text="现场实施 交付 验收 清单 部署 网络 wifi 时间同步 标定 备件 培训 回滚 割接">
+          <div class="note-side">
+            <span class="note-cat">实施部署</span>
+            <span class="note-date">2026-11-04</span>
+          </div>
+          <div class="note-main">
+            <h3>移动机器人现场实施交付清单</h3>
+            <p>从进场勘察到验收签字，把容易漏的 30 多项检查沉淀成一张可打印的清单。</p>
+            <div class="note-tags"><span>交付</span><span>验收</span><span>流程</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+
+        <a class="note-row" href="posts/troubleshooting-layers.html" data-cat="排障方法"
+           data-text="排障方法 分层 定位 现象 证据 日志 复现 最小系统 二分 排除 变量 记录 根因">
+          <div class="note-side">
+            <span class="note-cat">排障方法</span>
+            <span class="note-date">2026-10-28</span>
+          </div>
+          <div class="note-main">
+            <h3>现场故障排查的通用分层法</h3>
+            <p>不要一上来就重启。先把问题放回它所在的层，再决定采集什么证据。</p>
+            <div class="note-tags"><span>方法论</span><span>日志</span><span>根因</span></div>
+          </div>
+          <span class="note-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="empty-state" id="emptyState">没有匹配的文档，换个关键词或选择“全部”试试。</div>
+    </div>
+  </section>
+
+  <section class="section" id="lookup" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>排障速查</h2>
+        <p class="section-desc">按现象直接定位到文档</p>
+      </div>
+
+      <table class="quick-table">
+        <thead>
+          <tr><th>现场现象</th><th>优先排查方向</th><th>文档</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>话题偶发收不到、消息延迟忽高忽低</td>
+            <td>多播与 QoS 不匹配、网络丢包</td>
+            <td><a href="posts/ros2-comm-timeout.html">通信超时排查 →</a></td>
+          </tr>
+          <tr>
+            <td>走直线缓慢跑偏，或定位突然跳到别处</td>
+            <td>初始位姿、轮速标定、环境特征变化</td>
+            <td><a href="posts/amr-localization-drift.html">定位漂移排查 →</a></td>
+          </tr>
+          <tr>
+            <td>重启后串口/CAN 设备打不开</td>
+            <td>设备节点顺序与权限</td>
+            <td><a href="posts/device-node-changed.html">设备命名治理 →</a></td>
+          </tr>
+          <tr>
+            <td>不知道从哪开始查、现场信息一团乱</td>
+            <td>分层定位与证据采集</td>
+            <td><a href="posts/troubleshooting-layers.html">通用分层法 →</a></td>
+          </tr>
+          <tr>
+            <td>新项目进场，担心交付漏项</td>
+            <td>勘察、环境、标定、验收</td>
+            <td><a href="posts/deployment-checklist.html">交付清单 →</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" id="about" style="padding-top:0">
+    <div class="wrap">
+      <div class="about-grid">
+        <div>
+          <h2>关于这个知识库</h2>
+          <p class="about-role">MAINTAINED BY<br>一线实施工程师</p>
+        </div>
+        <div>
+          <p>这里是个人维护的机器人实施与运维笔记，内容来自真实的现场交付和远程支持。写下来的目的很简单：同一个问题不查第二遍，同一个坑不让同事再踩一次。</p>
+          <p>文档默认环境为 Ubuntu 22.04 + ROS 2 Humble，硬件以轮式差速/舵轮 AGV、AMR 为主。不同厂商的中间件和控制器会有差异，结论请结合现场验证使用。</p>
+          <p>发现文档有误或想补充案例，欢迎在文末留言或直接联系我，我会把验证过的处理方式合并进来。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="#library">知识库</a>
+      <a href="#lookup">排障速查</a>
+      <a href="#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    const searchInput = document.getElementById('searchInput');
+    const searchHint = document.getElementById('searchHint');
+    const filterMeta = document.getElementById('filterMeta');
+    const emptyState = document.getElementById('emptyState');
+    const rows = Array.from(document.querySelectorAll('.note-row'));
+    const chipBtns = Array.from(document.querySelectorAll('.chip-btn'));
+    const catCards = Array.from(document.querySelectorAll('.cat-card'));
+    let activeCat = '全部';
+
+    function apply() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+
+      rows.forEach((row) => {
+        const catOk = activeCat === '全部' || row.dataset.cat === activeCat;
+        const textOk = !keyword ||
+          row.textContent.toLowerCase().includes(keyword) ||
+          (row.dataset.text || '').toLowerCase().includes(keyword);
+        const show = catOk && textOk;
+        row.style.display = show ? '' : 'none';
+        if (show) visible += 1;
+      });
+
+      emptyState.style.display = visible === 0 ? 'block' : 'none';
+      filterMeta.textContent = '显示 ' + visible + ' / ' + rows.length;
+      searchHint.textContent = keyword
+        ? '关键词「' + searchInput.value.trim() + '」· 命中 ' + visible + ' 篇'
+        : '共 ' + rows.length + ' 篇文档 · 输入关键词即可过滤';
+
+      chipBtns.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.cat === activeCat));
+      catCards.forEach((card) => card.classList.toggle('is-active', card.dataset.cat === activeCat));
+    }
+
+    function setCat(cat, scroll) {
+      activeCat = activeCat === cat ? '全部' : cat;
+      apply();
+      if (scroll) {
+        document.getElementById('notesList').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    searchInput.addEventListener('input', apply);
+
+    chipBtns.forEach((btn) => {
+      btn.addEventListener('click', () => { activeCat = btn.dataset.cat; apply(); });
+    });
+
+    catCards.forEach((card) => {
+      card.addEventListener('click', () => setCat(card.dataset.cat, true));
+    });
+
+    apply();
+  })();
+</script>
+</body>
+</html>

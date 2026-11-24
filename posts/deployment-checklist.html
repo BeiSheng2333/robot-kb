@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移动机器人现场实施交付清单 — 现场笔记</title>
+<meta name="description" content="从进场勘察到验收签字，把容易漏的检查项沉淀成一张可执行的清单。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+      <a href="../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">知识库目录</p>
+      <nav>
+        <span class="side-group">排障方法</span>
+        <a href="troubleshooting-layers.html">通用分层排查法</a>
+        <span class="side-group">实施部署</span>
+        <a href="deployment-checklist.html" class="active">现场交付清单</a>
+        <span class="side-group">通信与网络</span>
+        <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+        <span class="side-group">导航与定位</span>
+        <a href="amr-localization-drift.html">定位漂移处理</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="device-node-changed.html">设备命名治理</a>
+      </nav>
+      <div class="side-back"><a href="../index.html">← 返回知识库首页</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
+      <h1>移动机器人现场实施交付清单</h1>
+      <p class="lede">交付阶段漏掉的每一项，都会在验收后变成一次售后。这张清单的作用，是把“凭经验记得”变成“按顺序检查”。</p>
+      <div class="doc-meta">
+        <span>更新 2026-11-04</span>
+        <span>约 10 分钟</span>
+        <span class="chip">实施部署</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>知识库目录</summary>
+        <nav>
+          <a href="troubleshooting-layers.html">通用分层排查法</a>
+          <a href="deployment-checklist.html" class="active">现场交付清单</a>
+          <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+          <a href="amr-localization-drift.html">定位漂移处理</a>
+          <a href="device-node-changed.html">设备命名治理</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <p>实施现场最怕的不是难，而是乱。人手一少、时间一紧，就容易出现“装好了、跑起来了、但某个细节没配”的情况。这类问题通常不会当场暴露，而是在两周后的夜班集中爆发。</p>
+
+        <p>下面按时间顺序整理，可以直接照着执行，也适合打印成现场表格逐项打勾。</p>
+
+        <h2 id="s1">一、进场前的远程勘察</h2>
+
+        <p>能远程确认的，绝不留到现场。进场前需要拿到：</p>
+
+        <ul>
+          <li>场地平面图与通道净宽，核对车体尺寸、转弯半径、最小通行宽度；</li>
+          <li>地面材质与坡度，确认是否满足爬坡与防滑要求；</li>
+          <li>充电位位置、供电容量与接地情况；</li>
+          <li>Wi-Fi AP 点位图、信道规划、漫游策略（是否同一 SSID）；</li>
+          <li>现场是否有金属货架、玻璃幕墙、大面积镜面（会直接影响激光与定位）；</li>
+          <li>甲方对接人、施工窗口、安全培训与动火/登高审批要求。</li>
+        </ul>
+
+        <div class="callout">
+          <span class="callout-title">经验</span>
+          <p>提前要一张“现场照片包”比看图更有效：通道转角、充电位、AP 安装位置、地面接缝各拍一张。很多返工是因为图纸和现场不一致。</p>
+        </div>
+
+        <h2 id="s2">二、硬件安装</h2>
+
+        <ul>
+          <li>车体水平度与离地间隙，确认无刮底、无异响；</li>
+          <li>激光/相机安装高度与俯仰角，按标定要求复核；</li>
+          <li>线束固定与走线，避免与轮组、举升机构干涉；</li>
+          <li>急停、防撞条、声光报警功能逐项测试；</li>
+          <li>充电桩对位精度与触点压力；</li>
+          <li>所有螺丝按扭矩要求复紧，并做防松标记。</li>
+        </ul>
+
+        <h2 id="s3">三、网络与时间</h2>
+
+        <p>这一节最容易被跳过，也最容易在后期变成“偶发问题”的源头。</p>
+
+        <table>
+          <thead>
+            <tr><th>检查项</th><th>标准</th><th>验证方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>车端 IP</td><td>固定 IP 或 DHCP 保留，不与其它设备冲突</td><td>断开重连后 IP 不变</td></tr>
+            <tr><td>AP 漫游</td><td>全场同一 SSID，切换时延可接受</td><td>沿路线走一圈，持续 ping 不中断</td></tr>
+            <tr><td>丢包率</td><td>典型路线 1000 包丢包小于 0.5%</td><td><code>ping -i 0.2 -c 1000</code></td></tr>
+            <tr><td>时间同步</td><td>车端与调度端偏差小于 1 秒</td><td><code>timedatectl</code> 查看 NTP 状态</td></tr>
+            <tr><td>端口放通</td><td>DDS、调度、视频端口双向可达</td><td>从两端分别测试</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="s4">四、软件部署</h2>
+
+        <ol class="steps">
+          <li>
+            <strong>系统基线</strong>
+            记录系统版本、内核版本、驱动版本与 ROS 2 发行版，写进交付文档。后续所有问题都要基于这个基线判断。
+          </li>
+          <li>
+            <strong>依赖与容器</strong>
+            镜像或安装包必须可离线复现，避免现场临时联网拉包。确认开机自启顺序与依赖关系。
+          </li>
+          <li>
+            <strong>参数落地</strong>
+            地图、标定文件、车辆参数统一放在版本化目录，禁止直接改现场文件而不留备份。
+          </li>
+          <li>
+            <strong>日志与监控</strong>
+            确认日志轮转策略、磁盘余量告警、远程查看通道可用。
+          </li>
+        </ol>
+
+        <h2 id="s5">五、标定与联调</h2>
+
+        <ul>
+          <li>轮径与轮距标定：直线 20 m 偏差、原地旋转 10 圈角度偏差；</li>
+          <li>传感器外参标定：激光与车体坐标系、相机与激光的转换关系；</li>
+          <li>地图采集与复核：通道宽度、禁行区、充电位、停靠点；</li>
+          <li>速度与加速度参数：空载与满载分别验证；</li>
+          <li>避障策略：不同障碍物高度、不同速度下的停车距离；</li>
+          <li>调度联调：任务下发、取消、重试、异常回收的完整链路。</li>
+        </ul>
+
+        <div class="callout warn">
+          <span class="callout-title">注意</span>
+          <p>标定不是“做完一次就结束”。更换轮胎、拆装激光、碰撞之后都必须重新标定，并把标定日期写进设备档案。</p>
+        </div>
+
+        <h2 id="s6">六、验收与交付物</h2>
+
+        <p>验收指标建议在合同阶段就量化，现场只做核对，不做解释：</p>
+
+        <table>
+          <thead>
+            <tr><th>指标</th><th>参考口径</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>单点到位精度</td><td>重复停靠 10 次，偏差在约定范围内</td></tr>
+            <tr><td>任务成功率</td><td>连续运行 8 小时，统计成功与人工干预次数</td></tr>
+            <tr><td>平均故障间隔</td><td>试运行期内无同类重复故障</td></tr>
+            <tr><td>充电成功率</td><td>自动回充 10 次，记录失败原因</td></tr>
+            <tr><td>异常恢复</td><td>断网、断电、急停后能按预期恢复</td></tr>
+          </tbody>
+        </table>
+
+        <p>交付物至少包含：</p>
+
+        <ul>
+          <li>系统基线表与账号权限清单；</li>
+          <li>地图、标定文件、参数文件的备份；</li>
+          <li>网络拓扑与 AP 点位图；</li>
+          <li>操作手册、常见故障处理卡、应急联系表；</li>
+          <li>验收记录与遗留问题清单（含责任人与截止时间）。</li>
+        </ul>
+
+        <div class="callout ok">
+          <span class="callout-title">建议</span>
+          <p>把“遗留问题清单”当成正式交付物的一部分。现场不可能零问题，但把问题写清楚、有人跟进，比口头承诺更能建立信任。</p>
+        </div>
+      </div>
+
+      <div class="pager">
+        <a href="troubleshooting-layers.html">
+          <span class="pager-label">上一篇</span>
+          <span class="pager-title">现场故障排查的通用分层法</span>
+        </a>
+        <a class="next" href="ros2-comm-timeout.html">
+          <span class="pager-label">下一篇</span>
+          <span class="pager-title">ROS 2 通信超时与丢包的逐层排查</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">进场前的远程勘察</a>
+        <a href="#s2">硬件安装</a>
+        <a href="#s3">网络与时间</a>
+        <a href="#s4">软件部署</a>
+        <a href="#s5">标定与联调</a>
+        <a href="#s6">验收与交付物</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

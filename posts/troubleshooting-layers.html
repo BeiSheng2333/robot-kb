@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>现场故障排查的通用分层法 — 现场笔记</title>
+<meta name="description" content="不要一上来就重启。先把问题放回它所在的层，再决定采集什么证据。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+      <a href="../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">知识库目录</p>
+      <nav>
+        <span class="side-group">排障方法</span>
+        <a href="troubleshooting-layers.html" class="active">通用分层排查法</a>
+        <span class="side-group">实施部署</span>
+        <a href="deployment-checklist.html">现场交付清单</a>
+        <span class="side-group">通信与网络</span>
+        <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+        <span class="side-group">导航与定位</span>
+        <a href="amr-localization-drift.html">定位漂移处理</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="device-node-changed.html">设备命名治理</a>
+      </nav>
+      <div class="side-back"><a href="../index.html">← 返回知识库首页</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
+      <h1>现场故障排查的通用分层法</h1>
+      <p class="lede">现场最耗时间的往往不是修，而是“不知道从哪开始查”。把问题放回它所在的层，比立刻重启有效得多。</p>
+      <div class="doc-meta">
+        <span>更新 2026-10-28</span>
+        <span>约 8 分钟</span>
+        <span class="chip">排障方法</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>知识库目录</summary>
+        <nav>
+          <a href="troubleshooting-layers.html" class="active">通用分层排查法</a>
+          <a href="deployment-checklist.html">现场交付清单</a>
+          <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+          <a href="amr-localization-drift.html">定位漂移处理</a>
+          <a href="device-node-changed.html">设备命名治理</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <p>机器人不动了，最快的动作通常是重启。但重启会抹掉现场最有价值的东西：那一刻的进程状态、日志和资源占用。也许这一次会好，但下一次还会坏，而且你依然不知道为什么。</p>
+
+        <p>下面这套方法不保证你能立刻修好，但它能保证每一次排查都在缩小范围，而不是在碰运气。</p>
+
+        <h2 id="s1">先把问题放回它所在的层</h2>
+
+        <p>移动机器人是一个典型的叠层系统。同一个“车不走”，可能来自五层中的任何一层：</p>
+
+        <table>
+          <thead>
+            <tr><th>层</th><th>典型对象</th><th>这次的怀疑点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>业务层</td><td>调度系统、任务状态机</td><td>任务是否真的下发到了车端</td></tr>
+            <tr><td>应用层</td><td>导航、规划、控制进程</td><td>进程是否活着、是否在报错</td></tr>
+            <tr><td>中间件层</td><td>ROS 2 / DDS 通信</td><td>话题是否还在发布、QoS 是否匹配</td></tr>
+            <tr><td>系统层</td><td>CPU、内存、磁盘、时间</td><td>是否过载、时钟是否跳变</td></tr>
+            <tr><td>硬件与网络</td><td>底盘、激光、交换机、Wi-Fi</td><td>供电、丢包、设备是否掉线</td></tr>
+          </tbody>
+        </table>
+
+        <p>做法很简单：从上往下问一遍“这一层有没有证据表明它不正常”。一旦某层出现明确异常，就停在那里深挖，不要同时怀疑所有东西。</p>
+
+        <h2 id="s2">三个必须遵守的原则</h2>
+
+        <ol class="steps">
+          <li>
+            <strong>先保留现场，再动手</strong>
+            在重启、改配置、升级之前，先导出日志、录一段现场视频、截一张监控图。哪怕最后没用上，成本也远低于丢掉关键证据。
+          </li>
+          <li>
+            <strong>一次只改一个变量</strong>
+            同时改网络、换传感器、升级固件，最后好了你也不知道是哪一个起的作用，下次复发依然无解。
+          </li>
+          <li>
+            <strong>用时间戳对齐所有证据</strong>
+            车端日志、调度日志、交换机日志、现场视频，必须能对齐到同一时刻。没有时间对齐的多份日志，价值会大打折扣。
+          </li>
+        </ol>
+
+        <h2 id="s3">证据采集清单</h2>
+
+        <p>到现场第一件事不是打开代码，而是把这些信息固定下来：</p>
+
+        <table>
+          <thead>
+            <tr><th>证据</th><th>采集方式</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>故障现象</td><td>手机视频 + 屏幕录像</td><td>确认是停住、抖动还是报错退出</td></tr>
+            <tr><td>应用日志</td><td><code>journalctl -u robot-app --since "10 min ago"</code></td><td>定位到具体模块与报错行</td></tr>
+            <tr><td>系统日志</td><td><code>dmesg -T | tail -100</code></td><td>USB 掉线、CAN 错误、OOM</td></tr>
+            <tr><td>资源状态</td><td><code>top</code>、<code>free -h</code>、<code>df -h</code></td><td>排除过载与磁盘写满</td></tr>
+            <tr><td>通信状态</td><td><code>ros2 topic hz</code>、<code>ros2 topic info</code></td><td>确认数据是否还在流动</td></tr>
+            <tr><td>网络质量</td><td>车端 <code>ping -i 0.2</code> 网关 1000 次</td><td>判断丢包与延迟抖动</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout warn">
+          <span class="callout-title">注意</span>
+          <p>现场经常出现“重启后复现不了”的情况。这时候不要就此结案，把上面的信息整理成一份记录，并在下一个班次安排观察。偶发问题的价值恰恰在第一次发生时。</p>
+        </div>
+
+        <h2 id="s4">一个真实案例</h2>
+
+        <p>现象：车在通道中间停住，调度显示任务执行中，车端没有任何报错弹窗。</p>
+
+        <p>按层过一遍：</p>
+
+        <ul>
+          <li>业务层：调度侧显示“导航中”，任务确实下发了；</li>
+          <li>应用层：导航进程存活，但规划话题不再更新；</li>
+          <li>应用层日志：出现 <code>Goal aborted: no valid path</code>；</li>
+          <li>系统层：CPU 正常，但定位话题频率从 50 Hz 掉到 8 Hz；</li>
+          <li>硬件层：激光数据正常，底盘里程计偶尔跳变。</li>
+        </ul>
+
+        <p>结论不是“导航坏了”，而是定位输入退化导致规划失败。真正的根因在里程计一侧。如果一开始就重启导航进程，大概率会恢复，然后在下一次同样的位置再坏一次。</p>
+
+        <h2 id="s5">什么时候可以重启</h2>
+
+        <p>重启不是禁忌，但它应该是一个有记录的动作，而不是反射。满足下面两条就可以重启：</p>
+
+        <ul>
+          <li>现场证据已经采集完毕；</li>
+          <li>重启是为了恢复生产，而不是为了验证猜测。</li>
+        </ul>
+
+        <p>如果是为了验证猜测，请改用最小复现：停掉单个进程、拔掉单个设备、换一条网线。这样即使结论不对，你也知道排除了什么。</p>
+
+        <div class="callout ok">
+          <span class="callout-title">一句话总结</span>
+          <p>先分层定位，再采集证据，最后才动手。排查的目标不是让这一台车现在能动，而是让同类问题下次能被更快识别。</p>
+        </div>
+      </div>
+
+      <div class="pager">
+        <a href="deployment-checklist.html">
+          <span class="pager-label">下一篇</span>
+          <span class="pager-title">移动机器人现场实施交付清单</span>
+        </a>
+        <a class="next" href="../index.html#library">
+          <span class="pager-label">返回</span>
+          <span class="pager-title">知识库首页</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">先把问题放回它所在的层</a>
+        <a href="#s2">三个必须遵守的原则</a>
+        <a href="#s3">证据采集清单</a>
+        <a href="#s4">一个真实案例</a>
+        <a href="#s5">什么时候可以重启</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

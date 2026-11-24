@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMR 定位漂移：从现象到根因的处理顺序 — 现场笔记</title>
+<meta name="description" content="定位突然跳到走廊另一侧、走直线缓慢跑偏、回到旧地图位置——先查什么，后查什么。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+      <a href="../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">知识库目录</p>
+      <nav>
+        <span class="side-group">排障方法</span>
+        <a href="troubleshooting-layers.html">通用分层排查法</a>
+        <span class="side-group">实施部署</span>
+        <a href="deployment-checklist.html">现场交付清单</a>
+        <span class="side-group">通信与网络</span>
+        <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+        <span class="side-group">导航与定位</span>
+        <a href="amr-localization-drift.html" class="active">定位漂移处理</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="device-node-changed.html">设备命名治理</a>
+      </nav>
+      <div class="side-back"><a href="../index.html">← 返回知识库首页</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../index.html">首页</a><span class="sep">/</span><span>导航与定位</span></div>
+      <h1>AMR 定位漂移：从现象到根因的处理顺序</h1>
+      <p class="lede">定位问题最大的陷阱是：你看到的“漂移”至少有三种完全不同的成因，顺序错了会白忙一天。</p>
+      <div class="doc-meta">
+        <span>更新 2026-11-22</span>
+        <span>约 10 分钟</span>
+        <span class="chip">导航与定位</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>知识库目录</summary>
+        <nav>
+          <a href="troubleshooting-layers.html">通用分层排查法</a>
+          <a href="deployment-checklist.html">现场交付清单</a>
+          <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+          <a href="amr-localization-drift.html" class="active">定位漂移处理</a>
+          <a href="device-node-changed.html">设备命名治理</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <p>“车定位飘了”是现场最笼统的描述之一。有人指的是地图上的箭头突然跳到隔壁通道，有人指的是走十米偏了三厘米，还有人指的是每次经过同一片玻璃幕墙就开始画龙。处理方式完全不同。</p>
+
+        <h2 id="s1">先归类：三种不同的漂移</h2>
+
+        <table>
+          <thead>
+            <tr><th>类型</th><th>表现</th><th>常见根因</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>瞬时跳变</td><td>定位突然跳到别处，随后可能自行恢复或彻底丢失</td><td>匹配歧义、初值错误、传感器瞬时异常</td></tr>
+            <tr><td>缓慢累积</td><td>每次走直线都往同一侧偏，越走越大</td><td>轮径/轮距标定、里程计比例系数</td></tr>
+            <tr><td>区域相关</td><td>只在特定路段出问题，其它区域正常</td><td>环境特征变化、玻璃/长走廊、动态障碍</td></tr>
+          </tbody>
+        </table>
+
+        <p>先让现场同事复现一次并录屏，配合定位话题的时间序列，基本就能归到其中一类。归类之后再往下查，效率会高很多。</p>
+
+        <h2 id="s2">第一步：地图与初始位姿</h2>
+
+        <p>这两种错误占了现场问题的一半以上，而且最容易被忽略：</p>
+
+        <ul>
+          <li>车端加载的地图版本与调度端不一致（地图改过但没同步）；</li>
+          <li>开机初始位姿给错了充电位，导致从第一帧起就偏；</li>
+          <li>地图原点是重建时随手定的，新老地图混用后整体旋转了一个角度；</li>
+          <li>地图里保留了已经拆掉的货架，匹配时被旧特征误导。</li>
+        </ul>
+
+        <div class="callout">
+          <span class="callout-title">快速确认</span>
+          <p>把车手动推到两个已知标记点，对比界面上显示的位置。如果误差方向和大小稳定，先怀疑地图/原点，而不是算法。</p>
+        </div>
+
+        <h2 id="s3">第二步：传感器数据质量</h2>
+
+        <pre><code><span class="cmt"># 频率是否符合预期</span>
+ros2 topic hz /scan
+ros2 topic hz /points
+
+<span class="cmt"># 是否有时间戳过旧或跳变</span>
+ros2 topic echo /scan --field header.stamp
+
+<span class="cmt"># TF 链路是否完整</span>
+ros2 run tf2_ros tf2_echo map base_link</code></pre>
+
+        <p>关注三类异常：频率掉到一半以下、时间戳停住、点云出现整片“空洞”。激光被灰尘遮挡、镜面反射、雨雾天气都可能造成后者。清洁镜面后复测，是很低成本的验证。</p>
+
+        <h2 id="s4">第三步：轮速里程计标定</h2>
+
+        <p>缓慢累积型漂移，绝大多数是里程计标定问题。两个关键参数：</p>
+
+        <ul>
+          <li><strong>轮径</strong>：影响直线距离比例。走 10 m，实际到 9.8 m，说明轮径偏大；</li>
+          <li><strong>轮距</strong>：影响转向角度。原地转 10 圈回到起点，角度偏差反映轮距误差。</li>
+        </ul>
+
+        <p>标定要在满载状态下做，因为轮胎压缩会改变有效轮径。更换轮胎、调整配重、维修底盘之后都必须重做。</p>
+
+        <div class="callout warn">
+          <span class="callout-title">注意</span>
+          <p>不要用“改定位参数”去掩盖里程计误差。定位算法能修正短时偏差，但当特征稀疏时仍会依赖里程计预测，误差迟早会暴露。</p>
+        </div>
+
+        <h2 id="s5">第四步：外参</h2>
+
+        <p>激光安装位置如果发生过碰撞、拆装或更换支架，外参必须重新标定。判断方法：让车静止，观察激光点云与地图墙面的重合度。如果整体旋转或平移了一个固定量，就是外参问题。</p>
+
+        <h2 id="s6">第五步：环境因素</h2>
+
+        <p>有些漂移不是故障，而是环境超出了设计假设：</p>
+
+        <table>
+          <thead>
+            <tr><th>环境</th><th>影响</th><th>缓解方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>玻璃幕墙、镜面</td><td>激光穿透或镜像，产生虚假特征</td><td>贴膜、增加反光板、限定匹配区域</td></tr>
+            <tr><td>长直走廊</td><td>沿走廊方向约束不足，前后漂移</td><td>补充地面/顶部特征，或增加反光柱</td></tr>
+            <tr><td>高动态人流</td><td>大量动态点污染匹配</td><td>过滤动态点、调整匹配权重</td></tr>
+            <tr><td>地面材质变化</td><td>打滑导致里程计失真</td><td>降低加速度、增加防滑处理</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="s7">现场处置顺序</h2>
+
+        <ol class="steps">
+          <li><strong>保留现场</strong>录屏 + 导出定位与激光数据，记录发生时的位置与任务。</li>
+          <li><strong>核对地图与初值</strong>版本、原点、充电位是否一致。</li>
+          <li><strong>看数据质量</strong>频率、时间戳、点云完整性、TF 链路。</li>
+          <li><strong>做标定复核</strong>直线 20 m 与原地旋转，对比标定记录。</li>
+          <li><strong>最后才调算法参数</strong>并且一次只改一项，改完在同一路段复测。</li>
+        </ol>
+
+        <div class="callout ok">
+          <span class="callout-title">预防比修复便宜</span>
+          <p>把地图版本、标定日期、轮胎更换记录写进设备档案；每次维保后做一次标准路线复测。这两件事能消掉相当一部分“突然开始飘”的工单。</p>
+        </div>
+      </div>
+
+      <div class="pager">
+        <a href="ros2-comm-timeout.html">
+          <span class="pager-label">上一篇</span>
+          <span class="pager-title">ROS 2 通信超时与丢包的逐层排查</span>
+        </a>
+        <a class="next" href="device-node-changed.html">
+          <span class="pager-label">下一篇</span>
+          <span class="pager-title">重启后 /dev/ttyUSB0 变成 ttyUSB1：设备命名治理</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">先归类：三种不同的漂移</a>
+        <a href="#s2">第一步：地图与初始位姿</a>
+        <a href="#s3">第二步：传感器数据质量</a>
+        <a href="#s4">第三步：轮速里程计标定</a>
+        <a href="#s5">第四步：外参</a>
+        <a href="#s6">第五步：环境因素</a>
+        <a href="#s7">现场处置顺序</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

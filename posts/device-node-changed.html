@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>重启后 /dev/ttyUSB0 变成 ttyUSB1：设备命名治理 — 现场笔记</title>
+<meta name="description" content="多串口设备识别顺序不稳定，是现场“昨天还好好的”最典型的原因之一，用 udev 规则彻底解决。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+      <a href="../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">知识库目录</p>
+      <nav>
+        <span class="side-group">排障方法</span>
+        <a href="troubleshooting-layers.html">通用分层排查法</a>
+        <span class="side-group">实施部署</span>
+        <a href="deployment-checklist.html">现场交付清单</a>
+        <span class="side-group">通信与网络</span>
+        <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+        <span class="side-group">导航与定位</span>
+        <a href="amr-localization-drift.html">定位漂移处理</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="device-node-changed.html" class="active">设备命名治理</a>
+      </nav>
+      <div class="side-back"><a href="../index.html">← 返回知识库首页</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../index.html">首页</a><span class="sep">/</span><span>硬件与外设</span></div>
+      <h1>重启后 /dev/ttyUSB0 变成 ttyUSB1：设备命名治理</h1>
+      <p class="lede">这是“昨天还好好的”最典型的原因之一。设备名不是身份，只是内核分配的序号，必须换成稳定的名字。</p>
+      <div class="doc-meta">
+        <span>更新 2026-11-11</span>
+        <span>约 8 分钟</span>
+        <span class="chip">硬件与外设</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>知识库目录</summary>
+        <nav>
+          <a href="troubleshooting-layers.html">通用分层排查法</a>
+          <a href="deployment-checklist.html">现场交付清单</a>
+          <a href="ros2-comm-timeout.html">通信超时与丢包</a>
+          <a href="amr-localization-drift.html">定位漂移处理</a>
+          <a href="device-node-changed.html" class="active">设备命名治理</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <p>现象：设备昨天还能正常跑，今天上电后底盘没反应、激光连不上。翻日志发现程序在打开 <code>/dev/ttyUSB0</code>，但那块设备今天变成了 <code>/dev/ttyUSB1</code>，而 <code>ttyUSB0</code> 现在是另一块 USB 设备。</p>
+
+        <p>根因不复杂：<code>/dev/ttyUSB*</code> 是按 USB 枚举顺序分配的，谁先被系统识别谁就是 0。这个顺序会随上电时序、USB 口位置、HUB 供电状态变化。</p>
+
+        <h2 id="s1">先看清设备到底是谁</h2>
+
+        <pre><code><span class="cmt"># 当前 USB 设备树</span>
+lsusb -t
+
+<span class="cmt"># 已存在的稳定软链接（最省事的方案）</span>
+ls -l /dev/serial/by-id/
+ls -l /dev/serial/by-path/
+
+<span class="cmt"># 查看某个 tty 的完整属性</span>
+udevadm info -a -n /dev/ttyUSB0 | grep -E "looking at|idVendor|idProduct|serial"</code></pre>
+
+        <p>如果 <code>/dev/serial/by-id/</code> 里已经能看到带序列号的路径，那你甚至不需要写规则，直接把程序配置成使用该路径即可。</p>
+
+        <div class="callout">
+          <span class="callout-title">优先选择</span>
+          <p>能用 <code>by-id</code> 就不要用 <code>by-path</code>。前者跟随设备芯片序列号，换 USB 口也稳定；后者跟随物理端口，换口就失效。</p>
+        </div>
+
+        <h2 id="s2">用 udev 规则起可读的名字</h2>
+
+        <p>当设备没有唯一序列号（很多廉价 CH340 模块），或者你想让配置更语义化，就写规则：</p>
+
+        <pre><code><span class="cmt"># /etc/udev/rules.d/99-robot-serial.rules</span>
+<span class="cmt"># 有序列号：按 idVendor + idProduct + serial 绑定</span>
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", \
+  ATTRS{serial}=="A1B2C3D4", SYMLINK+="robot/chassis", MODE="0666", GROUP="dialout"
+
+<span class="cmt"># 无序列号：按固定 USB 物理端口绑定</span>
+SUBSYSTEM=="tty", KERNELS=="1-2.3", SYMLINK+="robot/lidar", MODE="0666", GROUP="dialout"</code></pre>
+
+        <p>规则名建议以 <code>99-</code> 开头，避免被更早的规则覆盖。写完重新加载：</p>
+
+        <pre><code>sudo udevadm control --reload-rules
+sudo udevadm trigger
+ls -l /dev/robot/</code></pre>
+
+        <p>之后程序统一使用 <code>/dev/robot/chassis</code> 和 <code>/dev/robot/lidar</code>，与枚举顺序彻底解耦。</p>
+
+        <h2 id="s3">权限：别用 sudo 跑业务</h2>
+
+        <p>现场常见做法是给设备 <code>chmod 666</code>，方便但不够安全。更稳妥的是把运行用户加入 <code>dialout</code> 组，并在规则里指定 <code>GROUP="dialout"</code>：</p>
+
+        <pre><code>sudo usermod -aG dialout robot
+<span class="cmt"># 重新登录或重启后生效</span>
+id robot</code></pre>
+
+        <h2 id="s4">上电时序：设备还没就绪就启动了</h2>
+
+        <p>即使名字稳定，也可能出现“程序启动时设备还不存在”。尤其在工控机上，USB 设备枚举比系统服务启动慢。两种处理：</p>
+
+        <ol class="steps">
+          <li><strong>启动脚本等待设备</strong>在拉起业务前轮询节点是否存在，超时再报错退出。</li>
+          <li><strong>systemd 依赖设备单元</strong>使用 <code>After=</code> 关联对应的 <code>.device</code> 单元，让系统保证顺序。</li>
+        </ol>
+
+        <pre><code><span class="cmt"># 启动脚本中的等待逻辑</span>
+for i in $(seq 1 50); do
+  [ -e /dev/robot/chassis ] && break
+  sleep 0.2
+done
+[ -e /dev/robot/chassis ] || { echo "chassis device not ready"; exit 1; }</code></pre>
+
+        <div class="callout warn">
+          <span class="callout-title">注意</span>
+          <p>不要用 <code>sleep 10</code> 这类固定延时。它在快机器上浪费十秒，在慢机器上依然可能不够，而且掩盖了真正的问题。</p>
+        </div>
+
+        <h2 id="s5">验证与固化</h2>
+
+        <p>改完必须做一次完整的断电重启验证，而不是热插拔：</p>
+
+        <ul>
+          <li>冷启动 3 次，检查 <code>/dev/robot/</code> 下节点是否都出现；</li>
+          <li>拔掉再插上同一设备，确认名字不变；</li>
+          <li>交换两个 USB 口，确认 <code>by-id</code> 方案依然正确；</li>
+          <li>把规则文件、设备对应表纳入版本管理，写进交付文档。</li>
+        </ul>
+
+        <div class="callout ok">
+          <span class="callout-title">交付建议</span>
+          <p>在设备档案里维护一张“物理设备 ↔ 稳定节点名 ↔ 用途”对照表。以后换件、维修、远程支持都能少问好几轮。</p>
+        </div>
+      </div>
+
+      <div class="pager">
+        <a href="amr-localization-drift.html">
+          <span class="pager-label">上一篇</span>
+          <span class="pager-title">AMR 定位漂移：从现象到根因的处理顺序</span>
+        </a>
+        <a class="next" href="../index.html#library">
+          <span class="pager-label">返回</span>
+          <span class="pager-title">知识库首页</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">先看清设备到底是谁</a>
+        <a href="#s2">用 udev 规则起名字</a>
+        <a href="#s3">权限：别用 sudo 跑业务</a>
+        <a href="#s4">上电时序</a>
+        <a href="#s5">验证与固化</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../index.html#library">知识库</a>
+      <a href="../index.html#lookup">排障速查</a>
+      <a href="../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
