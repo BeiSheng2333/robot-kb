@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGV 加密文件修改与导入刷写流程（软标定制） — 实施部署 — 现场笔记</title>
+<meta name="description" content="现场定制/改制时需修改小车软件标识符（软标）并刷入对应加密文件 sec.bin：从导出、用加密工具改软标，到通过 TFTP + 串口 U-Boot 刷写的完整流程与核对要点。">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../../index.html"><span class="brand-mark">FN</span>现场笔记</a>
+    <nav class="nav">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+      <a href="../../index.html#library" class="nav-cta">检索</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="side">
+      <p class="side-label">文档目录</p>
+      <nav>
+        <span class="side-group">实施部署</span>
+        <a href="v02.html">叉取机器人地图规划与业务部署</a>
+        <a href="v04.html">潜伏机器人典型业务场景部署</a>
+        <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+        <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+        <a href="v21.html" class="active">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        <span class="side-group">通信与接口</span>
+        <a href="v01.html">调度系统与上层平台的 REST 接口对接</a>
+        <a href="v18.html">调度系统 HTTP API 签名与任务接口</a>
+        <a href="v20.html">ClientView 低代码页面配置与接口绑定</a>
+        <span class="side-group">地图与定位</span>
+        <a href="v05.html">L-SLAM 地图编辑要点</a>
+        <a href="v06.html">机器人点位方向与货架方向配置</a>
+        <a href="v08.html">叉取机器人 SLAM 建图与上线</a>
+        <a href="v15.html">L-SLAM 建图流程与路径规划</a>
+        <a href="v16.html">L-SLAM 地图核查与轮廓优化</a>
+        <a href="v17.html">叉车激光标定与多车一致性调整</a>
+        <span class="side-group">配置与工具</span>
+        <a href="v03.html">主控配置文件 castor_conf 配置项速查</a>
+        <a href="v12.html">监控客户端登录与现场管控操作要点</a>
+        <a href="v19.html">终端工具连接机器人与服务端的常用操作</a>
+        <span class="side-group">硬件与外设</span>
+        <a href="v09.html">外设对接：呼叫器、自动门与电梯配置</a>
+        <span class="side-group">排障方法</span>
+        <a href="v10.html">叉车机器人常见告警排查</a>
+        <a href="v13.html">现场问题反馈与排查规范</a>
+        <a href="v14.html">机器人端与平台端日志种类及下载方法</a>
+      </nav>
+      <div class="side-back"><a href="../../index.html#library">← 返回知识库</a></div>
+    </aside>
+
+    <article class="doc">
+      <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
+      <h1>AGV 加密文件修改与导入刷写流程（软标定制）</h1>
+      <p class="lede">现场定制/改制时需修改小车软件标识符（软标）并刷入对应加密文件 sec.bin：从导出、用加密工具改软标，到通过 TFTP + 串口 U-Boot 刷写的完整流程与核对要点。</p>
+      <div class="doc-meta">
+        <span>整理自 内部操作手册 V1.0，2025-12</span>
+        <span class="chip">实施部署</span>
+      </div>
+
+      <details class="mobile-nav">
+        <summary>实施部署目录</summary>
+        <nav>
+          <a href="v02.html">叉取机器人地图规划与业务部署</a>
+          <a href="v04.html">潜伏机器人典型业务场景部署</a>
+          <a href="v07.html">调度系统安装、升级与配套软件部署</a>
+          <a href="v11.html">潜伏机器人平台搭建与任务配置</a>
+          <a href="v21.html" class="active">AGV 加密文件修改与导入刷写流程（软标定制）</a>
+        </nav>
+      </details>
+
+      <div class="prose">
+        <div class="callout ok">
+          <span class="callout-title">内容说明</span>
+          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+        </div>
+
+        <h2 id="s1">适用场景与前置准备</h2>
+        <p>适用于现场因定制、改制需要修改小车软件标识符（软标）并刷写对应加密文件的场景。整个操作分「导出并修改加密文件」和「导入刷写」两步；如需在修改前先升级属性文件，请先完成。</p><ul><li>提前准备一根 Type-C 线和一根网线，以及加密工具、TFTP 工具（Tftpd32）、串口终端（SecureCRT）。</li><li><strong>加密文件不能混用</strong>：不同软标对应的 sec.bin 不可交叉使用。</li><li><strong>修改前、修改后都要备份 sec.bin</strong>，便于回滚，这一步非常重要。</li><li>示例软标为 LE3G601 → LE3G808，各现场以产品经理 / 项目经理提供的软标为准。</li></ul>
+
+        <h2 id="s2">导出并校验当前加密文件</h2>
+        <p>先从小车导出当前加密文件，并确认当前软标是否正确，作为改前基线。</p><ul><li>登录小车后执行 <code>castor_export_sec_bin</code>，加密文件 <code>sec.bin</code> 会出现在 <code>mnt</code> 目录下。</li><li>进入 <code>mnt</code> 目录，执行 <code>sz sec.bin</code> 把文件下载到电脑。</li><li>执行 <code>castor_get_sec_info</code> 查看当前软标（示例为 LE3G601），确认与预期一致后再继续。</li></ul>
+
+        <h2 id="s3">用加密工具修改软件标识符</h2>
+        <p>用专用加密工具修改 sec.bin 中的软件标识符；除软标外，其他任何项都不要动。</p><ul><li>在桌面新建文件夹 <code>tftp</code>，把下载好的 <code>sec.bin</code> 放入其中。</li><li>双击运行 <code>imx6_encrypto.exe</code>，选择 <strong>AGV-V1</strong> 后点确定。</li><li>点右下角「保存路径」，选择 sec.bin 所在位置（如 <code>Desktop/tftp</code>）。</li><li>登录：账号 <code>admin</code>，密码 <code>admin1234</code>。</li><li>按界面提示从第一步依次操作，<strong>只修改「软件标识符」</strong>为目标软标（示例 LE3G808），其余内容保持不变。</li><li>保存后 <code>tftp</code> 文件夹中的 sec.bin 即为修改完成版本；修改前后务必备份。</li></ul>
+
+        <h2 id="s4">准备 TFTP 推送环境</h2>
+        <p>用 Tftpd32 作为 TFTP 服务器，把修改后的 sec.bin 推送给小车的 U-Boot。</p><ul><li>在桌面新建文件夹 <code>tftpd</code>，把 <code>tftp</code> 里修改好的 <code>sec.bin</code> 复制进去。</li><li>把 <code>Tftpd32.exe</code> 也放进 <code>tftpd</code> 文件夹。</li><li>双击运行 Tftpd32，点 <strong>Browse</strong> 选择 sec.bin 存放位置（如 <code>Desktop/tftpd</code>）。</li><li>点第二行下拉箭头，选择电脑本地 IP（示例 192.168.1.200），以本机实际 IP 为准。</li><li>Tftpd32 打开后<strong>保持运行不要关闭</strong>，直到单台车软标改完再关。</li></ul>
+
+        <h2 id="s5">连接串口并判断升级口</h2>
+        <p>通过串口进入小车 U-Boot 进行刷写，需要先区分 RCU 口与升级口。</p><ul><li>打开「设备管理器」，查看电脑当前哪些 COM 口可用（示例为 COM5、COM6 导通）。</li><li>用 SecureCRT 分别连接 COM5、COM6：协议选 <strong>Serial</strong>，波特率 <strong>115200</strong>，流控全部不选；连接成功会显示绿色箭头。</li><li>判断升级口：持续打印 <strong>RCU</strong> 的是 RCU 口，另一口即为升级口（一般编号较小的是升级口）。</li><li>若两个口都不打印，保持连接后关机再开机。</li><li><strong>关机后不要立即开机</strong>：按下关机键后需稍等片刻再按开机，过快上电可能烧板子。</li></ul>
+
+        <h2 id="s6">进入 U-Boot 并刷写加密文件</h2>
+        <p>在升级口对应的终端中进入 U-Boot，配置 TFTP 地址并拉取 sec.bin 完成刷写。</p><ul><li>在 SecureCRT 中选择升级口（示例 COM5）并保持连接。</li><li>按下关机键再开机；开机后<strong>持续、快速地按 Ctrl+U</strong>，直到出现 <strong>HKVS</strong> 提示符。</li><li>依次输入以下指令（电脑本地 IP 不要输错，以本机实际为准）：</li></ul><pre>setenv serverip 192.168.1.120
+        setenv ipaddr 192.168.1.64</pre><ul><li>输入 <code>go</code> 等待加密完成，成功会提示 <strong>Success</strong>。</li><li>提示成功后输入 <code>reset</code> 重启小车。</li></ul>
+
+        <h2 id="s7">验证与收尾</h2>
+        <p>重启后验证软标是否修改成功，并完成工具收尾，再开始下一台车。</p><ul><li>重启过程中会持续打印启动日志，等待小车启动完成。</li><li>上线运行观察，确认定制功能（如转向灯、降低举升盘高度等，各现场不一致）是否实现。</li><li>若长时间未重启，手动按关机键再开机重启；重启完成后执行 <code>castor_get_sec_info</code> 查看软标。</li><li>软标已变为目标值（示例 LE3G808）即代表修改成功。</li><li>本台车所有步骤完成后，关闭 <code>Tftpd32.exe</code> 与 <code>imx6_encrypto.exe</code>，再开始下一台车。</li></ul>
+
+        <h2 id="s8">注意事项</h2>
+        <ul><li>加密文件不能混用，修改前后务必保留 sec.bin 备份。</li><li>用加密工具时只改软件标识符，其他参数不要动。</li><li>关机后勿立即开机，避免烧板子。</li><li><code>setenv</code> 的 serverip / ipaddr 要与 Tftpd32 选择的本地 IP 对应，输错会导致拉取失败。</li><li>Ctrl+U 要在开机后尽早、连续按下，错过 HKVS 窗口需重新开关机再试。</li><li>Tftpd32 与加密工具在单台车改完前保持打开，改完一台关一台，避免多台车混淆。</li></ul>
+
+        <h2 id="checks">上线前核对</h2>
+
+        <ul>
+          <li>已用 castor_get_sec_info 确认当前软标，并明确目标软标</li>
+          <li>修改前 sec.bin 已备份，修改后 sec.bin 单独存放且未与其他软标混用</li>
+          <li>imx6_encrypto 只修改了软件标识符，其他项未动</li>
+          <li>tftpd 文件夹内同时包含修改后的 sec.bin 与 Tftpd32.exe</li>
+          <li>Tftpd32 已选择正确的本地 IP 并保持运行</li>
+          <li>串口以 Serial / 115200 / 无流控 连接，升级口判断正确（非 RCU 打印口）</li>
+          <li>setenv serverip / ipaddr 输入正确，go 返回 Success，reset 后正常启动</li>
+          <li>重启后 castor_get_sec_info 显示目标软标，定制功能上线验证通过</li>
+        </ul>
+      </div>
+
+      <div class="pager">
+        <a href="v11.html"><span class="pager-label">上一篇</span><span class="pager-title">潜伏机器人平台搭建与任务配置</span></a>
+        <a class="next" href="v01.html"><span class="pager-label">下一篇</span><span class="pager-title">调度系统与上层平台的 REST 接口对接</span></a>
+      </div>
+    </article>
+
+    <aside class="toc">
+      <p class="toc-title">本页目录</p>
+      <nav id="tocNav">
+        <a href="#s1">适用场景与前置准备</a>
+        <a href="#s2">导出并校验当前加密文件</a>
+        <a href="#s3">用加密工具修改软件标识符</a>
+        <a href="#s4">准备 TFTP 推送环境</a>
+        <a href="#s5">连接串口并判断升级口</a>
+        <a href="#s6">进入 U-Boot 并刷写加密文件</a>
+        <a href="#s7">验证与收尾</a>
+        <a href="#s8">注意事项</a>
+        <a href="#checks">上线前核对</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 现场笔记 · 机器人实施与运维知识库</span>
+    <div class="footer-links">
+      <a href="../../index.html#library">知识库</a>
+      <a href="../../index.html#lookup">排障速查</a>
+      <a href="../../index.html#about">关于</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tocLinks = Array.from(document.querySelectorAll('#tocNav a'));
+  const sections = tocLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll() {
+    let idx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= 110) idx = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
