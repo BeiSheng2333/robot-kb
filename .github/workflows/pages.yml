@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   deploy:
+    # 私有仓库需要 GitHub Pro 才能启用 Pages；仓库改为 public 后自动生效
+    if: ${{ github.event.repository.private == false }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
