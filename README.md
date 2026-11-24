@@ -4,7 +4,7 @@
 
 - 线上地址：https://37ln30asn2rfopf3ej8.traesite.cn
 - 文档环境：CentOS 7.8，RCS 以 3.x 和 4.x 为主；硬件以潜伏叉车为主
-- 覆盖方向：实施部署、通信与网络、导航与定位、硬件与外设、排障方法
+- 覆盖方向：实施部署、通信与网络、导航与定位、硬件与外设、排障方法、厂商手册速览
 
 ## 目录结构
 
@@ -18,10 +18,11 @@
 │   ├── deployment-checklist.html       现场实施交付清单
 │   ├── ros2-comm-timeout.html          ROS 2 通信超时与丢包
 │   ├── amr-localization-drift.html     AMR 定位漂移
-│   └── device-node-changed.html        串口设备命名治理
+│   ├── device-node-changed.html        串口设备命名治理
+│   └── vendor/                         厂商手册速览（20 篇笔记 + data 源数据）
 ├── docs/
 │   └── CONVERSATION.md                 需求演进、部署记录与决策
-└── .github/workflows/pages.yml         GitHub Pages 自动发布
+└── .nojekyll                           跳过 GitHub Pages 的 Jekyll 处理
 ```
 
 ## 本地预览
@@ -54,3 +55,4 @@ GitHub Pages 直接从 `main` 分支根目录发布，无需构建。`.nojekyll`
 - 不引入框架与构建工具，保持可直接静态托管。
 - 不加载第三方脚本，检索与目录高亮均为原生 JS。
 - 文档中的命令与结论均需在真机验证后再合并。
+- 厂商手册只做原创提炼，不复制原文、不搬运 PDF；手册原件经脱敏后仅存放于私有归档站，不进入本仓库。
