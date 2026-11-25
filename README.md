@@ -4,7 +4,7 @@
 
 - 线上地址：https://37ln30asn2rfopf3ej8.traesite.cn
 - 文档环境：CentOS 7.8，RCS 以 3.x 和 4.x 为主；硬件以潜伏叉车为主
-- 覆盖方向：实施部署、通信与接口、地图与定位、配置与工具、硬件与外设、排障方法（共 26 篇，含 21 篇手册整理笔记）
+- 覆盖方向：实施部署、通信与接口、地图与定位、配置与工具、硬件与外设、排障方法（共 32 篇，含 27 篇手册整理笔记）
 
 ## 目录结构
 
@@ -19,7 +19,7 @@
 │   ├── ros2-comm-timeout.html          ROS 2 通信超时与丢包
 │   ├── amr-localization-drift.html     AMR 定位漂移
 │   ├── device-node-changed.html        串口设备命名治理
-│   └── vendor/                         厂商手册整理笔记（21 篇 + data 源数据，已并入主库分类）
+│   └── vendor/                         厂商手册整理笔记（27 篇 + data 源数据，已并入主库分类）
 ├── docs/
 │   └── CONVERSATION.md                 需求演进、部署记录与决策
 └── .nojekyll                           跳过 GitHub Pages 的 Jekyll 处理
