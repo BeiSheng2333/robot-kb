@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>调度系统 HTTP API 签名与任务接口 — 通信与接口 — 现场笔记</title>
-<meta name="description" content="面向 WMS/MES 对接方的接口手册：请求头与签名算法、错误码判定、任务组与任务下发/继续/取消/查询全流程，以及调度系统回调上层系统的 SPI 接口。按 RCS V4.1 对外接口文档整理。">
+<meta name="description" content="WMS 与 MES 对接调度系统时，签名原串差一个空格或 Host 多一个端口，都会稳定返回 401。公共请求头、HMAC-SHA256 加签、任务组与 SPI 回调，逐段给出报文样例和错误码判读。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>通信与接口</span></div>
       <h1>调度系统 HTTP API 签名与任务接口</h1>
-      <p class="lede">面向 WMS/MES 对接方的接口手册：请求头与签名算法、错误码判定、任务组与任务下发/继续/取消/查询全流程，以及调度系统回调上层系统的 SPI 接口。按 RCS V4.1 对外接口文档整理。</p>
+      <p class="lede">WMS 与 MES 对接调度系统时，签名原串差一个空格或 Host 多一个端口，都会稳定返回 401。公共请求头、HMAC-SHA256 加签、任务组与 SPI 回调，逐段给出报文样例和错误码判读。</p>
       <div class="doc-meta">
         <span>整理自 内部接口文档 V4.1（2024-07-26，93 页）</span>
         <span class="chip">通信与接口</span>
@@ -85,7 +85,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>接入调度平台 HTTP API 的 WMS、MES 侧开发联调，可对照 RCS V4.1 对外接口文档使用，接口版本或现场实现有差异时，字段与错误码以实际返回为准。</p>
         </div>
 
         <h2 id="s1">对接总览与前置准备</h2>

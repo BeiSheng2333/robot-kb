@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>L-SLAM 地图编辑要点 — 地图与定位 — 现场笔记</title>
-<meta name="description" content="L-SLAM 的地图不是扫完就能用：先旋转到墙面水平垂直，再留出右上方偏移防负坐标，然后擦掉临时轮廓、删掉杂点和误判反光板，必要时拼接增补区域，最后用车道线、激光无效区、轮廓稳定区兜住定位稳定性。每一步都有“做错也不报错、但会飘”的坑。">
+<meta name="description" content="L-SLAM 地图最怕做错不报错、车辆却会飘，旋转微调、负坐标预留与拼接断层这几步尤其容易留下隐患。从工具栏到三类特征区的编辑步骤、混跑偏移换算算例和拼接后必须核查的项都覆盖在内。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>地图与定位</span></div>
       <h1>L-SLAM 地图编辑要点</h1>
-      <p class="lede">L-SLAM 的地图不是扫完就能用：先旋转到墙面水平垂直，再留出右上方偏移防负坐标，然后擦掉临时轮廓、删掉杂点和误判反光板，必要时拼接增补区域，最后用车道线、激光无效区、轮廓稳定区兜住定位稳定性。每一步都有“做错也不报错、但会飘”的坑。</p>
+      <p class="lede">L-SLAM 地图最怕做错不报错、车辆却会飘，旋转微调、负坐标预留与拼接断层这几步尤其容易留下隐患。从工具栏到三类特征区的编辑步骤、混跑偏移换算算例和拼接后必须核查的项都覆盖在内。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.0（25 页）</span>
         <span class="chip">地图与定位</span>
@@ -88,7 +88,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>面向做 L-SLAM 建图与地图维护的现场工程师，依据操作手册 V1.0 的地图编辑章节归纳，坐标偏移与拼接参数在版本间存在出入，实际以现场复测结果调整。</p>
         </div>
 
         <h2 id="s1">先认识右下角工具栏</h2>

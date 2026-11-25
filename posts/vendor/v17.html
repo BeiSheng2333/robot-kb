@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>叉车激光标定与多车一致性调整 — 地图与定位 — 现场笔记</title>
-<meta name="description" content="多台叉车在同一储位点停车姿态反复不一致，本质是导航激光相对运动中心的安装偏差不同。本篇按手册补全标定原理、参考线选取、角度与侧向的符号规则、运动误差扣除，以及旧版指令标定、主控 2.8 以上整包 JSON 标定和全向叉车差异。">
+<meta name="description" content="多台叉车在同一储位点停车姿态反复不一致，往往不是激光装歪，而是安装偏差与运动误差叠在一起。角度与侧向符号、物理差值减运动误差的算法、主控 2.8 起的整包 JSON 标定，逐条拆开说。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>地图与定位</span></div>
       <h1>叉车激光标定与多车一致性调整</h1>
-      <p class="lede">多台叉车在同一储位点停车姿态反复不一致，本质是导航激光相对运动中心的安装偏差不同。本篇按手册补全标定原理、参考线选取、角度与侧向的符号规则、运动误差扣除，以及旧版指令标定、主控 2.8 以上整包 JSON 标定和全向叉车差异。</p>
+      <p class="lede">多台叉车在同一储位点停车姿态反复不一致，往往不是激光装歪，而是安装偏差与运动误差叠在一起。角度与侧向符号、物理差值减运动误差的算法、主控 2.8 起的整包 JSON 标定，逐条拆开说。</p>
       <div class="doc-meta">
         <span>整理自 内部实施手册（含 2021-07 修订）</span>
         <span class="chip">地图与定位</span>
@@ -88,7 +88,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>适合标准叉车与全向叉车的激光标定实施，依据内部实施手册（含 2021-07 修订）整理，手册各章正负号表述不一，具体数值还需据实车复测确认。</p>
         </div>
 
         <h2 id="s1">标定值的含义与坐标系</h2>

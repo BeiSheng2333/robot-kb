@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>叉车机器人常见告警排查 — 排障方法 — 现场笔记</title>
-<meta name="description" content="叉车类机器人的告警按模块分为主控、能源、举升、导感、导航库、安全、声光与特殊故障八类。本篇按「现象 → 原因 → 验证步骤 → 恢复方法」统一口径整理，重点补上失联的六步定位、无法开机的电压分级判断、电池过放的两种补电路径和读码头的拆检顺序。">
+<meta name="description" content="叉车告警看似千头万绪，先通讯供电、再传感器与执行机构、最后才换件，往往比凭经验猜快得多。八类告警逐条给出成因与恢复动作，并补上失联六步、无法开机的电压分档判断和电池过放的补电红线。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
       <h1>叉车机器人常见告警排查</h1>
-      <p class="lede">叉车类机器人的告警按模块分为主控、能源、举升、导感、导航库、安全、声光与特殊故障八类。本篇按「现象 → 原因 → 验证步骤 → 恢复方法」统一口径整理，重点补上失联的六步定位、无法开机的电压分级判断、电池过放的两种补电路径和读码头的拆检顺序。</p>
+      <p class="lede">叉车告警看似千头万绪，先通讯供电、再传感器与执行机构、最后才换件，往往比凭经验猜快得多。八类告警逐条给出成因与恢复动作，并补上失联六步、无法开机的电压分档判断和电池过放的补电红线。</p>
       <div class="doc-meta">
         <span>整理自 内部故障排查手册（27 页）</span>
         <span class="chip">排障方法</span>
@@ -87,7 +87,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>面向叉车类机器人现场运维人员，排查口径来自内部故障排查手册；同型号不同批次硬件存在差异，涉及电压、电流阈值时以实测数据判断。</p>
         </div>
 
         <h2 id="s1">排查总原则与证据留存</h2>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>机器人异常重启排查与日志采集 — 排障方法 — 现场笔记</title>
-<meta name="description" content="异常重启要先排除人工断电、定时重启和参数修改后的主动重启，再按日志证据区分掉电与软重启。本篇给出从校时、下载 AGV 与全部内核日志、提取 Coredump 和电池告警，到核对 reset_type、SYSTEM BOOT、看门狗及 panic 的路径，避免被后续人工操作误导。">
+<meta name="description" content="先分清人工断电、定时重启还是真正的异常重启，否则日志很容易被恢复动作带偏。从校时、备齐异常前后 AGV 与全部内核日志，到用 reset_type、SYSTEM BOOT 和看门狗记录归类。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
       <h1>机器人异常重启排查与日志采集</h1>
-      <p class="lede">异常重启要先排除人工断电、定时重启和参数修改后的主动重启，再按日志证据区分掉电与软重启。本篇给出从校时、下载 AGV 与全部内核日志、提取 Coredump 和电池告警，到核对 reset_type、SYSTEM BOOT、看门狗及 panic 的路径，避免被后续人工操作误导。</p>
+      <p class="lede">先分清人工断电、定时重启还是真正的异常重启，否则日志很容易被恢复动作带偏。从校时、备齐异常前后 AGV 与全部内核日志，到用 reset_type、SYSTEM BOOT 和看门狗记录归类。</p>
       <div class="doc-meta">
         <span>整理自 机器人技术 Wiki 离线文档（11 页）</span>
         <span class="chip">排障方法</span>
@@ -87,7 +87,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>去现场抓取重启证据的运维人员可用，内容整理自机器人技术 Wiki 离线文档，目录、阈值和日志字样存在版本差异，须在实机与实测中确认。</p>
         </div>
 
         <h2 id="s1">阶段一 · 先确认是否属于异常重启</h2>
@@ -105,7 +105,8 @@
 
         <h2 id="s4">阶段一 · 按主控版本采集电池日志</h2>
         <p>掉电重启不能只看 AGV 的 <code>reset_type</code>，还需电池日志确认按键、温度和充放电告警。</p><p><strong>主控 3.x：记录终端会话。</strong></p><ol><li>在 PuTTY 中进入“Session → Logging → Session logging”，选择 <strong>All session output</strong>，自定义 Log file name，通过 Browse 选择保存路径并 Save。</li><li>回到 Session，填写机器人地址，Port 设为 <strong>22</strong>，以 SSH 连接；地址以现场实际为准，不写入公开记录。</li><li>分别执行状态信息和历史告警命令，结束后拷贝完整会话日志。</li></ol><pre>castor_cli -T 0 -T 1 -W 1 -Z 1000 -R 103 -T0
-        castor_cli -T 0 -T 1 -W 2 -Z 1000 -R23 </pre><p><strong>主控 V4.x：把电池告警写入 AGV 日志。</strong>SSH 登录后依次执行：</p><pre>castor_engy_show_battery_info history_warn
+        castor_cli -T 0 -T 1 -W 2 -Z 1000 -R23 
+</pre><p><strong>主控 V4.x：把电池告警写入 AGV 日志。</strong>SSH 登录后依次执行：</p><pre>castor_engy_show_battery_info history_warn
         castor_refresh_record</pre><p>刷新完成后下载<strong>最新</strong> AGV 日志，在 ENG 相关内容中查历史告警。判断依据是告警时间是否能与重启窗口对应，而不是只确认命令有输出。</p>
 
         <h2 id="s5">阶段二 · 确认重启窗口并排查主动重启</h2>

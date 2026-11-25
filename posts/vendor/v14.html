@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>机器人端与平台端日志种类及下载方法 — 排障方法 — 现场笔记</title>
-<meta name="description" content="排障效率取决于日志拿得对不对。本篇按日志说明手册整理：先分清机器人端（agv_log、evt、rcd、lidar、sens、llc_log、wpa 等）与平台端日志的种类与目录，再给出 V3.X / V4.X 两代平台的下载路径、日志时间戳读法与 TRACE 开关用法。">
+<meta name="description" content="日志拿错版本，后面的分析全白做。V3.X 与 V4.X 的主控目录和平台下载入口并不相同，agv_log、wpa 等常用日志的取法、时间戳读法与 TRACE 开关一并给出。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
       <h1>机器人端与平台端日志种类及下载方法</h1>
-      <p class="lede">排障效率取决于日志拿得对不对。本篇按日志说明手册整理：先分清机器人端（agv_log、evt、rcd、lidar、sens、llc_log、wpa 等）与平台端日志的种类与目录，再给出 V3.X / V4.X 两代平台的下载路径、日志时间戳读法与 TRACE 开关用法。</p>
+      <p class="lede">日志拿错版本，后面的分析全白做。V3.X 与 V4.X 的主控目录和平台下载入口并不相同，agv_log、wpa 等常用日志的取法、时间戳读法与 TRACE 开关一并给出。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.2（22 页）</span>
         <span class="chip">排障方法</span>
@@ -87,7 +87,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>供排障人员按版本取日志时参考，源于日志说明手册 V1.2，主控与平台的目录结构会随版本调整，真实路径以现场设备实测为准。</p>
         </div>
 
         <h2 id="s1">日志体系概览：先分清两端口</h2>

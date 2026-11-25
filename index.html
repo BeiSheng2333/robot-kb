@@ -130,7 +130,7 @@
           </div>
           <div class="note-main">
             <h3>现场地面勘测与整改要点</h3>
-            <p>面向 STU、Q1P、CTU 等移动机器人运行路径，本篇按初次全场测量、精细复测、打磨固化、裂缝与凹处修补、硬度摩擦检测到最终复测的顺序，整理地面勘测整改流程。每一步均给出测点间距、工具读数、施工配比和合格判据，并单列原文阈值差异，便于现场先统一验收口径再闭环施工。</p>
+            <p>地面平整度不达标就上线，机器人容易在固定点走偏或停车失准，返工还要停产。从 1.5 m 网格初测、轮印 500 mm 精细复测到硬度与摩擦验收，给出各车型阈值和施工配比。</p>
             <div class="note-tags"><span>地面勘测</span><span>地面整改</span><span>平整度</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -144,7 +144,7 @@
           </div>
           <div class="note-main">
             <h3>移动机器人无线网络测试与部署</h3>
-            <p>面向移动机器人上线前的无线规划、施工配置与网络验收，本篇把三篇通用 Wiki 合并为一条可执行流程：先完成地址、VLAN、AC/AP 与安装部署，再依次验证信号、延迟丢包、速率、信道、漫游和负载，并给出可直接对照的阈值、命令、日志关键字及判定方法。</p>
+            <p>无线没验收就上线，机器人常在货架通道里掉线或漫游丢包，返工代价很高。从地址与 VLAN、AP 部署到信号 -55 dBm、漫游 500 ms 等实测项，给出可对照的阈值与取证命令。</p>
             <div class="note-tags"><span>移动机器人</span><span>AMR</span><span>Wi-Fi</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -158,7 +158,7 @@
           </div>
           <div class="note-main">
             <h3>机器人异常重启排查与日志采集</h3>
-            <p>异常重启要先排除人工断电、定时重启和参数修改后的主动重启，再按日志证据区分掉电与软重启。本篇给出从校时、下载 AGV 与全部内核日志、提取 Coredump 和电池告警，到核对 reset_type、SYSTEM BOOT、看门狗及 panic 的路径，避免被后续人工操作误导。</p>
+            <p>先分清人工断电、定时重启还是真正的异常重启，否则日志很容易被恢复动作带偏。从校时、备齐异常前后 AGV 与全部内核日志，到用 reset_type、SYSTEM BOOT 和看门狗记录归类。</p>
             <div class="note-tags"><span>异常重启</span><span>AGV日志</span><span>内核日志</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -172,7 +172,7 @@
           </div>
           <div class="note-main">
             <h3>机器人充电异常排查</h3>
-            <p>充电异常可能出在任务分配、平台下发、机器人执行、充电桩通信或机械接触任一环节。本篇按真实任务链组织排查：先核对关键日志字段，再分别处理不自动充电、无法打断、充满不离开、离线、无电压或无电流、伸缩异常与地址冲突，并给出对应取值和判断依据。</p>
+            <p>充电不上、打断不了或充满不走，问题可能出在分配、下发、执行、桩通信乃至机械接触的任一环。沿分配库到充电桩的任务链比对 action_type 与 sta_out_cur，用日志找出首个断点。</p>
             <div class="note-tags"><span>充电异常</span><span>pair_type</span><span>_CHG</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -186,7 +186,7 @@
           </div>
           <div class="note-main">
             <h3>机器人任务空闲但不执行排查</h3>
-            <p>RCS_WEB 显示任务正在执行，机器人却举着货架并提示“任务空闲”时，故障可能在任务触发、规划输入输出或机器人执行侧。本篇按子任务状态、规划库 In/Out、RCS 与分配链、机器人日志的顺序分流，并给出 A/D/E 字段、完成标志、位置精度及典型报错的判断和处置步骤。</p>
+            <p>RCS_WEB 上任务显示在执行，机器人却举着货架报任务空闲，问题多半断在触发、规划或执行侧。顺着子任务状态、规划库 In/Out 的 A 与 D/E 字段查到机器人日志，并给出下一步去向。</p>
             <div class="note-tags"><span>任务空闲</span><span>RCS_WEB</span><span>子任务单管理</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -200,7 +200,7 @@
           </div>
           <div class="note-main">
             <h3>L-SLAM 定位异常的分层排查</h3>
-            <p>机器人出现走偏、定位跳变、固定点走过或无法上线时，不能只凭一次现象直接改地图。本篇按现场排查顺序整理日志留存、导航激光识别、SLM 回放、导航参数与特征区检查，再用轮廓匹配区分环境干扰、局部或全局尺度问题及反光条误匹配，给出可复核的处理和验收依据。</p>
+            <p>机器人走偏、定位跳变或空旷区无法上线时，直接改地图往往掩盖真实原因。从按版本取齐导航激光日志、认准导航激光，到区分局部与全局尺度及反光条间距 500 mm 的整改，逐层给出判据。</p>
             <div class="note-tags"><span>L-SLAM</span><span>定位异常</span><span>激光日志</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -214,7 +214,7 @@
           </div>
           <div class="note-main">
             <h3>AGV 加密文件修改与导入刷写流程（软标定制）</h3>
-            <p>现场定制、改制时需要修改小车软件标识符（软标）并刷入对应的加密文件 sec.bin。本篇按操作手册的完整步骤整理：从导出与校验、用加密工具改软标、准备 TFTP 与串口，到 U-Boot 刷写与重启验证，并标出每一步的判断依据和易错点。</p>
+            <p>改制车辆需要改软标时，sec.bin 混用或漏备份会让回滚失去依据。从导出校验、加密工具改软标到 TFTP 刷写与重启核验，每一步都标出判断点和易错处。</p>
             <div class="note-tags"><span>加密文件</span><span>sec.bin</span><span>软标</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -228,7 +228,7 @@
           </div>
           <div class="note-main">
             <h3>ClientView 低代码页面配置与接口绑定</h3>
-            <p>面向实施人员的 ClientView 配置手册：从项目、服务、应用、布局、菜单五步搭出工作站与 PDA 页面，并用元件标识、请求属性把按钮和表格绑定到后端接口。补齐每类元件的关键参数与联调常见坑。</p>
+            <p>工作站与 PDA 页面不必单独写前端，用 ClientView 拖元件、绑接口就能上线，出错多集中在标识和传参。五步搭建、元件标识、请求属性取值与表格读写模板，都配了现场踩过的坑。</p>
             <div class="note-tags"><span>ClientView</span><span>PDA</span><span>低代码</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -242,7 +242,7 @@
           </div>
           <div class="note-main">
             <h3>终端工具连接机器人与服务端的常用操作</h3>
-            <p>现场最常用的两类终端操作：用 PuTTY 登录机器人主控跑调试命令、开打印留证；用 MobaXterm 登录服务器，通过 SSH 与 SFTP 上传下载、在线改配置。按操作手册 V5.1 补齐界面步骤、命令与易错点。</p>
+            <p>现场排查动作异常时，需要用 PuTTY 登进主控开打印留证，或从服务器取日志、改配置。会话建立、主机密钥提示、sz/rz 与 SFTP 传文件、vim 编辑，操作与命令都对应到手册 V5.1。</p>
             <div class="note-tags"><span>PuTTY</span><span>MobaXterm</span><span>SSH</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -256,7 +256,7 @@
           </div>
           <div class="note-main">
             <h3>调度系统 HTTP API 签名与任务接口</h3>
-            <p>面向 WMS/MES 对接方的接口手册：请求头与签名算法、错误码判定、任务组与任务下发/继续/取消/查询全流程，以及调度系统回调上层系统的 SPI 接口。按 RCS V4.1 对外接口文档整理。</p>
+            <p>WMS 与 MES 对接调度系统时，签名原串差一个空格或 Host 多一个端口，都会稳定返回 401。公共请求头、HMAC-SHA256 加签、任务组与 SPI 回调，逐段给出报文样例和错误码判读。</p>
             <div class="note-tags"><span>HTTP API</span><span>HMAC-SHA256</span><span>签名</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -270,7 +270,7 @@
           </div>
           <div class="note-main">
             <h3>叉车激光标定与多车一致性调整</h3>
-            <p>多台叉车在同一储位点停车姿态反复不一致，本质是导航激光相对运动中心的安装偏差不同。本篇按手册补全标定原理、参考线选取、角度与侧向的符号规则、运动误差扣除，以及旧版指令标定、主控 2.8 以上整包 JSON 标定和全向叉车差异。</p>
+            <p>多台叉车在同一储位点停车姿态反复不一致，往往不是激光装歪，而是安装偏差与运动误差叠在一起。角度与侧向符号、物理差值减运动误差的算法、主控 2.8 起的整包 JSON 标定，逐条拆开说。</p>
             <div class="note-tags"><span>激光标定</span><span>基准车</span><span>参考线</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -284,7 +284,7 @@
           </div>
           <div class="note-main">
             <h3>L-SLAM 地图核查与轮廓优化</h3>
-            <p>现场环境变化后，机器人扫描轮廓与 L-SLAM 地图对不上，表现为置信度低、行走精度差。本篇按手册完整流程整理：日志回放定位问题、在线/离线两种地图核查、结果判读，以及用替换裁剪和融合裁剪优化轮廓、处理激光干扰。</p>
+            <p>现场改造或新增机台后，扫描轮廓与 L-SLAM 地图对不上，主通道频繁走偏。从激光日志回放、在线与离线核查、65mm 停位要求到替换与融合裁剪，逐项给出判据。</p>
             <div class="note-tags"><span>L-SLAM</span><span>地图核查</span><span>激光回放</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -298,7 +298,7 @@
           </div>
           <div class="note-main">
             <h3>L-SLAM 建图流程与路径规划</h3>
-            <p>L-SLAM 建图不是「推着车走一圈」这么简单：环境评估、反光板部署、闭环路线规划、分辨率选择、特殊场景规避，每一步都会决定地图能不能用。本篇按建图手册的完整章节整理在线/离线两条建图链路，并把闭环与路径规划的技巧拆成可执行的规则。</p>
+            <p>建图失败多半坏在闭环：回到老位置时车头方向相反，累计误差就消不掉。在线与离线两条链路怎么走，口字路线边长 120 m、速度 0.8 m/s 以下的限制，以及长廊与光伏场景的应对，都拆成了可执行规则。</p>
             <div class="note-tags"><span>L-SLAM</span><span>激光建图</span><span>在线建图</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -312,7 +312,7 @@
           </div>
           <div class="note-main">
             <h3>机器人端与平台端日志种类及下载方法</h3>
-            <p>排障效率取决于日志拿得对不对。本篇按日志说明手册整理：先分清机器人端（agv_log、evt、rcd、lidar、sens、llc_log、wpa 等）与平台端日志的种类与目录，再给出 V3.X / V4.X 两代平台的下载路径、日志时间戳读法与 TRACE 开关用法。</p>
+            <p>日志拿错版本，后面的分析全白做。V3.X 与 V4.X 的主控目录和平台下载入口并不相同，agv_log、wpa 等常用日志的取法、时间戳读法与 TRACE 开关一并给出。</p>
             <div class="note-tags"><span>机器人日志</span><span>平台日志</span><span>agv_log</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -326,7 +326,7 @@
           </div>
           <div class="note-main">
             <h3>现场问题反馈与排查规范</h3>
-            <p>问题反馈质量决定处理速度。很多工单被反复退回，不是现场没干活，而是缺时间点、缺日志、缺结论。本篇按规范手册的完整结构整理：先讲通用流程与前期准备，再按「不上线—单体问题—平台问题—第三方对接」逐类给出排查路径与提交三件套，可直接照单填写。</p>
+            <p>工单反复被退回，往往不是现场没干活，而是缺时间点、缺日志、缺结论。不上线、单体、平台、第三方四类问题的决策树与提交三件套，可以照单填写。</p>
             <div class="note-tags"><span>问题反馈</span><span>提交规范</span><span>排查思路</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -340,7 +340,7 @@
           </div>
           <div class="note-main">
             <h3>监控客户端登录与现场管控操作要点</h3>
-            <p>监控客户端是现场值班与运维最常用的图形化工具：看地图、看车、录屏、封锁区、批量收工与关机、路径排查都在这里完成。本篇按工具的操作顺序整理：先解决登录与端口对应关系，再逐项说明每个管控功能的入口、参数和判断依据。</p>
+            <p>监控客户端连不上，多半不是密码错，而是端口和 RCS 版本没对上。登录端口对照、封锁区、一键收工与路径连通性查询，每项都给了入口、参数和风险提示。</p>
             <div class="note-tags"><span>监控客户端</span><span>MonitorClient</span><span>RCS-2000</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -354,7 +354,7 @@
           </div>
           <div class="note-main">
             <h3>潜伏机器人平台搭建与任务配置</h3>
-            <p>从零把一台潜伏机器人跑起来，要按顺序打通「地图—设备—服务—货架—机器人—客户端—任务」七段链路。本篇按业务部署手册的完整步骤整理：每一步给出现场要填的参数与判断依据，并标出关联地图、设备注册端口、载具绑定等最容易漏配的环节。</p>
+            <p>潜伏车跑不起来，多半卡在地图未关联、货架没绑定载具这类强依赖环节。从 rcs-web 登录到任务下发，七段链路每一步填什么参数、设备注册端口 8988 怎么核对，都写清了。</p>
             <div class="note-tags"><span>潜伏机器人</span><span>业务部署</span><span>RCS 平台</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -368,7 +368,7 @@
           </div>
           <div class="note-main">
             <h3>叉车机器人常见告警排查</h3>
-            <p>叉车类机器人的告警按模块分为主控、能源、举升、导感、导航库、安全、声光与特殊故障八类。本篇按「现象 → 原因 → 验证步骤 → 恢复方法」统一口径整理，重点补上失联的六步定位、无法开机的电压分级判断、电池过放的两种补电路径和读码头的拆检顺序。</p>
+            <p>叉车告警看似千头万绪，先通讯供电、再传感器与执行机构、最后才换件，往往比凭经验猜快得多。八类告警逐条给出成因与恢复动作，并补上失联六步、无法开机的电压分档判断和电池过放的补电红线。</p>
             <div class="note-tags"><span>平台失联</span><span>地图切换失败</span><span>旋转申请失败</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -382,7 +382,7 @@
           </div>
           <div class="note-main">
             <h3>外设对接：呼叫器、自动门与电梯配置</h3>
-            <p>外设与调度系统的对接分两条线：链路侧（TCP 经 WCS 转发）和配置侧（呼叫器、自动门、电梯的添加与任务模板编排）。本篇按手册顺序整理第三方类型的选择、四类任务通知的方法名、呼叫器三种按钮功能的区别、自动门区域框选与通信协议，以及电梯跨楼层 / 不跨楼层两套任务模板的差异。</p>
+            <p>外设经 WCS 转发而非直连调度系统，链路没搞清就填第三方地址，任务常执行完却不结束。呼叫器参数、自动门框选、电梯启用，以及 F62 与 F20 加 F201 两套模板的差异，都给出配置与联调路径。</p>
             <div class="note-tags"><span>外设管理</span><span>呼叫器</span><span>自动门</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -396,7 +396,7 @@
           </div>
           <div class="note-main">
             <h3>叉取机器人 SLAM 建图与上线</h3>
-            <p>叉车实施的标准顺序是「布反光条 → SLAM 采图建图 → 平台上线 → 画拓扑地图」。本篇按手册顺序拆开每一步：有线连接与无线配置、反光条与反光柱的量化要求、采图速度与闭环、日志目录与下载、离线建图与旋转、平台服务与地图导入、拓扑绘制与偏移，以及用灯语判断上线状态。</p>
+            <p>叉车建图顺序一旦颠倒，反光条没布完就采图，地图上的反光点与现场对不上，只能整段重采。从调试口有线配置、反光条 20 m 三个象限五根的门槛，到离线建图、平台上线和灯语判断，逐步给出可核对的节点。</p>
             <div class="note-tags"><span>叉取机器人</span><span>SLAM 建图</span><span>反光条</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -410,7 +410,7 @@
           </div>
           <div class="note-main">
             <h3>调度系统安装、升级与配套软件部署</h3>
-            <p>调度系统（RCS-Lite）的首次安装、补丁升级、卸载，以及监控客户端、PDA、数据库三类配套件的部署顺序与版本要求。本篇按手册章节顺序整理环境门槛、业务类型选择、License 导入、补丁包升级和 DbTool 切库的具体步骤，并给出每个环节的判断依据。</p>
+            <p>服务器残留旧版 RCS-2000、漏装运行库，是首次部署 RCS-Lite 最常见的两个坑。安装、业务类型、License、补丁升级、DbTool 切库与配套软件版本配对，都给出可照做的顺序。</p>
             <div class="note-tags"><span>RCS-Lite</span><span>安装部署</span><span>业务类型</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -424,7 +424,7 @@
           </div>
           <div class="note-main">
             <h3>机器人点位方向与货架方向配置</h3>
-            <p>点位方向、货架方向、旋转控制是地图配置里最容易混淆的三套参数：它们分别决定机器人进点后的车头朝向、货架相对地码的摆放方向，以及机器人能否在货架下旋转。本篇按手册的操作顺序整理取值、点配置与线配置的选择条件、adjust_type 的六种组合和典型场景，并给出验证方法。</p>
+            <p>点位方向、货架方向、旋转控制三套参数最容易混，配错时车头、货架朝向和举升姿态会一起出错。倒车进点与 A 横转 B 竖两个实操，讲清取值、点配置与线配置的选择条件及 adjust_type 六种组合。</p>
             <div class="note-tags"><span>点位方向</span><span>货架方向</span><span>载具方向配置</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -438,7 +438,7 @@
           </div>
           <div class="note-main">
             <h3>L-SLAM 地图编辑要点</h3>
-            <p>L-SLAM 的地图不是扫完就能用：先旋转到墙面水平垂直，再留出右上方偏移防负坐标，然后擦掉临时轮廓、删掉杂点和误判反光板，必要时拼接增补区域，最后用车道线、激光无效区、轮廓稳定区兜住定位稳定性。每一步都有“做错也不报错、但会飘”的坑。</p>
+            <p>L-SLAM 地图最怕做错不报错、车辆却会飘，旋转微调、负坐标预留与拼接断层这几步尤其容易留下隐患。从工具栏到三类特征区的编辑步骤、混跑偏移换算算例和拼接后必须核查的项都覆盖在内。</p>
             <div class="note-tags"><span>L-SLAM</span><span>地图旋转</span><span>地图偏移</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -452,7 +452,7 @@
           </div>
           <div class="note-main">
             <h3>潜伏机器人典型业务场景部署</h3>
-            <p>潜伏车的现场差异几乎全在任务编排上：同一台车，盲举、随车料箱码、探测载具、缓存递进、动态终点、巷道、跨图、外设申请，各自对应一个流程编号和一组节点改法。这份笔记把这些场景的“配置改什么、流程选哪个、节点填什么表达式”逐条对齐，避免拿到流程却改错节点。</p>
+            <p>潜伏车的现场差异都在任务编排上：盲举、随车料箱码、缓存递进、跨图充电各对应一个固定流程编号，选错再改节点就是白费功夫。各场景改什么配置、节点填什么表达式，连同 BACK_OFF 与锁车方式逐条对齐。</p>
             <div class="note-tags"><span>潜伏车</span><span>盲举</span><span>PF-AMR-BLIND-LIFT-CARRIER</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -466,7 +466,7 @@
           </div>
           <div class="note-main">
             <h3>主控配置文件 castor_conf 配置项速查</h3>
-            <p>castor_conf 是主控侧的总配置：传感器、运行模式、平台对接、定位融合、举升、能源、精度、维护、低功耗、SLAM、图像库全在一份文件里。这份速查按模块拆开，把每个子项的值域与含义列全，重点是那些“填错就整机异常”的枚举值。</p>
+            <p>castor_conf 管着传感器到 SLAM 的十五个模块，改错一个枚举值就可能整机异常，fusion_type 与导航方式不符甚至会跑一段就飘。各子项的值域、含义与成对修改的开关按用途分组列出。</p>
             <div class="note-tags"><span>castor_conf</span><span>sensor_conf</span><span>run_conf</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -480,7 +480,7 @@
           </div>
           <div class="note-main">
             <h3>叉取机器人地图规划与业务部署</h3>
-            <p>叉取车型的部署链路和潜伏车差别很大：地图要专门做储位点与等待点、出入弧线，AMR 类型要照加密文件填参数，货架与容器要区分托盘落地与托盘上架两种场景，巷道业务还要单独建巷道并校验。这里按手册的六章顺序把关键参数、易错项和判断标准一次讲清。</p>
+            <p>叉取车型的返工大多埋在地图里：等待点间距 10cm 与 50cm 两套标准混用、弧线画反，常常到带货叉取才暴露。储位坐标反算、加密文件参数换算与两处偏移量对齐 120mm 的规则，都附了判断标准。</p>
             <div class="note-tags"><span>叉取机器人</span><span>拓扑地图</span><span>储位点</span></div>
           </div>
           <span class="note-arrow">→</span>
@@ -494,7 +494,7 @@
           </div>
           <div class="note-main">
             <h3>调度系统与上层平台的 REST 接口对接</h3>
-            <p>按操作手册的完整顺序梳理 RCS-Lite 对外 REST 接口：先在任务模板里配好第三方信息与四类通知方法名，再逐条调通生成任务单、继续执行、取消任务三条必调接口，最后接入回调与可选接口。每个接口给出参数表、取值枚举、示例报文与结果码排障口径。</p>
+            <p>上层平台对接 RCS-Lite 时任务能建、状态却收不到，多半是通知方法名或回调超时没对齐。三条必调接口的报文示例、forceCancel 的回库语义与常见结果码排查口径都在其中。</p>
             <div class="note-tags"><span>REST</span><span>genAgvSchedulingTask</span><span>continueTask</span></div>
           </div>
           <span class="note-arrow">→</span>

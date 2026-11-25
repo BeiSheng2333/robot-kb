@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>L-SLAM 定位异常的分层排查 — 地图与定位 — 现场笔记</title>
-<meta name="description" content="机器人出现走偏、定位跳变、固定点走过或无法上线时，不能只凭一次现象直接改地图。本篇按现场排查顺序整理日志留存、导航激光识别、SLM 回放、导航参数与特征区检查，再用轮廓匹配区分环境干扰、局部或全局尺度问题及反光条误匹配，给出可复核的处理和验收依据。">
+<meta name="description" content="机器人走偏、定位跳变或空旷区无法上线时，直接改地图往往掩盖真实原因。从按版本取齐导航激光日志、认准导航激光，到区分局部与全局尺度及反光条间距 500 mm 的整改，逐层给出判据。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>地图与定位</span></div>
       <h1>L-SLAM 定位异常的分层排查</h1>
-      <p class="lede">机器人出现走偏、定位跳变、固定点走过或无法上线时，不能只凭一次现象直接改地图。本篇按现场排查顺序整理日志留存、导航激光识别、SLM 回放、导航参数与特征区检查，再用轮廓匹配区分环境干扰、局部或全局尺度问题及反光条误匹配，给出可复核的处理和验收依据。</p>
+      <p class="lede">机器人走偏、定位跳变或空旷区无法上线时，直接改地图往往掩盖真实原因。从按版本取齐导航激光日志、认准导航激光，到区分局部与全局尺度及反光条间距 500 mm 的整改，逐层给出判据。</p>
       <div class="doc-meta">
         <span>整理自 机器人技术 Wiki 离线文档（17 页）</span>
         <span class="chip">地图与定位</span>
@@ -88,7 +88,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>处理激光定位异常的现场工程师可直接对照，材料整理自机器人技术 Wiki 离线文档，日志目录与各项阈值随主控版本而异，仍以实测复核为准。</p>
         </div>
 
         <h2 id="s1">阶段一 · 固定现象并保护现场数据</h2>

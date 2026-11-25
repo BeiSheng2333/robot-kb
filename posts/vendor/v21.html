@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AGV 加密文件修改与导入刷写流程（软标定制） — 实施部署 — 现场笔记</title>
-<meta name="description" content="现场定制、改制时需要修改小车软件标识符（软标）并刷入对应的加密文件 sec.bin。本篇按操作手册的完整步骤整理：从导出与校验、用加密工具改软标、准备 TFTP 与串口，到 U-Boot 刷写与重启验证，并标出每一步的判断依据和易错点。">
+<meta name="description" content="改制车辆需要改软标时，sec.bin 混用或漏备份会让回滚失去依据。从导出校验、加密工具改软标到 TFTP 刷写与重启核验，每一步都标出判断点和易错处。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
       <h1>AGV 加密文件修改与导入刷写流程（软标定制）</h1>
-      <p class="lede">现场定制、改制时需要修改小车软件标识符（软标）并刷入对应的加密文件 sec.bin。本篇按操作手册的完整步骤整理：从导出与校验、用加密工具改软标、准备 TFTP 与串口，到 U-Boot 刷写与重启验证，并标出每一步的判断依据和易错点。</p>
+      <p class="lede">改制车辆需要改软标时，sec.bin 混用或漏备份会让回滚失去依据。从导出校验、加密工具改软标到 TFTP 刷写与重启核验，每一步都标出判断点和易错处。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.0（13 页）</span>
         <span class="chip">实施部署</span>
@@ -87,7 +87,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>给负责改制刷写的实施人员参考，内容取自内部操作手册 V1.0，手册里的软标与 IP 多为示例，还须结合设备版本与现场实测确认。</p>
         </div>
 
         <h2 id="s1">适用范围与前置准备</h2>

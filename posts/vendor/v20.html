@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClientView 低代码页面配置与接口绑定 — 通信与接口 — 现场笔记</title>
-<meta name="description" content="面向实施人员的 ClientView 配置手册：从项目、服务、应用、布局、菜单五步搭出工作站与 PDA 页面，并用元件标识、请求属性把按钮和表格绑定到后端接口。补齐每类元件的关键参数与联调常见坑。">
+<meta name="description" content="工作站与 PDA 页面不必单独写前端，用 ClientView 拖元件、绑接口就能上线，出错多集中在标识和传参。五步搭建、元件标识、请求属性取值与表格读写模板，都配了现场踩过的坑。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>通信与接口</span></div>
       <h1>ClientView 低代码页面配置与接口绑定</h1>
-      <p class="lede">面向实施人员的 ClientView 配置手册：从项目、服务、应用、布局、菜单五步搭出工作站与 PDA 页面，并用元件标识、请求属性把按钮和表格绑定到后端接口。补齐每类元件的关键参数与联调常见坑。</p>
+      <p class="lede">工作站与 PDA 页面不必单独写前端，用 ClientView 拖元件、绑接口就能上线，出错多集中在标识和传参。五步搭建、元件标识、请求属性取值与表格读写模板，都配了现场踩过的坑。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.0（2024-05，45 页）</span>
         <span class="chip">通信与接口</span>
@@ -85,7 +85,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>ClientView 工作站与 PDA 页面的配置步骤取自内部操作手册 V1.0（2024-05），工具版本不同界面属性会变，绑定的接口与最终效果仍以现场页面验证为准。</p>
         </div>
 
         <h2 id="s1">工具定位与配置总览</h2>

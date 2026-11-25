@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>机器人点位方向与货架方向配置 — 地图与定位 — 现场笔记</title>
-<meta name="description" content="点位方向、货架方向、旋转控制是地图配置里最容易混淆的三套参数：它们分别决定机器人进点后的车头朝向、货架相对地码的摆放方向，以及机器人能否在货架下旋转。本篇按手册的操作顺序整理取值、点配置与线配置的选择条件、adjust_type 的六种组合和典型场景，并给出验证方法。">
+<meta name="description" content="点位方向、货架方向、旋转控制三套参数最容易混，配错时车头、货架朝向和举升姿态会一起出错。倒车进点与 A 横转 B 竖两个实操，讲清取值、点配置与线配置的选择条件及 adjust_type 六种组合。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>地图与定位</span></div>
       <h1>机器人点位方向与货架方向配置</h1>
-      <p class="lede">点位方向、货架方向、旋转控制是地图配置里最容易混淆的三套参数：它们分别决定机器人进点后的车头朝向、货架相对地码的摆放方向，以及机器人能否在货架下旋转。本篇按手册的操作顺序整理取值、点配置与线配置的选择条件、adjust_type 的六种组合和典型场景，并给出验证方法。</p>
+      <p class="lede">点位方向、货架方向、旋转控制三套参数最容易混，配错时车头、货架朝向和举升姿态会一起出错。倒车进点与 A 横转 B 竖两个实操，讲清取值、点配置与线配置的选择条件及 adjust_type 六种组合。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V4.0（24 页）</span>
         <span class="chip">地图与定位</span>
@@ -88,7 +88,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>适用于按载具方向配置做点位与货架方向选型的实施人员，内容取自内部操作手册 V4.0；若现场控制器或货架参数不同，仍以实测进点与举升姿态为准。</p>
         </div>
 
         <h2 id="s1">三套参数各管什么</h2>

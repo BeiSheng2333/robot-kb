@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>主控配置文件 castor_conf 配置项速查 — 配置与工具 — 现场笔记</title>
-<meta name="description" content="castor_conf 是主控侧的总配置：传感器、运行模式、平台对接、定位融合、举升、能源、精度、维护、低功耗、SLAM、图像库全在一份文件里。这份速查按模块拆开，把每个子项的值域与含义列全，重点是那些“填错就整机异常”的枚举值。">
+<meta name="description" content="castor_conf 管着传感器到 SLAM 的十五个模块，改错一个枚举值就可能整机异常，fusion_type 与导航方式不符甚至会跑一段就飘。各子项的值域、含义与成对修改的开关按用途分组列出。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>配置与工具</span></div>
       <h1>主控配置文件 castor_conf 配置项速查</h1>
-      <p class="lede">castor_conf 是主控侧的总配置：传感器、运行模式、平台对接、定位融合、举升、能源、精度、维护、低功耗、SLAM、图像库全在一份文件里。这份速查按模块拆开，把每个子项的值域与含义列全，重点是那些“填错就整机异常”的枚举值。</p>
+      <p class="lede">castor_conf 管着传感器到 SLAM 的十五个模块，改错一个枚举值就可能整机异常，fusion_type 与导航方式不符甚至会跑一段就飘。各子项的值域、含义与成对修改的开关按用途分组列出。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V2.2（9 页）</span>
         <span class="chip">配置与工具</span>
@@ -84,7 +84,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>写给需要改主控参数的实施与维护人员，条目取自操作手册 V2.2 的配置说明，具体取值请结合控制器固件版本实测确认后再落盘。</p>
         </div>
 
         <h2 id="s1">这份文件怎么用</h2>

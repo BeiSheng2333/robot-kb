@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>叉取机器人 SLAM 建图与上线 — 地图与定位 — 现场笔记</title>
-<meta name="description" content="叉车实施的标准顺序是「布反光条 → SLAM 采图建图 → 平台上线 → 画拓扑地图」。本篇按手册顺序拆开每一步：有线连接与无线配置、反光条与反光柱的量化要求、采图速度与闭环、日志目录与下载、离线建图与旋转、平台服务与地图导入、拓扑绘制与偏移，以及用灯语判断上线状态。">
+<meta name="description" content="叉车建图顺序一旦颠倒，反光条没布完就采图，地图上的反光点与现场对不上，只能整段重采。从调试口有线配置、反光条 20 m 三个象限五根的门槛，到离线建图、平台上线和灯语判断，逐步给出可核对的节点。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>地图与定位</span></div>
       <h1>叉取机器人 SLAM 建图与上线</h1>
-      <p class="lede">叉车实施的标准顺序是「布反光条 → SLAM 采图建图 → 平台上线 → 画拓扑地图」。本篇按手册顺序拆开每一步：有线连接与无线配置、反光条与反光柱的量化要求、采图速度与闭环、日志目录与下载、离线建图与旋转、平台服务与地图导入、拓扑绘制与偏移，以及用灯语判断上线状态。</p>
+      <p class="lede">叉车建图顺序一旦颠倒，反光条没布完就采图，地图上的反光点与现场对不上，只能整段重采。从调试口有线配置、反光条 20 m 三个象限五根的门槛，到离线建图、平台上线和灯语判断，逐步给出可核对的节点。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.0（50 页）</span>
         <span class="chip">地图与定位</span>
@@ -88,7 +88,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>给叉车现场实施与建图人员使用，流程与量化指标来自内部操作手册 V1.0；车型、主控版本不同时，反光条布置与上线灯语需以现场实测为准。</p>
         </div>
 
         <h2 id="s1">实施顺序与三项前置确认</h2>

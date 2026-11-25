@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>潜伏机器人典型业务场景部署 — 实施部署 — 现场笔记</title>
-<meta name="description" content="潜伏车的现场差异几乎全在任务编排上：同一台车，盲举、随车料箱码、探测载具、缓存递进、动态终点、巷道、跨图、外设申请，各自对应一个流程编号和一组节点改法。这份笔记把这些场景的“配置改什么、流程选哪个、节点填什么表达式”逐条对齐，避免拿到流程却改错节点。">
+<meta name="description" content="潜伏车的现场差异都在任务编排上：盲举、随车料箱码、缓存递进、跨图充电各对应一个固定流程编号，选错再改节点就是白费功夫。各场景改什么配置、节点填什么表达式，连同 BACK_OFF 与锁车方式逐条对齐。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>实施部署</span></div>
       <h1>潜伏机器人典型业务场景部署</h1>
-      <p class="lede">潜伏车的现场差异几乎全在任务编排上：同一台车，盲举、随车料箱码、探测载具、缓存递进、动态终点、巷道、跨图、外设申请，各自对应一个流程编号和一组节点改法。这份笔记把这些场景的“配置改什么、流程选哪个、节点填什么表达式”逐条对齐，避免拿到流程却改错节点。</p>
+      <p class="lede">潜伏车的现场差异都在任务编排上：盲举、随车料箱码、缓存递进、跨图充电各对应一个固定流程编号，选错再改节点就是白费功夫。各场景改什么配置、节点填什么表达式，连同 BACK_OFF 与锁车方式逐条对齐。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.4（58 页）</span>
         <span class="chip">实施部署</span>
@@ -87,7 +87,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>适用于潜伏车场景配置与流程编排的实施人员，内容根据操作手册 V1.4 整理，流程编号与表达式在不同平台版本可能变动，落地前需现场跑通验证。</p>
         </div>
 
         <h2 id="s1">场景总表：先选流程，再改节点</h2>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>机器人任务空闲但不执行排查 — 排障方法 — 现场笔记</title>
-<meta name="description" content="RCS_WEB 显示任务正在执行，机器人却举着货架并提示“任务空闲”时，故障可能在任务触发、规划输入输出或机器人执行侧。本篇按子任务状态、规划库 In/Out、RCS 与分配链、机器人日志的顺序分流，并给出 A/D/E 字段、完成标志、位置精度及典型报错的判断和处置步骤。">
+<meta name="description" content="RCS_WEB 上任务显示在执行，机器人却举着货架报任务空闲，问题多半断在触发、规划或执行侧。顺着子任务状态、规划库 In/Out 的 A 与 D/E 字段查到机器人日志，并给出下一步去向。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>排障方法</span></div>
       <h1>机器人任务空闲但不执行排查</h1>
-      <p class="lede">RCS_WEB 显示任务正在执行，机器人却举着货架并提示“任务空闲”时，故障可能在任务触发、规划输入输出或机器人执行侧。本篇按子任务状态、规划库 In/Out、RCS 与分配链、机器人日志的顺序分流，并给出 A/D/E 字段、完成标志、位置精度及典型报错的判断和处置步骤。</p>
+      <p class="lede">RCS_WEB 上任务显示在执行，机器人却举着货架报任务空闲，问题多半断在触发、规划或执行侧。顺着子任务状态、规划库 In/Out 的 A 与 D/E 字段查到机器人日志，并给出下一步去向。</p>
       <div class="doc-meta">
         <span>整理自 机器人技术 Wiki 离线文档（10 页）</span>
         <span class="chip">排障方法</span>
@@ -87,7 +87,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>排查 RCS_WEB 与机器人屏幕状态不一致时可参照，来源为机器人技术 Wiki 离线文档，文中字段取值与参数调整只对应原案例，需按现状实测判断。</p>
         </div>
 
         <h2 id="s1">阶段一 · 确认现象并按三条链路分流</h2>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>移动机器人无线网络测试与部署 — 通信与接口 — 现场笔记</title>
-<meta name="description" content="面向移动机器人上线前的无线规划、施工配置与网络验收，本篇把三篇通用 Wiki 合并为一条可执行流程：先完成地址、VLAN、AC/AP 与安装部署，再依次验证信号、延迟丢包、速率、信道、漫游和负载，并给出可直接对照的阈值、命令、日志关键字及判定方法。">
+<meta name="description" content="无线没验收就上线，机器人常在货架通道里掉线或漫游丢包，返工代价很高。从地址与 VLAN、AP 部署到信号 -55 dBm、漫游 500 ms 等实测项，给出可对照的阈值与取证命令。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>通信与接口</span></div>
       <h1>移动机器人无线网络测试与部署</h1>
-      <p class="lede">面向移动机器人上线前的无线规划、施工配置与网络验收，本篇把三篇通用 Wiki 合并为一条可执行流程：先完成地址、VLAN、AC/AP 与安装部署，再依次验证信号、延迟丢包、速率、信道、漫游和负载，并给出可直接对照的阈值、命令、日志关键字及判定方法。</p>
+      <p class="lede">无线没验收就上线，机器人常在货架通道里掉线或漫游丢包，返工代价很高。从地址与 VLAN、AP 部署到信号 -55 dBm、漫游 500 ms 等实测项，给出可对照的阈值与取证命令。</p>
       <div class="doc-meta">
         <span>整理自 机器人技术 Wiki 离线文档（27 页，3 篇合并）</span>
         <span class="chip">通信与接口</span>
@@ -85,7 +85,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>做无线规划、施工与验收的网络调试人员可对照，材料综合机器人技术 Wiki 三篇离线文档，设备与场地差异较大，各项阈值应以实测结果复核。</p>
         </div>
 
         <h2 id="s1">阶段一 · 明确测试路线与验收基线</h2>

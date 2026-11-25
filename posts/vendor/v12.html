@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>监控客户端登录与现场管控操作要点 — 配置与工具 — 现场笔记</title>
-<meta name="description" content="监控客户端是现场值班与运维最常用的图形化工具：看地图、看车、录屏、封锁区、批量收工与关机、路径排查都在这里完成。本篇按工具的操作顺序整理：先解决登录与端口对应关系，再逐项说明每个管控功能的入口、参数和判断依据。">
+<meta name="description" content="监控客户端连不上，多半不是密码错，而是端口和 RCS 版本没对上。登录端口对照、封锁区、一键收工与路径连通性查询，每项都给了入口、参数和风险提示。">
 <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
@@ -66,7 +66,7 @@
     <article class="doc">
       <div class="crumbs"><a href="../../index.html">首页</a><span class="sep">/</span><span>配置与工具</span></div>
       <h1>监控客户端登录与现场管控操作要点</h1>
-      <p class="lede">监控客户端是现场值班与运维最常用的图形化工具：看地图、看车、录屏、封锁区、批量收工与关机、路径排查都在这里完成。本篇按工具的操作顺序整理：先解决登录与端口对应关系，再逐项说明每个管控功能的入口、参数和判断依据。</p>
+      <p class="lede">监控客户端连不上，多半不是密码错，而是端口和 RCS 版本没对上。登录端口对照、封锁区、一键收工与路径连通性查询，每项都给了入口、参数和风险提示。</p>
       <div class="doc-meta">
         <span>整理自 内部操作手册 V1.0（23 页）</span>
         <span class="chip">配置与工具</span>
@@ -84,7 +84,7 @@
       <div class="prose">
         <div class="callout ok">
           <span class="callout-title">内容说明</span>
-          <p>本篇为基于厂商操作手册的原创整理，只提炼流程与判断方法，不复制原文；不同版本与控制器存在差异，结论请结合现场验证使用。</p>
+          <p>适合值班和现场运维对照操作，依据监控客户端 V1.0 手册整理，不同 RCS 版本的端口与按钮位置会有出入，落到现场仍需实测确认。</p>
         </div>
 
         <h2 id="s1">工具定位与适用版本</h2>
